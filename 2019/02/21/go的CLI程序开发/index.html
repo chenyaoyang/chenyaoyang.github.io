@@ -1,0 +1,1397 @@
+<!DOCTYPE html>
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+<html class="theme-next pisces use-motion" lang="zh-CN">
+<head><meta name="generator" content="Hexo 3.8.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+    
+      
+    
+
+    
+  
+
+  
+
+  
+    
+      
+    
+
+    
+  
+
+  
+    
+      
+    
+
+    
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Monda:300,300italic,400,400italic,700,700italic|Roboto Slab:300,300italic,400,400italic,700,700italic|Dancing Script:300,300italic,400,400italic,700,700italic|Consolas:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css">
+
+<link href="/css/main.css?v=6.6.0" rel="stylesheet" type="text/css">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=6.6.0">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=6.6.0">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=6.6.0">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=6.6.0" color="#222">
+
+
+
+
+
+
+
+
+
+<script id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    version: '6.6.0',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: false,
+    fastclick: false,
+    lazyload: false,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+  
+
+
+
+
+  <meta name="description" content="CLI(command-line interface)就是命令行界面，我们在linux命令行中输入的一个个指令都是CLI程序，典型如tar命令，一般使用go开发一个命令行程序有以下几种方法">
+<meta name="keywords" content="Go">
+<meta property="og:type" content="article">
+<meta property="og:title" content="go的CLI程序开发">
+<meta property="og:url" content="http://yoursite.com/2019/02/21/go的CLI程序开发/index.html">
+<meta property="og:site_name" content="AmorFati">
+<meta property="og:description" content="CLI(command-line interface)就是命令行界面，我们在linux命令行中输入的一个个指令都是CLI程序，典型如tar命令，一般使用go开发一个命令行程序有以下几种方法">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:updated_time" content="2019-02-21T10:32:50.338Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="go的CLI程序开发">
+<meta name="twitter:description" content="CLI(command-line interface)就是命令行界面，我们在linux命令行中输入的一个个指令都是CLI程序，典型如tar命令，一般使用go开发一个命令行程序有以下几种方法">
+
+
+
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2019/02/21/go的CLI程序开发/">
+
+
+
+<script id="page.configurations">
+  CONFIG.page = {
+    sidebar: "",
+  };
+</script>
+
+  <title>go的CLI程序开发 | AmorFati</title>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  <noscript>
+  <style>
+    .use-motion .motion-element,
+    .use-motion .brand,
+    .use-motion .menu-item,
+    .sidebar-inner,
+    .use-motion .post-block,
+    .use-motion .pagination,
+    .use-motion .comments,
+    .use-motion .post-header,
+    .use-motion .post-body,
+    .use-motion .collection-title { opacity: initial; }
+
+    .use-motion .logo,
+    .use-motion .site-title,
+    .use-motion .site-subtitle {
+      opacity: initial;
+      top: initial;
+    }
+
+    .use-motion .logo-line-before i { left: initial; }
+    .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope="" itemtype="http://schema.org/WebPage" lang="zh-CN">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope="" itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">AmorFati</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+    
+      
+        <p class="site-subtitle">风吹过窗前的书，又翻过一页</p>
+      
+    
+    
+  </div>
+
+  <div class="site-nav-toggle">
+    <button aria-label="切换导航栏">
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  
+    <ul id="menu" class="menu">
+      
+        
+        
+        
+          
+          <li class="menu-item menu-item-home">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/" rel="section"><i class="menu-item-icon fa fa-fw fa-home"></i> <br>首页</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-about">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/about/" rel="section"><i class="menu-item-icon fa fa-fw fa-user"></i> <br>关于</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-tags">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/tags/" rel="section"><i class="menu-item-icon fa fa-fw fa-tags"></i> <br>标签</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-categories">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/categories/" rel="section"><i class="menu-item-icon fa fa-fw fa-th"></i> <br>分类</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-archives">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/archives/" rel="section"><i class="menu-item-icon fa fa-fw fa-archive"></i> <br>归档</a>
+
+  </li>
+
+      
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br>搜索</a>
+        </li>
+      
+    </ul>
+  
+
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup search-popup local-search-popup">
+  <div class="local-search-header clearfix">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+    <div class="local-search-input-wrapper">
+      <input autocomplete="off" placeholder="搜索..." spellcheck="false" type="text" id="local-search-input">
+    </div>
+  </div>
+  <div id="local-search-result"></div>
+</div>
+
+
+
+    </div>
+  
+</nav>
+
+
+
+  
+
+
+
+</div>
+    </header>
+
+    
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+            
+
+          
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  
+
+  <article class="post post-type-normal" itemscope="" itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/02/21/go的CLI程序开发/">
+
+    <span hidden itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="AmorFati">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/assets/img/icon.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope="" itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="AmorFati">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">go的CLI程序开发
+
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+
+            
+            
+            
+
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+
+              
+                
+              
+
+              <time title="创建时间：2019-02-21 18:26:06 / 修改时间：18:32:50" itemprop="dateCreated datePublished" datetime="2019-02-21T18:26:06+08:00">2019-02-21</time>
+            
+
+            
+              
+
+              
+            
+          </span>
+
+          
+            <span class="post-category">
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope="" itemtype="http://schema.org/Thing"><a href="/categories/Go语言学习/" itemprop="url" rel="index"><span itemprop="name">Go语言学习</span></a></span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>CLI(command-line interface)就是命令行界面，我们在linux命令行中输入的一个个指令都是CLI程序，典型如tar命令，一般使用go开发一个命令行程序有以下几种方法<br><a id="more"></a></p>
+<h2 id="1-Arguments"><a href="#1-Arguments" class="headerlink" title="1 Arguments"></a>1 Arguments</h2><p>这个算是最基本的方法，但也是最繁琐的。主要借助os.Args，查看源码，介绍如下</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">// Args hold the command-line arguments, starting with the program name.</span><br><span class="line">var Args []string</span><br></pre></td></tr></table></figure>
+<p>这里告诉我们这个数组切片保存了命令行的参数，且第一个参数程序名。这里需要注意的一点是，就算一个参数不附加，os.Args这个数组也是有一个值的，就是当前的程序，所以我们在通过len(os.Args)判断是否有额外参数时，len(os.Args)&gt;1才能说明有额外参数</p>
+<p>既然我们可以通过这个数组获取所有参数，那么就可以通过一系列参数判断，开发出一个命令行程序，但无疑是很繁琐的，所以go标准库中提供了一个简单的库来帮助我们</p>
+<h2 id="2-flag"><a href="#2-flag" class="headerlink" title="2 flag"></a>2 flag</h2><p>我们先引入一个小例子</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">main</span><span class="params">()</span></span> &#123;</span><br><span class="line">	dir := flag.String(<span class="string">"dir"</span>,<span class="string">"/home/user"</span>,<span class="string">"data directory"</span>)</span><br><span class="line">	flag.Parse()</span><br><span class="line">	fmt.Println(*dir)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>之后再命令行输入下面命令去运行，<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line">go run example.go   </span><br><span class="line">输出/home/user</span><br><span class="line"></span><br><span class="line">go run example.go -dir /etc/opt     </span><br><span class="line">输出/etc/opt</span><br><span class="line"></span><br><span class="line">go run in.go -h</span><br><span class="line">输出：</span><br><span class="line">Usage of .../example.exe</span><br><span class="line">    -dir string</span><br><span class="line">        data directory (default &quot;/home/user&quot;)</span><br><span class="line">        </span><br><span class="line">go run example.go -dirs /etc</span><br><span class="line">输出：</span><br><span class="line">flag provided but not defined: -dirs</span><br><span class="line">Usage of .../example.exe</span><br><span class="line">    -dir string</span><br><span class="line">        data directory (default &quot;/home/user&quot;)</span><br></pre></td></tr></table></figure></p>
+<p>可以看出这已经是一个比较完善的命令程序，我们指定了参数名：dir，默认值：”/home/user”，以及参数解释：”data directory”。之后flag包自动帮我们解析参数，并附带了-h帮助信息，以及未定义参数的提示信息</p>
+<p>通过上面的例子基本可以了解flag大体使用方法，首先定义一些参数，之后flag.Parse()进行解析，最后使用解析到的数据即可，关于Parse()源码如下</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">Parse</span><span class="params">()</span></span> &#123;</span><br><span class="line">	CommandLine.Parse(os.Args[<span class="number">1</span>:])</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>可见也是用的os.Args[1:]作为输入，只不过这个包帮我们做好了匹配及错误处理而已。接下来详细学习一下用法</p>
+<h3 id="2-1-flag定义"><a href="#2-1-flag定义" class="headerlink" title="2.1 flag定义"></a>2.1 flag定义</h3><p>基本上分三大类：</p>
+<ol>
+<li><p><strong>flag.Xxx(name,value,usage) *Xxx</strong></p>
+<p> Xxx表示相应的数据类型，如Bool，Float64，Int，String等等，参数都是三个：名称，默认值，用法介绍。返回值1是相应类型的一个指针变量。例子如下：</p>
+</li>
+</ol>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">dir := flag.String(<span class="string">"dir"</span>,<span class="string">"/home/user"</span>,<span class="string">"data directory"</span>)</span><br></pre></td></tr></table></figure>
+<ol start="2">
+<li><p><strong>flag.XxxVar(p,name,value,usage)</strong></p>
+<p> Xxx也是表示相应的数据类型，和上面那个一样，区别是多了一个参数，需要传入一个变量的引用，然后解析时会把值赋给这个变量，没有返回值，例子如下</p>
+</li>
+</ol>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> dir <span class="keyword">string</span></span><br><span class="line">flag.StringVar(&amp;dir,<span class="string">"dir"</span>,<span class="string">"/home/user"</span>,<span class="string">"data directory"</span>)</span><br></pre></td></tr></table></figure>
+<ol start="3">
+<li><p><strong>flag.Var(value,name,usage)</strong></p>
+<p> 当包中预定义的数据类型不能满足要求时，就需要这个方法了，第一个参数是一个引用，其类是实现flag.Value 接口，剩下的两个参数意义和上边的一样。先看一下这个接口</p>
+</li>
+</ol>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">type</span> Value <span class="keyword">interface</span> &#123;</span><br><span class="line">	String() <span class="keyword">string</span></span><br><span class="line">	Set(<span class="keyword">string</span>) error</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>基本上就是要定义存取方法，只不过存取的值都必须是string类型，举一个简单的例子</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">type</span> student <span class="keyword">struct</span> &#123;</span><br><span class="line">	name <span class="keyword">string</span></span><br><span class="line">	age <span class="keyword">int64</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(s *student)</span> <span class="title">String</span><span class="params">()</span><span class="title">string</span></span>&#123;</span><br><span class="line">	<span class="keyword">return</span> s.name+<span class="keyword">string</span>(s.age)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(s *student)</span> <span class="title">Set</span><span class="params">(str <span class="keyword">string</span>)</span><span class="title">error</span></span>&#123;</span><br><span class="line">	slice:=strings.Split(str,<span class="string">","</span>)</span><br><span class="line">	<span class="keyword">if</span> <span class="built_in">len</span>(slice)!=<span class="number">2</span> &#123;</span><br><span class="line">		<span class="keyword">return</span> errors.New(<span class="string">"bad format"</span>)</span><br><span class="line">	&#125;</span><br><span class="line">	i,err:=strconv.ParseInt(slice[<span class="number">1</span>],<span class="number">10</span>,<span class="number">64</span>)</span><br><span class="line">	<span class="keyword">if</span> err!=<span class="literal">nil</span> &#123;</span><br><span class="line">		<span class="keyword">return</span> err</span><br><span class="line">	&#125;</span><br><span class="line">	s.name = slice[<span class="number">0</span>]</span><br><span class="line">	s.age = i</span><br><span class="line">	<span class="keyword">return</span> <span class="literal">nil</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">main</span><span class="params">()</span></span> &#123;</span><br><span class="line">	<span class="keyword">var</span> dir student</span><br><span class="line">	flag.Var(&amp;dir,<span class="string">"stu"</span>,<span class="string">"student info"</span>)</span><br><span class="line">	flag.Parse()</span><br><span class="line">	fmt.Println(dir.name,<span class="string">"+++"</span>,dir.age)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">//用法</span></span><br><span class="line"><span class="comment">//go run example.go -stu wang,21</span></span><br></pre></td></tr></table></figure>
+<h3 id="2-2-flag格式"><a href="#2-2-flag格式" class="headerlink" title="2.2 flag格式"></a>2.2 flag格式</h3><p>一般形式如下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">-flag</span><br><span class="line">-flag = x</span><br><span class="line">-flag x //仅适用于非boolean类型flag</span><br></pre></td></tr></table></figure>
+<p>其中-和–都是允许的</p>
+<p>flag解析会在遇到第一个非flag参数或单独的–之后停止，例</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">main</span><span class="params">()</span></span> &#123;</span><br><span class="line">	n := flag.Int(<span class="string">"n"</span>,<span class="number">0</span>,<span class="string">"number"</span>)</span><br><span class="line">	flag.Parse()</span><br><span class="line">	fmt.Println(*n)</span><br><span class="line">	fmt.Println(flag.NArg())</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>下面的命令都会由于提前停止解析得不到所要的值</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">go run example.go 45 -n 1 //flag.NArg()会返回3</span><br><span class="line">go run example.go - -n 1 //flag.NArg()会返回3</span><br><span class="line">go run example.go -- -n 1 //flag.NArg()会返回2，--被当做终止符</span><br></pre></td></tr></table></figure>
+<h3 id="2-3-其他方法"><a href="#2-3-其他方法" class="headerlink" title="2.3 其他方法"></a>2.3 其他方法</h3><ol>
+<li><p><strong>Arg(i int)string ， Args()[]string ， NArg()int ， NFlag()int</strong></p>
+<p> Arg(i int)返回的是在被flag解析后，第i个剩余的参数，没有的话返回空字符串</p>
+<p> Args()返回的是被flag解析后，剩余参数数组切片</p>
+<p> NArg()返回的是被flag解析后，剩余参数的个数</p>
+<p> NFlag()返回的是接收到的flag参数个数（并不是定义的个数）</p>
+</li>
+</ol>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">n := flag.Int(<span class="string">"n"</span>,<span class="number">0</span>,<span class="string">"number"</span>)</span><br><span class="line">flag.Parse()</span><br><span class="line">fmt.Println(n)</span><br><span class="line"></span><br><span class="line">fmt.Println(flag.Arg(<span class="number">1</span>))<span class="comment">//输入&gt;go run example.go -n 1 454 555，返回555</span></span><br><span class="line">                        <span class="comment">//输入&gt;go run example.go -n 1 454 ，返回空</span></span><br><span class="line">                        </span><br><span class="line">fmt.Println(flag.Args())<span class="comment">//输入&gt;go run example.go -n 1 454 555，返回[454,555]</span></span><br><span class="line"></span><br><span class="line">fmt.Println(flag.NArg())<span class="comment">//输入&gt;go run example.go -n 1 454 555,返回2</span></span><br><span class="line"></span><br><span class="line">fmt.Println(flag.NFlag())<span class="comment">//输入&gt;go run example.go -n 1 454 555，返回1</span></span><br><span class="line">                        <span class="comment">//输入&gt;go run example.go 454 555，返回0</span></span><br></pre></td></tr></table></figure>
+<ol start="2">
+<li><p><strong>flag.Parsed()bool</strong></p>
+<p> 判断参数是否解析过</p>
+</li>
+<li><p><strong>Set(name, value string) error</strong></p>
+<p> 给指定的flag赋值</p>
+</li>
+<li><p><strong>flag.Usage</strong></p>
+<p> 库里已经帮我们自动生成了一套帮助信息，可以使用-h或-help查看，另外我们也可以自己定制，重写Usage例</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">   flag.Usage = <span class="function"><span class="keyword">func</span><span class="params">()</span></span> &#123;</span><br><span class="line">	fmt.Println(<span class="string">"hello world"</span>)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p> 另外我们也可以看一下源码，原来的帮助信息是怎么生成的</p>
+</li>
+</ol>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> Usage = <span class="function"><span class="keyword">func</span><span class="params">()</span></span> &#123;</span><br><span class="line">	fmt.Fprintf(CommandLine.Output(), <span class="string">"Usage of %s:\n"</span>, os.Args[<span class="number">0</span>])</span><br><span class="line">	PrintDefaults()</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>可见，先是打印了os.Args[0]，也就是程序信息，之后调用了PrintDefaults()，打印了所有flag的信息</p>
+<h2 id="3-urfave-cli"><a href="#3-urfave-cli" class="headerlink" title="3 urfave/cli"></a>3 urfave/cli</h2><p>其实官方给出的flag已能满足大部分要求，如果有更复杂的需要，可以借助这个强大的第三方包<a href="https://github.com/urfave/cli" target="_blank" rel="noopener">urfave/cli</a></p>
+<h3 id="3-1-安装与导包"><a href="#3-1-安装与导包" class="headerlink" title="3.1 安装与导包"></a>3.1 安装与导包</h3><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">go get github.com/urfave/cli</span><br></pre></td></tr></table></figure>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> (</span><br><span class="line">  <span class="string">"gopkg.in/urfave/cli.v1"</span></span><br><span class="line">)</span><br></pre></td></tr></table></figure>
+<h3 id="3-2-简单使用"><a href="#3-2-简单使用" class="headerlink" title="3.2 简单使用"></a>3.2 简单使用</h3><p>该包的github主页有详细的使用说明，这里就不一一赘述了，只简单说一下常用的使用流程</p>
+<ol>
+<li><p>实例化App对象</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">app := cli.NewApp()</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>配置App信息</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//这个包可以配置丰富的App描述信息，如名称，版本号，作者，版权信息，程序简介等</span></span><br><span class="line">app.Name = <span class="string">"HelloWorld"</span></span><br><span class="line">app.Version = <span class="string">"1.0.0"</span></span><br><span class="line">app.Authors = []cli.Author&#123;</span><br><span class="line">	cli.Author&#123;</span><br><span class="line">		Name:  <span class="string">"Tom"</span>,</span><br><span class="line">		Email: <span class="string">"Tom@example.com"</span>,</span><br><span class="line">	&#125;,</span><br><span class="line">&#125;</span><br><span class="line">app.Copyright = <span class="string">"(c) 1999 Serious Enterprise"</span></span><br><span class="line">app.Usage = <span class="string">"greet"</span></span><br><span class="line">app.UsageText = <span class="string">"Example program"</span></span><br><span class="line"><span class="comment">//输入go run example.go -h后显示如下</span></span><br><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment">NAME:</span></span><br><span class="line"><span class="comment">   HelloWorld - greet</span></span><br><span class="line"><span class="comment"></span></span><br><span class="line"><span class="comment">USAGE:</span></span><br><span class="line"><span class="comment">   Example program</span></span><br><span class="line"><span class="comment"></span></span><br><span class="line"><span class="comment">VERSION:</span></span><br><span class="line"><span class="comment">   1.0.0</span></span><br><span class="line"><span class="comment"></span></span><br><span class="line"><span class="comment">AUTHOR:</span></span><br><span class="line"><span class="comment">   Tom &lt;Tom@example.com&gt;</span></span><br><span class="line"><span class="comment"></span></span><br><span class="line"><span class="comment">COMMANDS:</span></span><br><span class="line"><span class="comment">     help, h  Shows a list of commands or help for one command</span></span><br><span class="line"><span class="comment"></span></span><br><span class="line"><span class="comment">GLOBAL OPTIONS:</span></span><br><span class="line"><span class="comment">   --help, -h     show help</span></span><br><span class="line"><span class="comment">   --version, -v  print the version</span></span><br><span class="line"><span class="comment"></span></span><br><span class="line"><span class="comment">COPYRIGHT:</span></span><br><span class="line"><span class="comment">   (c) 1999 Serious Enterprise</span></span><br><span class="line"><span class="comment">*/</span></span><br></pre></td></tr></table></figure>
+</li>
+<li><p>定义程序执行逻辑</p>
+</li>
+</ol>
+<p>这里是指程序运行的逻辑。主要是配置app.Action，例：<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">app.Action = <span class="function"><span class="keyword">func</span><span class="params">(c *cli.Context)</span></span> &#123;</span><br><span class="line">		fmt.Println(<span class="string">"hello world"</span>)</span><br><span class="line">	&#125;</span><br><span class="line"><span class="comment">//go run example.go   </span></span><br><span class="line"><span class="comment">//输出hello world</span></span><br></pre></td></tr></table></figure></p>
+<p>当然我们也可以不在这里定义主程序逻辑，在这里定义的一个好处是cli.Context携带了许多有用的上下文环境变量供我们使用，后面可以见到。</p>
+<p>app.Action是执行程序时执行的逻辑，我们也可以定义在程序执行前后所要插入的逻辑，定义app.Before与app.After即可，例<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">main</span><span class="params">()</span></span> &#123;</span><br><span class="line">	app := cli.NewApp()</span><br><span class="line">	app.Before = <span class="function"><span class="keyword">func</span><span class="params">(context *cli.Context)</span> <span class="title">error</span></span> &#123;</span><br><span class="line">		fmt.Println(<span class="string">"before hello world"</span>)</span><br><span class="line">		<span class="keyword">return</span> <span class="literal">nil</span>;</span><br><span class="line">	&#125;</span><br><span class="line">	app.Action = <span class="function"><span class="keyword">func</span><span class="params">(c *cli.Context)</span></span> &#123;</span><br><span class="line">		fmt.Println(<span class="string">"hello world"</span>)</span><br><span class="line">	&#125;</span><br><span class="line">	app.After = <span class="function"><span class="keyword">func</span><span class="params">(context *cli.Context)</span> <span class="title">error</span></span> &#123;</span><br><span class="line">		fmt.Println(<span class="string">"after hello world"</span>)</span><br><span class="line">		<span class="keyword">return</span> <span class="literal">nil</span>;</span><br><span class="line">	&#125;</span><br><span class="line">	err := app.Run(os.Args)</span><br><span class="line">	<span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">		log.Fatal(err)</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">//执行go run example.go</span></span><br><span class="line"><span class="comment">/* 输出：</span></span><br><span class="line"><span class="comment">before hello world</span></span><br><span class="line"><span class="comment">hello world</span></span><br><span class="line"><span class="comment">after hello world</span></span><br><span class="line"><span class="comment">*/</span></span><br></pre></td></tr></table></figure></p>
+<p>注意：如果app.Before返回的error不为空，app.Action的内容将不会执行，而不管app.Action与app.Before中是否有错误发生，app.After的内容都会执行，app.After可用于收尾工作。</p>
+<ol start="4">
+<li>定义flag</li>
+</ol>
+<p>这里的flag概念和上文中go的标准包中flag类似，直接看一个例子：<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">main</span><span class="params">()</span></span> &#123;</span><br><span class="line">	app := cli.NewApp()</span><br><span class="line">	app.Flags = []cli.Flag&#123;</span><br><span class="line">		cli.StringFlag&#123;</span><br><span class="line">			Name:<span class="string">"path"</span>,</span><br><span class="line">			Value:<span class="string">"/home/"</span>,</span><br><span class="line">			Usage:<span class="string">"setting path"</span>,</span><br><span class="line">		&#125;,</span><br><span class="line">	&#125;</span><br><span class="line">	app.Action = <span class="function"><span class="keyword">func</span><span class="params">(c *cli.Context)</span></span> &#123;</span><br><span class="line">		fmt.Println(c.String(<span class="string">"path"</span>))</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	err := app.Run(os.Args)</span><br><span class="line">	<span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">		log.Fatal(<span class="string">"aaa"</span>,err)</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">//输入go run example.go -path /home/base</span></span><br><span class="line"><span class="comment">//输出：/home/base</span></span><br><span class="line"><span class="comment">//输入go run example.go</span></span><br><span class="line"><span class="comment">//输出：/home/</span></span><br></pre></td></tr></table></figure></p>
+<p>定义起来很简单，关键几个要素就是Name和Value，取值时使用cli.Context提供的对应取值方法即可。包内预定义了许多种类型的flag，基本涵盖了所有基本类型，详见<a href="https://godoc.org/github.com/urfave/cli" target="_blank" rel="noopener">这里</a></p>
+<p>另外在取值时，除了调用如c.Int(),c.String()之类的方法，还可以在定义flag时直接绑定到某些变量上，如：<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> age <span class="keyword">int</span></span><br><span class="line">cli.IntFlag&#123;</span><br><span class="line">	Name:<span class="string">"age"</span>,</span><br><span class="line">	Value:<span class="number">100</span>,</span><br><span class="line">	Destination:&amp;age,</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>另外，还可以配置flag的简写或别名，只需在定义Name时定义多个名称，中间用逗号隔开即可，例：<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">cli.IntFlag&#123;</span><br><span class="line">	Name:<span class="string">"age,a,ege"</span>,</span><br><span class="line">	Value:<span class="number">100</span>,</span><br><span class="line">	Destination:&amp;age,</span><br><span class="line">&#125;,</span><br><span class="line"><span class="comment">//-age -a -ege 都是有效的</span></span><br></pre></td></tr></table></figure></p>
+<ol start="5">
+<li>配置子命令</li>
+</ol>
+<p>如git push …中push就是一个子命令，这个包为我们提供了便捷定义子命令及其动作的方法<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">app.Commands = []cli.Command&#123;</span><br><span class="line">		&#123;</span><br><span class="line">			Name:    <span class="string">"push"</span>,</span><br><span class="line">			Aliases: []<span class="keyword">string</span>&#123;<span class="string">"p"</span>&#125;,</span><br><span class="line">			Usage:   <span class="string">"push a file to the server"</span>,</span><br><span class="line">			Action: <span class="function"><span class="keyword">func</span><span class="params">(c *cli.Context)</span> <span class="title">error</span></span> &#123;</span><br><span class="line">				fmt.Println(<span class="string">"push flie: "</span>, c.Args().First())<span class="comment">//c.Args().First()取命令后的第一个参数</span></span><br><span class="line">				<span class="keyword">return</span> <span class="literal">nil</span></span><br><span class="line">			&#125;,</span><br><span class="line">		&#125;,</span><br><span class="line">	&#125;</span><br><span class="line"><span class="comment">//执行go run example.go push test.txt</span></span><br><span class="line"><span class="comment">//输出：push flie:  test.txt</span></span><br></pre></td></tr></table></figure></p>
+<p>用法很简单，指定命名名，别名用法，以及相应动作即可。另外子命令可以像它的一个程序一样，有自己flag，Before，After，甚至是自己的子命令，使用Subcommands定义</p>
+<p>注意，如果即定义了app的action，又定义了子命令的action，同一时间只能执行一个，如调用子命令时，app的action就不会执行</p>
+<ol start="6">
+<li>启动程序</li>
+</ol>
+<p>所有配置都配置完成后，就需要启动程序，不然是不会生效的<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">err := app.Run(os.Args)</span><br><span class="line"><span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">	log.Fatal(<span class="string">"aaa"</span>,err)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>最后给出一个详细例子，这是给出的，基本上涵盖了所有配置要点:<a href="https://github.com/urfave/cli#full-api-example" target="_blank" rel="noopener">例子</a></p>
+
+      
+    </div>
+
+    
+
+    
+    
+    
+
+    
+
+    
+      
+    
+    
+      <div>
+        <div style="padding: 10px 0; margin: 20px auto; width: 90%; text-align: center;">
+  <div>谢谢你请我吃糖</div>
+  <button id="rewardButton" disable="enable" onclick="var qr = document.getElementById('QR'); if (qr.style.display === 'none') {qr.style.display='block';} else {qr.style.display='none'}">
+    <span>打赏</span>
+  </button>
+  <div id="QR" style="display: none;">
+
+    
+      <div id="wechat" style="display: inline-block">
+        <img id="wechat_qr" src="/assets/img/wechatpay.jpg" alt="AmorFati 微信支付">
+        <p>微信支付</p>
+      </div>
+    
+
+    
+      <div id="alipay" style="display: inline-block">
+        <img id="alipay_qr" src="/assets/img/alipay.jpg" alt="AmorFati 支付宝">
+        <p>支付宝</p>
+      </div>
+    
+
+    
+
+  </div>
+</div>
+
+      </div>
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/Go/" rel="tag"># Go</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2018/12/20/hello-world/" rel="next" title="Hello World">
+                <i class="fa fa-chevron-left"></i> Hello World
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2019/02/21/go-ethereum编译流程简单学习/" rel="prev" title="go-ethereum编译流程简单学习">
+                go-ethereum编译流程简单学习 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+  </div>
+
+
+          </div>
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image" src="/assets/img/icon.jpg" alt="AmorFati">
+            
+              <p class="site-author-name" itemprop="name">AmorFati</p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          
+            <nav class="site-state motion-element">
+              
+                <div class="site-state-item site-state-posts">
+                
+                  <a href="/archives/">
+                
+                    <span class="site-state-item-count">3</span>
+                    <span class="site-state-item-name">日志</span>
+                  </a>
+                </div>
+              
+
+              
+                
+                
+                <div class="site-state-item site-state-categories">
+                  <a href="/categories/index.html">
+                    
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">3</span>
+                    <span class="site-state-item-name">分类</span>
+                  </a>
+                </div>
+              
+
+              
+                
+                
+                <div class="site-state-item site-state-tags">
+                  <a href="/tags/index.html">
+                    
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">5</span>
+                    <span class="site-state-item-name">标签</span>
+                  </a>
+                </div>
+              
+            </nav>
+          
+
+          
+
+          
+            <div class="links-of-author motion-element">
+              
+                <span class="links-of-author-item">
+                  
+                  
+                    
+                  
+                  
+                    
+                  
+                  <a href="https://github.com/chenyaoyang" title="GitHub &rarr; https://github.com/chenyaoyang" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i>GitHub</a>
+                </span>
+              
+            </div>
+          
+
+          
+
+          
+          
+
+          
+            
+          
+          
+
+        </div>
+      </div>
+
+      
+      <!--noindex-->
+        <div class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+            
+            
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#1-Arguments"><span class="nav-number">1.</span> <span class="nav-text">1 Arguments</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#2-flag"><span class="nav-number">2.</span> <span class="nav-text">2 flag</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#2-1-flag定义"><span class="nav-number">2.1.</span> <span class="nav-text">2.1 flag定义</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-2-flag格式"><span class="nav-number">2.2.</span> <span class="nav-text">2.2 flag格式</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-3-其他方法"><span class="nav-number">2.3.</span> <span class="nav-text">2.3 其他方法</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#3-urfave-cli"><span class="nav-number">3.</span> <span class="nav-text">3 urfave/cli</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#3-1-安装与导包"><span class="nav-number">3.1.</span> <span class="nav-text">3.1 安装与导包</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-2-简单使用"><span class="nav-number">3.2.</span> <span class="nav-text">3.2 简单使用</span></a></li></ol></li></ol></div>
+            
+
+          </div>
+        </div>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; 2018 – <span itemprop="copyrightYear">2019</span>
+  <span class="with-love" id="animate">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">AmorFati</span>
+
+  
+
+  
+</div>
+
+
+  <div class="powered-by">由 <a href="https://hexo.io" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v3.8.0</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 – <a href="https://theme-next.org" class="theme-link" rel="noopener" target="_blank">NexT.Pisces</a> v6.6.0</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+    
+
+    
+  </div>
+
+  
+
+<script>
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+
+  
+
+
+  <script src="/js/src/utils.js?v=6.6.0"></script>
+
+  <script src="/js/src/motion.js?v=6.6.0"></script>
+
+
+
+  
+  
+
+
+  <script src="/js/src/affix.js?v=6.6.0"></script>
+
+  <script src="/js/src/schemes/pisces.js?v=6.6.0"></script>
+
+
+
+  
+  <script src="/js/src/scrollspy.js?v=6.6.0"></script>
+<script src="/js/src/post-details.js?v=6.6.0"></script>
+
+
+
+  
+
+
+  <script src="/js/src/bootstrap.js?v=6.6.0"></script>
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  <script>
+    // Popup Window;
+    var isfetched = false;
+    var isXml = true;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length === 0) {
+      search_path = "search.xml";
+    } else if (/json$/i.test(search_path)) {
+      isXml = false;
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    var onPopupClose = function (e) {
+      $('.popup').hide();
+      $('#local-search-input').val('');
+      $('.search-result-list').remove();
+      $('#no-result').remove();
+      $(".local-search-pop-overlay").remove();
+      $('body').css('overflow', '');
+    }
+
+    function proceedsearch() {
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay"></div>')
+        .css('overflow', 'hidden');
+      $('.search-popup-overlay').click(onPopupClose);
+      $('.popup').toggle();
+      var $localSearchInput = $('#local-search-input');
+      $localSearchInput.attr("autocapitalize", "none");
+      $localSearchInput.attr("autocorrect", "off");
+      $localSearchInput.focus();
+    }
+
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+      'use strict';
+
+      // start loading animation
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay">' +
+          '<div id="search-loading-icon">' +
+          '<i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>' +
+          '</div>' +
+          '</div>')
+        .css('overflow', 'hidden');
+      $("#search-loading-icon").css('margin', '20% auto 0 auto').css('text-align', 'center');
+
+      
+
+      $.ajax({
+        url: path,
+        dataType: isXml ? "xml" : "json",
+        async: true,
+        success: function(res) {
+          // get the contents from search data
+          isfetched = true;
+          $('.popup').detach().appendTo('.header-inner');
+          var datas = isXml ? $("entry", res).map(function() {
+            return {
+              title: $("title", this).text(),
+              content: $("content",this).text(),
+              url: $("url" , this).text()
+            };
+          }).get() : res;
+          var input = document.getElementById(search_id);
+          var resultContent = document.getElementById(content_id);
+          var inputEventFunction = function() {
+            var searchText = input.value.trim().toLowerCase();
+            var keywords = searchText.split(/[\s\-]+/);
+            if (keywords.length > 1) {
+              keywords.push(searchText);
+            }
+            var resultItems = [];
+            if (searchText.length > 0) {
+              // perform local searching
+              datas.forEach(function(data) {
+                var isMatch = false;
+                var hitCount = 0;
+                var searchTextCount = 0;
+                var title = data.title.trim();
+                var titleInLowerCase = title.toLowerCase();
+                var content = data.content.trim().replace(/<[^>]+>/g,"");
+                
+                var contentInLowerCase = content.toLowerCase();
+                var articleUrl = decodeURIComponent(data.url);
+                var indexOfTitle = [];
+                var indexOfContent = [];
+                // only match articles with not empty titles
+                if(title != '') {
+                  keywords.forEach(function(keyword) {
+                    function getIndexByWord(word, text, caseSensitive) {
+                      var wordLen = word.length;
+                      if (wordLen === 0) {
+                        return [];
+                      }
+                      var startPosition = 0, position = [], index = [];
+                      if (!caseSensitive) {
+                        text = text.toLowerCase();
+                        word = word.toLowerCase();
+                      }
+                      while ((position = text.indexOf(word, startPosition)) > -1) {
+                        index.push({position: position, word: word});
+                        startPosition = position + wordLen;
+                      }
+                      return index;
+                    }
+
+                    indexOfTitle = indexOfTitle.concat(getIndexByWord(keyword, titleInLowerCase, false));
+                    indexOfContent = indexOfContent.concat(getIndexByWord(keyword, contentInLowerCase, false));
+                  });
+                  if (indexOfTitle.length > 0 || indexOfContent.length > 0) {
+                    isMatch = true;
+                    hitCount = indexOfTitle.length + indexOfContent.length;
+                  }
+                }
+
+                // show search results
+
+                if (isMatch) {
+                  // sort index by position of keyword
+
+                  [indexOfTitle, indexOfContent].forEach(function (index) {
+                    index.sort(function (itemLeft, itemRight) {
+                      if (itemRight.position !== itemLeft.position) {
+                        return itemRight.position - itemLeft.position;
+                      } else {
+                        return itemLeft.word.length - itemRight.word.length;
+                      }
+                    });
+                  });
+
+                  // merge hits into slices
+
+                  function mergeIntoSlice(text, start, end, index) {
+                    var item = index[index.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    var hits = [];
+                    var searchTextCountInSlice = 0;
+                    while (position + word.length <= end && index.length != 0) {
+                      if (word === searchText) {
+                        searchTextCountInSlice++;
+                      }
+                      hits.push({position: position, length: word.length});
+                      var wordEnd = position + word.length;
+
+                      // move to next position of hit
+
+                      index.pop();
+                      while (index.length != 0) {
+                        item = index[index.length - 1];
+                        position = item.position;
+                        word = item.word;
+                        if (wordEnd > position) {
+                          index.pop();
+                        } else {
+                          break;
+                        }
+                      }
+                    }
+                    searchTextCount += searchTextCountInSlice;
+                    return {
+                      hits: hits,
+                      start: start,
+                      end: end,
+                      searchTextCount: searchTextCountInSlice
+                    };
+                  }
+
+                  var slicesOfTitle = [];
+                  if (indexOfTitle.length != 0) {
+                    slicesOfTitle.push(mergeIntoSlice(title, 0, title.length, indexOfTitle));
+                  }
+
+                  var slicesOfContent = [];
+                  while (indexOfContent.length != 0) {
+                    var item = indexOfContent[indexOfContent.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    // cut out 100 characters
+                    var start = position - 20;
+                    var end = position + 80;
+                    if(start < 0){
+                      start = 0;
+                    }
+                    if (end < position + word.length) {
+                      end = position + word.length;
+                    }
+                    if(end > content.length){
+                      end = content.length;
+                    }
+                    slicesOfContent.push(mergeIntoSlice(content, start, end, indexOfContent));
+                  }
+
+                  // sort slices in content by search text's count and hits' count
+
+                  slicesOfContent.sort(function (sliceLeft, sliceRight) {
+                    if (sliceLeft.searchTextCount !== sliceRight.searchTextCount) {
+                      return sliceRight.searchTextCount - sliceLeft.searchTextCount;
+                    } else if (sliceLeft.hits.length !== sliceRight.hits.length) {
+                      return sliceRight.hits.length - sliceLeft.hits.length;
+                    } else {
+                      return sliceLeft.start - sliceRight.start;
+                    }
+                  });
+
+                  // select top N slices in content
+
+                  var upperBound = parseInt('1');
+                  if (upperBound >= 0) {
+                    slicesOfContent = slicesOfContent.slice(0, upperBound);
+                  }
+
+                  // highlight title and content
+
+                  function highlightKeyword(text, slice) {
+                    var result = '';
+                    var prevEnd = slice.start;
+                    slice.hits.forEach(function (hit) {
+                      result += text.substring(prevEnd, hit.position);
+                      var end = hit.position + hit.length;
+                      result += '<b class="search-keyword">' + text.substring(hit.position, end) + '</b>';
+                      prevEnd = end;
+                    });
+                    result += text.substring(prevEnd, slice.end);
+                    return result;
+                  }
+
+                  var resultItem = '';
+
+                  if (slicesOfTitle.length != 0) {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + highlightKeyword(title, slicesOfTitle[0]) + "</a>";
+                  } else {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + title + "</a>";
+                  }
+
+                  slicesOfContent.forEach(function (slice) {
+                    resultItem += "<a href='" + articleUrl + "'>" +
+                      "<p class=\"search-result\">" + highlightKeyword(content, slice) +
+                      "...</p>" + "</a>";
+                  });
+
+                  resultItem += "</li>";
+                  resultItems.push({
+                    item: resultItem,
+                    searchTextCount: searchTextCount,
+                    hitCount: hitCount,
+                    id: resultItems.length
+                  });
+                }
+              })
+            };
+            if (keywords.length === 1 && keywords[0] === "") {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>'
+            } else if (resultItems.length === 0) {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>'
+            } else {
+              resultItems.sort(function (resultLeft, resultRight) {
+                if (resultLeft.searchTextCount !== resultRight.searchTextCount) {
+                  return resultRight.searchTextCount - resultLeft.searchTextCount;
+                } else if (resultLeft.hitCount !== resultRight.hitCount) {
+                  return resultRight.hitCount - resultLeft.hitCount;
+                } else {
+                  return resultRight.id - resultLeft.id;
+                }
+              });
+              var searchResultList = '<ul class=\"search-result-list\">';
+              resultItems.forEach(function (result) {
+                searchResultList += result.item;
+              })
+              searchResultList += "</ul>";
+              resultContent.innerHTML = searchResultList;
+            }
+          }
+
+          if ('auto' === 'auto') {
+            input.addEventListener('input', inputEventFunction);
+          } else {
+            $('.search-icon').click(inputEventFunction);
+            input.addEventListener('keypress', function (event) {
+              if (event.keyCode === 13) {
+                inputEventFunction();
+              }
+            });
+          }
+
+          // remove loading animation
+          $(".local-search-pop-overlay").remove();
+          $('body').css('overflow', '');
+
+          proceedsearch();
+        }
+      });
+    }
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched === false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+    });
+
+    $('.popup-btn-close').click(onPopupClose);
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+    $(document).on('keyup', function (event) {
+      var shouldDismissSearchPopup = event.which === 27 &&
+        $('.search-popup').is(':visible');
+      if (shouldDismissSearchPopup) {
+        onPopupClose();
+      }
+    });
+  </script>
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+  
+
+  
+
+
+  
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>
