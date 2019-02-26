@@ -1,0 +1,1351 @@
+<!DOCTYPE html>
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+<html class="theme-next pisces use-motion" lang="zh-CN">
+<head><meta name="generator" content="Hexo 3.8.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+    
+      
+    
+
+    
+  
+
+  
+
+  
+    
+      
+    
+
+    
+  
+
+  
+    
+      
+    
+
+    
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Monda:300,300italic,400,400italic,700,700italic|Roboto Slab:300,300italic,400,400italic,700,700italic|Dancing Script:300,300italic,400,400italic,700,700italic|Consolas:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css">
+
+<link href="/css/main.css?v=6.6.0" rel="stylesheet" type="text/css">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=6.6.0">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=6.6.0">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=6.6.0">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=6.6.0" color="#222">
+
+
+
+
+
+
+
+
+
+<script id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    version: '6.6.0',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: false,
+    fastclick: false,
+    lazyload: false,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+  
+
+
+
+
+  <meta name="description" content="go-ethereum源码学习：init流程">
+<meta name="keywords" content="区块链,以太坊,go-ethereum">
+<meta property="og:type" content="article">
+<meta property="og:title" content="geth的init流程分析">
+<meta property="og:url" content="http://yoursite.com/2019/02/26/geth的init流程分析/index.html">
+<meta property="og:site_name" content="AmorFati">
+<meta property="og:description" content="go-ethereum源码学习：init流程">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:updated_time" content="2019-02-26T07:33:21.664Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="geth的init流程分析">
+<meta name="twitter:description" content="go-ethereum源码学习：init流程">
+
+
+
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2019/02/26/geth的init流程分析/">
+
+
+
+<script id="page.configurations">
+  CONFIG.page = {
+    sidebar: "",
+  };
+</script>
+
+  <title>geth的init流程分析 | AmorFati</title>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  <noscript>
+  <style>
+    .use-motion .motion-element,
+    .use-motion .brand,
+    .use-motion .menu-item,
+    .sidebar-inner,
+    .use-motion .post-block,
+    .use-motion .pagination,
+    .use-motion .comments,
+    .use-motion .post-header,
+    .use-motion .post-body,
+    .use-motion .collection-title { opacity: initial; }
+
+    .use-motion .logo,
+    .use-motion .site-title,
+    .use-motion .site-subtitle {
+      opacity: initial;
+      top: initial;
+    }
+
+    .use-motion .logo-line-before i { left: initial; }
+    .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope="" itemtype="http://schema.org/WebPage" lang="zh-CN">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope="" itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">AmorFati</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+    
+      
+        <p class="site-subtitle">风吹过窗前的书，又翻过一页</p>
+      
+    
+    
+  </div>
+
+  <div class="site-nav-toggle">
+    <button aria-label="切换导航栏">
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  
+    <ul id="menu" class="menu">
+      
+        
+        
+        
+          
+          <li class="menu-item menu-item-home">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/" rel="section"><i class="menu-item-icon fa fa-fw fa-home"></i> <br>首页</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-about">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/about/" rel="section"><i class="menu-item-icon fa fa-fw fa-user"></i> <br>关于</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-tags">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/tags/" rel="section"><i class="menu-item-icon fa fa-fw fa-tags"></i> <br>标签</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-categories">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/categories/" rel="section"><i class="menu-item-icon fa fa-fw fa-th"></i> <br>分类</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-archives">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/archives/" rel="section"><i class="menu-item-icon fa fa-fw fa-archive"></i> <br>归档</a>
+
+  </li>
+
+      
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br>搜索</a>
+        </li>
+      
+    </ul>
+  
+
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup search-popup local-search-popup">
+  <div class="local-search-header clearfix">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+    <div class="local-search-input-wrapper">
+      <input autocomplete="off" placeholder="搜索..." spellcheck="false" type="text" id="local-search-input">
+    </div>
+  </div>
+  <div id="local-search-result"></div>
+</div>
+
+
+
+    </div>
+  
+</nav>
+
+
+
+  
+
+
+
+</div>
+    </header>
+
+    
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+            
+
+          
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  
+
+  <article class="post post-type-normal" itemscope="" itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/02/26/geth的init流程分析/">
+
+    <span hidden itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="AmorFati">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/assets/img/icon.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope="" itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="AmorFati">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">geth的init流程分析
+
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+
+            
+            
+            
+
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+
+              
+                
+              
+
+              <time title="创建时间：2019-02-26 15:31:07 / 修改时间：15:33:21" itemprop="dateCreated datePublished" datetime="2019-02-26T15:31:07+08:00">2019-02-26</time>
+            
+
+            
+              
+
+              
+            
+          </span>
+
+          
+            <span class="post-category">
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope="" itemtype="http://schema.org/Thing"><a href="/categories/go-ethereum源码学习/" itemprop="url" rel="index"><span itemprop="name">go-ethereum源码学习</span></a></span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <blockquote class="blockquote-center"><p>go-ethereum源码学习：init流程 </p>
+</blockquote>  
+<a id="more"></a>
+<h1 id="1-geth总览"><a href="#1-geth总览" class="headerlink" title="1.geth总览"></a>1.geth总览</h1><p>首先看一下geth这个程序的总体设计，其主要代码位于go-ethereum\cmd\geth里面，先看main.go,这是一个利用urfave/cli开发的命令行程序，关于这个库的简单介绍见<a href="https://chenyaoyang.github.io/2019/02/21/go%E7%9A%84CLI%E7%A8%8B%E5%BA%8F%E5%BC%80%E5%8F%91/" target="_blank" rel="noopener">这里</a>。在开头var代码块中中实例化了cli的app对象:<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">app = utils.NewApp(gitCommit, <span class="string">"the go-ethereum command line interface"</span>)</span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">NewApp</span><span class="params">(gitCommit, usage <span class="keyword">string</span>)</span> *<span class="title">cli</span>.<span class="title">App</span></span> &#123;</span><br><span class="line">	app := cli.NewApp()</span><br><span class="line">	app.Name = filepath.Base(os.Args[<span class="number">0</span>])</span><br><span class="line">	app.Author = <span class="string">""</span></span><br><span class="line">	<span class="comment">//app.Authors = nil</span></span><br><span class="line">	app.Email = <span class="string">""</span></span><br><span class="line">	app.Version = params.VersionWithMeta <span class="comment">//见go-ethereum\params\version.go 生成版本号</span></span><br><span class="line">	<span class="keyword">if</span> <span class="built_in">len</span>(gitCommit) &gt;= <span class="number">8</span> &#123;</span><br><span class="line">		app.Version += <span class="string">"-"</span> + gitCommit[:<span class="number">8</span>] <span class="comment">//gitCommit之前在编译时定义</span></span><br><span class="line">	&#125;</span><br><span class="line">	app.Usage = usage</span><br><span class="line">	<span class="keyword">return</span> app</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>实例化之后，定义了大量flag，详细信息可以输入geth -h或到<a href="https://github.com/ethereum/go-ethereum/wiki/Command-Line-Options" target="_blank" rel="noopener">官方文档</a>查看。接下来，在init()方法中进行进一步初始化，添加了大量command及先前定义的flag。并定义了geth的action：<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">app.Action = geth</span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">geth</span><span class="params">(ctx *cli.Context)</span> <span class="title">error</span></span> &#123;</span><br><span class="line">	<span class="keyword">if</span> args := ctx.Args(); <span class="built_in">len</span>(args) &gt; <span class="number">0</span> &#123; <span class="comment">//仅执行geth时，不能有任何附加参数</span></span><br><span class="line">		<span class="keyword">return</span> fmt.Errorf(<span class="string">"invalid command: %q"</span>, args[<span class="number">0</span>])</span><br><span class="line">	&#125;</span><br><span class="line">	node := makeFullNode(ctx) <span class="comment">//创建默认节点</span></span><br><span class="line">	<span class="keyword">defer</span> node.Close()</span><br><span class="line">	startNode(ctx, node) </span><br><span class="line">	node.Wait()</span><br><span class="line">	<span class="keyword">return</span> <span class="literal">nil</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>在init中还定义了app.Before用于初始化工作：<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><span class="line">app.Before = <span class="function"><span class="keyword">func</span><span class="params">(ctx *cli.Context)</span> <span class="title">error</span></span> &#123;</span><br><span class="line">		logdir := <span class="string">""</span></span><br><span class="line">		<span class="keyword">if</span> ctx.GlobalBool(utils.DashboardEnabledFlag.Name) &#123;</span><br><span class="line">			logdir = (&amp;node.Config&#123;DataDir: utils.MakeDataDir(ctx)&#125;).ResolvePath(<span class="string">"logs"</span>)</span><br><span class="line">		&#125;</span><br><span class="line">		<span class="keyword">if</span> err := debug.Setup(ctx, logdir); err != <span class="literal">nil</span> &#123; <span class="comment">//见\go-ethereum\internal\debug\flags.go</span></span><br><span class="line">			<span class="keyword">return</span> err</span><br><span class="line">		&#125;</span><br><span class="line">		<span class="comment">// Cap the cache allowance and tune the garbage collector</span></span><br><span class="line">		<span class="keyword">var</span> mem gosigar.Mem <span class="comment">//见\go-ethereum\vendor\github.com\elastic\gosigar\sigar_interface.go</span></span><br><span class="line">		<span class="comment">//获取系统内存信息</span></span><br><span class="line">		<span class="keyword">if</span> err := mem.Get(); err == <span class="literal">nil</span> &#123; <span class="comment">//配置缓存</span></span><br><span class="line">			allowance := <span class="keyword">int</span>(mem.Total / <span class="number">1024</span> / <span class="number">1024</span> / <span class="number">3</span>)</span><br><span class="line">			<span class="keyword">if</span> cache := ctx.GlobalInt(utils.CacheFlag.Name); cache &gt; allowance &#123;</span><br><span class="line">				log.Warn(<span class="string">"Sanitizing cache to Go's GC limits"</span>, <span class="string">"provided"</span>, cache, <span class="string">"updated"</span>, allowance)</span><br><span class="line">				ctx.GlobalSet(utils.CacheFlag.Name, strconv.Itoa(allowance))</span><br><span class="line">			&#125;</span><br><span class="line">		&#125;</span><br><span class="line">		<span class="comment">// Ensure Go's GC ignores the database cache for trigger percentage</span></span><br><span class="line">		cache := ctx.GlobalInt(utils.CacheFlag.Name)</span><br><span class="line">		gogc := math.Max(<span class="number">20</span>, math.Min(<span class="number">100</span>, <span class="number">100</span>/(<span class="keyword">float64</span>(cache)/<span class="number">1024</span>)))</span><br><span class="line"></span><br><span class="line">		log.Debug(<span class="string">"Sanitizing Go's GC trigger"</span>, <span class="string">"percent"</span>, <span class="keyword">int</span>(gogc))</span><br><span class="line">		godebug.SetGCPercent(<span class="keyword">int</span>(gogc)) <span class="comment">//设置垃圾收集目标百分比</span></span><br><span class="line"></span><br><span class="line">		<span class="comment">// Start metrics export if enabled</span></span><br><span class="line">		utils.SetupMetrics(ctx) <span class="comment">//默认是关闭的，开关在\go-ethereum\metrics\metrics.go</span></span><br><span class="line"></span><br><span class="line">		<span class="comment">// Start system runtime metrics collection</span></span><br><span class="line">		<span class="keyword">go</span> metrics.CollectProcessMetrics(<span class="number">3</span> * time.Second) <span class="comment">//默认不会启动</span></span><br><span class="line"></span><br><span class="line">		<span class="keyword">return</span> <span class="literal">nil</span></span><br><span class="line">	&#125;</span><br></pre></td></tr></table></figure></p>
+<p>随后也定义了app.After逻辑<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">app.After = <span class="function"><span class="keyword">func</span><span class="params">(ctx *cli.Context)</span> <span class="title">error</span></span> &#123;</span><br><span class="line">		debug.Exit()</span><br><span class="line">		console.Stdin.Close() <span class="comment">// 重置终端模式</span></span><br><span class="line">		<span class="keyword">return</span> <span class="literal">nil</span></span><br><span class="line">	&#125;</span><br></pre></td></tr></table></figure></p>
+<p>接下来进入main函数<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">main</span><span class="params">()</span></span> &#123;</span><br><span class="line">	<span class="keyword">if</span> err := app.Run(os.Args); err != <span class="literal">nil</span> &#123; <span class="comment">//运行处理程序</span></span><br><span class="line">		fmt.Fprintln(os.Stderr, err)</span><br><span class="line">		os.Exit(<span class="number">1</span>)</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>到这里，geth大致轮廓就看完了，随后会根据用户输入的命令执行相应的逻辑。</p>
+<h1 id="2-init"><a href="#2-init" class="headerlink" title="2.init"></a>2.init</h1><p>这是初始化函数。源码中描述如下</p>
+<blockquote>
+<p>The init command initializes a new genesis block and definition for the network.<br>This is a destructive action and changes the network in which you will be<br>participating.<br>It expects the genesis file as argument.</p>
+</blockquote>
+<p>一般使用如下<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">geth init gen.json --datadir ./mychain/</span><br></pre></td></tr></table></figure></p>
+<p>需要指定一个json文件，可选择指定数据存储路径。在源码定义如下：<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// go-ethereum\cmd\geth\chaincmd.go</span></span><br><span class="line">initCommand = cli.Command&#123;</span><br><span class="line">		Action:    utils.MigrateFlags(initGenesis),</span><br><span class="line">		Name:      <span class="string">"init"</span>,</span><br><span class="line">		Usage:     <span class="string">"Bootstrap and initialize a new genesis block"</span>,</span><br><span class="line">		ArgsUsage: <span class="string">"&lt;genesisPath&gt;"</span>,</span><br><span class="line">		Flags: []cli.Flag&#123;</span><br><span class="line">			utils.DataDirFlag,</span><br><span class="line">		&#125;,</span><br><span class="line">		Category: <span class="string">"BLOCKCHAIN COMMANDS"</span>,</span><br><span class="line">		Description: <span class="string">`.....`</span>,</span><br><span class="line">	&#125;</span><br></pre></td></tr></table></figure></p>
+<p>可见子命令名就是init，没有别名，只有一个flag，定义如下<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// go-ethereum\cmd\utils\flags.go</span></span><br><span class="line">DataDirFlag = DirectoryFlag&#123;</span><br><span class="line">		Name:  <span class="string">"datadir"</span>,</span><br><span class="line">		Usage: <span class="string">"Data directory for the databases and keystore"</span>,</span><br><span class="line">		Value: DirectoryString&#123;node.DefaultDataDir()&#125;, <span class="comment">//获取默认目录，见go-ethereum\node\defaults.go</span></span><br><span class="line">		<span class="comment">//linux下为/home/&lt;user&gt;/.ethereum</span></span><br><span class="line">	&#125;</span><br></pre></td></tr></table></figure></p>
+<p>DirectoryString定义如下<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line">// go-ethereum\cmd\utils\customflags.go</span><br><span class="line">type DirectoryString struct &#123;</span><br><span class="line">	Value string</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">func (self *DirectoryString) String() string &#123;</span><br><span class="line">	return self.Value</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">func (self *DirectoryString) Set(value string) error &#123;</span><br><span class="line">	self.Value = expandPath(value)</span><br><span class="line">	return nil</span><br><span class="line">&#125;</span><br><span class="line">func expandPath(p string) string &#123;</span><br><span class="line">	if strings.HasPrefix(p, &quot;~/&quot;) || strings.HasPrefix(p, &quot;~\\&quot;) &#123;</span><br><span class="line">		if home := homeDir(); home != &quot;&quot; &#123;</span><br><span class="line">			p = home + p[1:]</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">	return path.Clean(os.ExpandEnv(p))</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>DataDirFlag作用主要就是定义初始化生成数据的存储路径，之后我们看initCommand的action，这个是关键：<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Action:    utils.MigrateFlags(initGenesis),</span><br></pre></td></tr></table></figure></p>
+<p>调用了utils.MigrateFlags，定义如下<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// \go-ethereum\cmd\utils\flags.go</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">MigrateFlags</span><span class="params">(action <span class="keyword">func</span>(ctx *cli.Context)</span> <span class="title">error</span>) <span class="title">func</span><span class="params">(*cli.Context)</span> <span class="title">error</span></span> &#123;</span><br><span class="line">	<span class="keyword">return</span> <span class="function"><span class="keyword">func</span><span class="params">(ctx *cli.Context)</span> <span class="title">error</span></span> &#123;</span><br><span class="line">		<span class="keyword">for</span> _, name := <span class="keyword">range</span> ctx.FlagNames() &#123;</span><br><span class="line">			<span class="keyword">if</span> ctx.IsSet(name) &#123;</span><br><span class="line">				ctx.GlobalSet(name, ctx.String(name))</span><br><span class="line">			&#125;</span><br><span class="line">		&#125;</span><br><span class="line">		<span class="keyword">return</span> action(ctx)</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>这个方法并没有什么实际意义，只是将所有用户指定的flag以GlobalSet的形式存了起来，主要逻辑在传递进来的action，我们这里传递的action如下：<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// go-ethereum\cmd\geth\chaincmd.go</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">initGenesis</span><span class="params">(ctx *cli.Context)</span> <span class="title">error</span></span> &#123;</span><br><span class="line">	<span class="comment">// Make sure we have a valid genesis JSON</span></span><br><span class="line">	genesisPath := ctx.Args().First() <span class="comment">//获取genesis.json</span></span><br><span class="line">	<span class="keyword">if</span> <span class="built_in">len</span>(genesisPath) == <span class="number">0</span> &#123;</span><br><span class="line">		utils.Fatalf(<span class="string">"Must supply path to genesis JSON file"</span>)</span><br><span class="line">	&#125;</span><br><span class="line">	file, err := os.Open(genesisPath)</span><br><span class="line">	<span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">		utils.Fatalf(<span class="string">"Failed to read genesis file: %v"</span>, err)</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">defer</span> file.Close()</span><br><span class="line"></span><br><span class="line">	genesis := <span class="built_in">new</span>(core.Genesis) <span class="comment">//Genesis结构体见 go-ethereum\core\genesis.go</span></span><br><span class="line">	<span class="keyword">if</span> err := json.NewDecoder(file).Decode(genesis); err != <span class="literal">nil</span> &#123; <span class="comment">//解析json文件，遇到错误就退出</span></span><br><span class="line">		utils.Fatalf(<span class="string">"invalid genesis file: %v"</span>, err)</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="comment">// Open an initialise both full and light databases</span></span><br><span class="line">	stack := makeFullNode(ctx) <span class="comment">//建立默认节点</span></span><br><span class="line">	<span class="keyword">defer</span> stack.Close()</span><br><span class="line"></span><br><span class="line">	<span class="keyword">for</span> _, name := <span class="keyword">range</span> []<span class="keyword">string</span>&#123;<span class="string">"chaindata"</span>, <span class="string">"lightchaindata"</span>&#125; &#123;</span><br><span class="line">		chaindb, err := stack.OpenDatabase(name, <span class="number">0</span>, <span class="number">0</span>) <span class="comment">//创建数据库</span></span><br><span class="line">		<span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">			utils.Fatalf(<span class="string">"Failed to open database: %v"</span>, err)</span><br><span class="line">		&#125;</span><br><span class="line">		_, hash, err := core.SetupGenesisBlock(chaindb, genesis) <span class="comment">//写创世区块内容</span></span><br><span class="line">		<span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">			utils.Fatalf(<span class="string">"Failed to write genesis block: %v"</span>, err)</span><br><span class="line">		&#125;</span><br><span class="line">		log.Info(<span class="string">"Successfully wrote genesis state"</span>, <span class="string">"database"</span>, name, <span class="string">"hash"</span>, hash)</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">return</span> <span class="literal">nil</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>刚开始，获取了子命令参数，也就是我们指定的genesis.json的文件，然后尝试打开并解析其中内容，任何一步出错的就终止程序，之后调用了stack := makeFullNode(ctx)，这一部分比较繁琐，实现如下<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// go-ethereum\cmd\geth\config.go</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">makeFullNode</span><span class="params">(ctx *cli.Context)</span> *<span class="title">node</span>.<span class="title">Node</span></span> &#123;</span><br><span class="line">	stack, cfg := makeConfigNode(ctx)</span><br><span class="line">	<span class="keyword">if</span> ctx.GlobalIsSet(utils.ConstantinopleOverrideFlag.Name) &#123;</span><br><span class="line">		cfg.Eth.ConstantinopleOverride = <span class="built_in">new</span>(big.Int).SetUint64(ctx.GlobalUint64(utils.ConstantinopleOverrideFlag.Name))</span><br><span class="line">	&#125;</span><br><span class="line">	utils.RegisterEthService(stack, &amp;cfg.Eth) <span class="comment">//注册eth服务， eth服务是以太坊的主要的服务。是以太坊功能的提供者。</span></span><br><span class="line"></span><br><span class="line">	<span class="keyword">if</span> ctx.GlobalBool(utils.DashboardEnabledFlag.Name) &#123; <span class="comment">//默认是false</span></span><br><span class="line">		utils.RegisterDashboardService(stack, &amp;cfg.Dashboard, gitCommit)</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="comment">// Whisper must be explicitly enabled by specifying at least 1 whisper flag or in dev mode</span></span><br><span class="line">	<span class="comment">//Whisper是一个独立模块，用来进行加密通讯的功能。 需要显式的提供参数来启用，或者是处于开发模式。</span></span><br><span class="line">	shhEnabled := enableWhisper(ctx)</span><br><span class="line">	<span class="comment">//自动启动的条件没有手动配置Whisper并且处于开发者模式</span></span><br><span class="line">	shhAutoEnabled := !ctx.GlobalIsSet(utils.WhisperEnabledFlag.Name) &amp;&amp; ctx.GlobalIsSet(utils.DeveloperFlag.Name)</span><br><span class="line">	<span class="comment">//二者满足一个就启动（注册shh服务）,一般都不满足</span></span><br><span class="line">	<span class="keyword">if</span> shhEnabled || shhAutoEnabled &#123;</span><br><span class="line"></span><br><span class="line">		<span class="keyword">if</span> ctx.GlobalIsSet(utils.WhisperMaxMessageSizeFlag.Name) &#123;</span><br><span class="line">			cfg.Shh.MaxMessageSize = <span class="keyword">uint32</span>(ctx.Int(utils.WhisperMaxMessageSizeFlag.Name))</span><br><span class="line">		&#125;</span><br><span class="line">		<span class="keyword">if</span> ctx.GlobalIsSet(utils.WhisperMinPOWFlag.Name) &#123;</span><br><span class="line">			cfg.Shh.MinimumAcceptedPOW = ctx.Float64(utils.WhisperMinPOWFlag.Name)</span><br><span class="line">		&#125;</span><br><span class="line">		<span class="keyword">if</span> ctx.GlobalIsSet(utils.WhisperRestrictConnectionBetweenLightClientsFlag.Name) &#123;</span><br><span class="line">			cfg.Shh.RestrictConnectionBetweenLightClients = <span class="literal">true</span></span><br><span class="line">		&#125;</span><br><span class="line">		utils.RegisterShhService(stack, &amp;cfg.Shh)</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="comment">// Configure GraphQL if required</span></span><br><span class="line">	<span class="keyword">if</span> ctx.GlobalIsSet(utils.GraphQLEnabledFlag.Name) &#123;</span><br><span class="line">		<span class="keyword">if</span> err := graphql.RegisterGraphQLService(stack, cfg.Node.GraphQLEndpoint(), cfg.Node.GraphQLCors, cfg.Node.GraphQLVirtualHosts, cfg.Node.HTTPTimeouts); err != <span class="literal">nil</span> &#123;</span><br><span class="line">			utils.Fatalf(<span class="string">"Failed to register the Ethereum service: %v"</span>, err)</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="comment">// Add the Ethereum Stats daemon if requested.</span></span><br><span class="line">	<span class="keyword">if</span> cfg.Ethstats.URL != <span class="string">""</span> &#123;</span><br><span class="line">		utils.RegisterEthStatsService(stack, cfg.Ethstats.URL)</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">return</span> stack</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>第一行调用了makeConfigNode，实现如下<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// go-ethereum\cmd\geth\config.go</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">makeConfigNode</span><span class="params">(ctx *cli.Context)</span> <span class="params">(*node.Node, gethConfig)</span></span> &#123;</span><br><span class="line">	<span class="comment">// Load defaults.</span></span><br><span class="line">	<span class="comment">//加载各个模块的默认配置</span></span><br><span class="line">	cfg := gethConfig&#123;</span><br><span class="line">		Eth: eth.DefaultConfig, <span class="comment">// go-ethereum\eth\config.go</span></span><br><span class="line">		<span class="comment">//Ethereum主网的默认配置，如NetworkId，SyncMode等</span></span><br><span class="line">		Shh:       whisper.DefaultConfig,   <span class="comment">// go-ethereum\whisper\whisperv6\config.go</span></span><br><span class="line">		Node:      defaultNodeConfig(),     <span class="comment">//见defaultNodeConfig()，默认节点配置</span></span><br><span class="line">		Dashboard: dashboard.DefaultConfig, <span class="comment">//一个独立模块，见go-ethereum\dashboard\README</span></span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="comment">// Load config file.  //加载配置文件，一般未指定配置文件，此处为空</span></span><br><span class="line">	<span class="keyword">if</span> file := ctx.GlobalString(configFileFlag.Name); file != <span class="string">""</span> &#123;</span><br><span class="line">		<span class="keyword">if</span> err := loadConfig(file, &amp;cfg); err != <span class="literal">nil</span> &#123;</span><br><span class="line">			utils.Fatalf(<span class="string">"%v"</span>, err)</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="comment">// Apply flags.</span></span><br><span class="line">	<span class="comment">//从flag加载配置</span></span><br><span class="line">	utils.SetULC(ctx, &amp;cfg.Eth) <span class="comment">//ULC:Ultra Light client  go-ethereum\cmd\utils\flags.go</span></span><br><span class="line">	utils.SetNodeConfig(ctx, &amp;cfg.Node)</span><br><span class="line">	stack, err := node.New(&amp;cfg.Node) <span class="comment">//实例化node对象 go-ethereum\node\node.go</span></span><br><span class="line">										<span class="comment">//stack就是Node对象</span></span><br><span class="line">	<span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">		utils.Fatalf(<span class="string">"Failed to create the protocol stack: %v"</span>, err)</span><br><span class="line">	&#125;</span><br><span class="line">	utils.SetEthConfig(ctx, stack, &amp;cfg.Eth)</span><br><span class="line">	<span class="keyword">if</span> ctx.GlobalIsSet(utils.EthStatsURLFlag.Name) &#123;</span><br><span class="line">		cfg.Ethstats.URL = ctx.GlobalString(utils.EthStatsURLFlag.Name)</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	utils.SetShhConfig(ctx, stack, &amp;cfg.Shh)</span><br><span class="line">	utils.SetDashboardConfig(ctx, &amp;cfg.Dashboard)</span><br><span class="line"></span><br><span class="line">	<span class="keyword">return</span> stack, cfg</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>这个方法首先加载代码中的默认配置，之后加载配置文件配置，随后加载用户在命令行指定的配置，由于我们分析的是init流程，所以大部分配置都是默认配置，相关代码注释见这里<a href="https://github.com/chenyaoyang/go-ethereum-study" target="_blank" rel="noopener">代码注释</a></p>
+<p>经过makeConfigNode之后，我们获得stack, cfg，stack是一个node对象，cfg是配置信息。回到makeFullNode，初始化node后，又调用了utils.RegisterEthService(stack, &amp;cfg.Eth)取注册eth服务，eth服务是以太坊功能的主要服务提供者：<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// go-ethereum\cmd\utils\flags.go</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">RegisterEthService</span><span class="params">(stack *node.Node, cfg *eth.Config)</span></span> &#123;</span><br><span class="line">	<span class="keyword">var</span> err error</span><br><span class="line">	<span class="comment">//默认是FastSync</span></span><br><span class="line">	<span class="keyword">if</span> cfg.SyncMode == downloader.LightSync &#123;</span><br><span class="line">		err = stack.Register(<span class="function"><span class="keyword">func</span><span class="params">(ctx *node.ServiceContext)</span> <span class="params">(node.Service, error)</span></span> &#123;</span><br><span class="line">			<span class="keyword">return</span> les.New(ctx, cfg)</span><br><span class="line">		&#125;)</span><br><span class="line">	&#125; <span class="keyword">else</span> &#123;</span><br><span class="line">		err = stack.Register(<span class="function"><span class="keyword">func</span><span class="params">(ctx *node.ServiceContext)</span> <span class="params">(node.Service, error)</span></span> &#123;</span><br><span class="line">			fullNode, err := eth.New(ctx, cfg)</span><br><span class="line">			<span class="keyword">if</span> fullNode != <span class="literal">nil</span> &amp;&amp; cfg.LightServ &gt; <span class="number">0</span> &#123;</span><br><span class="line">				ls, _ := les.NewLesServer(fullNode, cfg)</span><br><span class="line">				fullNode.AddLesServer(ls)</span><br><span class="line">			&#125;</span><br><span class="line">			<span class="keyword">return</span> fullNode, err</span><br><span class="line">		&#125;)</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">		Fatalf(<span class="string">"Failed to register the Ethereum service: %v"</span>, err)</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>我们看一下Register的实现：<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// go-ethereum\node\node.go</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(n *Node)</span> <span class="title">Register</span><span class="params">(constructor ServiceConstructor)</span> <span class="title">error</span></span> &#123;</span><br><span class="line">	n.lock.Lock() <span class="comment">//同步操作</span></span><br><span class="line">	<span class="keyword">defer</span> n.lock.Unlock()</span><br><span class="line"></span><br><span class="line">	<span class="keyword">if</span> n.server != <span class="literal">nil</span> &#123; </span><br><span class="line">		<span class="keyword">return</span> ErrNodeRunning</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="comment">//将ServiceConstructor添加到serviceFuncs这个切片中,ServiceConstructor定义如下</span></span><br><span class="line">	<span class="comment">//type ServiceConstructor func(ctx *ServiceContext) (Service, error)</span></span><br><span class="line">	n.serviceFuncs = <span class="built_in">append</span>(n.serviceFuncs, constructor)</span><br><span class="line">	<span class="keyword">return</span> <span class="literal">nil</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>逻辑很简单，就是将要注册的东西存起来。我们再来看注册的eth服务的内容。我们分析的是init的流程，默认的同步模式是FastSync，调用eth.New(ctx, cfg)，创建了一个Ethereum对象，这里我们暂不分析创建过程，只需知道这里实例化了了一个Ethereum对象，也就是变量fullNode。在回到makeConfigNode，后面就是根据具体情况去注册各种服务，如DashboardService，ShhService等，套路和eth注册是一样的。需要注意的是，这里面除了eth服务是必须的，其他的都是可选的。最后返回stack，也就是node对象</p>
+<p>实际上，在我们分析的流程中，initGenesis调用的makeFullNode方法都是在做初始化。回到initGenesis，makeFullNode之后有一个遍历，遍历了两个字符串：”chaindata”, “lightchaindata”。他们的用处是用来创建数据库：<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// go-ethereum\node\node.go</span></span><br><span class="line">chaindb, err := stack.OpenDatabase(name, <span class="number">0</span>, <span class="number">0</span>)</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(n *Node)</span> <span class="title">OpenDatabase</span><span class="params">(name <span class="keyword">string</span>, cache, handles <span class="keyword">int</span>)</span> <span class="params">(ethdb.Database, error)</span></span> &#123;</span><br><span class="line">	<span class="keyword">if</span> n.config.DataDir == <span class="string">""</span> &#123;</span><br><span class="line">		<span class="keyword">return</span> ethdb.NewMemDatabase(), <span class="literal">nil</span> <span class="comment">//如果路径为空，创建内存数据库，实际上就是放在内存中的一个map</span></span><br><span class="line">		                                    <span class="comment">// go-ethereum\ethdb\memory_database.go</span></span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">return</span> ethdb.NewLDBDatabase(n.config.ResolvePath(name), cache, handles)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// go-ethereum\ethdb\database.go</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">NewLDBDatabase</span><span class="params">(file <span class="keyword">string</span>, cache <span class="keyword">int</span>, handles <span class="keyword">int</span>)</span> <span class="params">(*LDBDatabase, error)</span></span> &#123;</span><br><span class="line">	logger := log.New(<span class="string">"database"</span>, file)</span><br><span class="line">	</span><br><span class="line">	<span class="comment">//从init调用过来时，cache和handles都为0</span></span><br><span class="line">	<span class="comment">//默认启动节点，cache为512，handles为0，在node.DefaultConfig配置</span></span><br><span class="line">	<span class="comment">// Ensure we have some minimal caching and file guarantees</span></span><br><span class="line">	<span class="keyword">if</span> cache &lt; <span class="number">16</span> &#123;</span><br><span class="line">		cache = <span class="number">16</span></span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">if</span> handles &lt; <span class="number">16</span> &#123;</span><br><span class="line">		handles = <span class="number">16</span></span><br><span class="line">	&#125;</span><br><span class="line">	logger.Info(<span class="string">"Allocated cache and file handles"</span>, <span class="string">"cache"</span>, common.StorageSize(cache*<span class="number">1024</span>*<span class="number">1024</span>), <span class="string">"handles"</span>, handles)</span><br><span class="line"></span><br><span class="line">	<span class="comment">// Open the db and recover any potential corruptions</span></span><br><span class="line">	db, err := leveldb.OpenFile(file, &amp;opt.Options&#123;</span><br><span class="line">		OpenFilesCacheCapacity: handles,</span><br><span class="line">		BlockCacheCapacity:     cache / <span class="number">2</span> * opt.MiB,</span><br><span class="line">		WriteBuffer:            cache / <span class="number">4</span> * opt.MiB, <span class="comment">// Two of these are used internally</span></span><br><span class="line">		Filter:                 filter.NewBloomFilter(<span class="number">10</span>),</span><br><span class="line">	&#125;)</span><br><span class="line">	<span class="keyword">if</span> _, corrupted := err.(*errors.ErrCorrupted); corrupted &#123;</span><br><span class="line">		db, err = leveldb.RecoverFile(file, <span class="literal">nil</span>)</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="comment">// (Re)check for errors and abort if opening of the db failed</span></span><br><span class="line">	<span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">		<span class="keyword">return</span> <span class="literal">nil</span>, err</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">return</span> &amp;LDBDatabase&#123;</span><br><span class="line">		fn:  file,</span><br><span class="line">		db:  db,</span><br><span class="line">		log: logger,</span><br><span class="line">	&#125;, <span class="literal">nil</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>这里使用的levelDB数据库，关于这个数据库的介绍与使用见这里。逻辑很简单就是在指定位置创建levelDB数据库。数据库创建完成后，回到initGenesis，接下来开始写内容：<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line">_, hash, err := core.SetupGenesisBlock(chaindb, genesis)</span><br><span class="line"></span><br><span class="line"><span class="comment">// go-ethereum\core\genesis.go</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">SetupGenesisBlock</span><span class="params">(db ethdb.Database, genesis *Genesis)</span> <span class="params">(*params.ChainConfig, common.Hash, error)</span></span> &#123;</span><br><span class="line">	<span class="keyword">return</span> SetupGenesisBlockWithOverride(db, genesis, <span class="literal">nil</span>)</span><br><span class="line">&#125;</span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">SetupGenesisBlockWithOverride</span><span class="params">(db ethdb.Database, genesis *Genesis, constantinopleOverride *big.Int)</span> <span class="params">(*params.ChainConfig, common.Hash, error)</span></span> &#123;</span><br><span class="line">	<span class="keyword">if</span> genesis != <span class="literal">nil</span> &amp;&amp; genesis.Config == <span class="literal">nil</span> &#123; <span class="comment">//如果json，没有配置config部分，则退出</span></span><br><span class="line">		<span class="keyword">return</span> params.AllEthashProtocolChanges, common.Hash&#123;&#125;, errGenesisNoConfig</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="comment">// Just commit the new block if there is no stored genesis block.</span></span><br><span class="line">	stored := rawdb.ReadCanonicalHash(db, <span class="number">0</span>) <span class="comment">// go-ethereum\core\rawdb\accessors_chain.go</span></span><br><span class="line">	<span class="comment">//从数据库中获取创世区块的hash</span></span><br><span class="line">	<span class="keyword">if</span> (stored == common.Hash&#123;&#125;) &#123; <span class="comment">//如果为空，init会进入这个分支</span></span><br><span class="line">		<span class="keyword">if</span> genesis == <span class="literal">nil</span> &#123;</span><br><span class="line">			log.Info(<span class="string">"Writing default main-net genesis block"</span>)</span><br><span class="line">			genesis = DefaultGenesisBlock()</span><br><span class="line">		&#125; <span class="keyword">else</span> &#123;</span><br><span class="line">			log.Info(<span class="string">"Writing custom genesis block"</span>)</span><br><span class="line">		&#125;</span><br><span class="line">		<span class="comment">// 写入数据库</span></span><br><span class="line">		block, err := genesis.Commit(db)</span><br><span class="line">		<span class="keyword">return</span> genesis.Config, block.Hash(), err</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	.....</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>首先利用rawdb.ReadCanonicalHash(db, 0)或取genesis区块，由于是初始化，自然获取不到，进入下面的if分枝，首先调用了Commit(db)：<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// go-ethereum\core\genesis.go</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(g *Genesis)</span> <span class="title">Commit</span><span class="params">(db ethdb.Database)</span> <span class="params">(*types.Block, error)</span></span> &#123;</span><br><span class="line">	block := g.ToBlock(db)</span><br><span class="line">	<span class="keyword">if</span> block.Number().Sign() != <span class="number">0</span> &#123;</span><br><span class="line">		<span class="keyword">return</span> <span class="literal">nil</span>, fmt.Errorf(<span class="string">"can't commit genesis block with number &gt; 0"</span>)</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="comment">// go-ethereum\core\rawdb\accessors_chain.go 写入各种信息</span></span><br><span class="line">	rawdb.WriteTd(db, block.Hash(), block.NumberU64(), g.Difficulty)</span><br><span class="line">	rawdb.WriteBlock(db, block)</span><br><span class="line">	rawdb.WriteReceipts(db, block.Hash(), block.NumberU64(), <span class="literal">nil</span>)</span><br><span class="line">	rawdb.WriteCanonicalHash(db, block.Hash(), block.NumberU64())</span><br><span class="line">	rawdb.WriteHeadBlockHash(db, block.Hash())</span><br><span class="line">	rawdb.WriteHeadHeaderHash(db, block.Hash())</span><br><span class="line"></span><br><span class="line">	config := g.Config</span><br><span class="line">	<span class="keyword">if</span> config == <span class="literal">nil</span> &#123;</span><br><span class="line">		config = params.AllEthashProtocolChanges</span><br><span class="line">	&#125;</span><br><span class="line">	rawdb.WriteChainConfig(db, block.Hash(), config)</span><br><span class="line">	<span class="keyword">return</span> block, <span class="literal">nil</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(g *Genesis)</span> <span class="title">ToBlock</span><span class="params">(db ethdb.Database)</span> *<span class="title">types</span>.<span class="title">Block</span></span> &#123;</span><br><span class="line">	<span class="keyword">if</span> db == <span class="literal">nil</span> &#123; <span class="comment">//如果数据库为nil，建立一个内存数据库</span></span><br><span class="line">		db = ethdb.NewMemDatabase()</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	statedb, _ := state.New(common.Hash&#123;&#125;, state.NewDatabase(db))</span><br><span class="line">	<span class="comment">// go-ethereum\core\state\statedb.go  // go-ethereum\core\state\database.go</span></span><br><span class="line">	<span class="comment">//state.New：根据给定的Tried创建一个新的状态()</span></span><br><span class="line">	<span class="comment">//state.NewDatabase：创建一个内存数据库</span></span><br><span class="line"></span><br><span class="line">	<span class="keyword">for</span> addr, account := <span class="keyword">range</span> g.Alloc &#123; <span class="comment">//遍历json文件中的alloc配置</span></span><br><span class="line">		statedb.AddBalance(addr, account.Balance)</span><br><span class="line">		statedb.SetCode(addr, account.Code)</span><br><span class="line">		statedb.SetNonce(addr, account.Nonce)</span><br><span class="line">		<span class="keyword">for</span> key, value := <span class="keyword">range</span> account.Storage &#123;</span><br><span class="line">			statedb.SetState(addr, key, value)</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">	root := statedb.IntermediateRoot(<span class="literal">false</span>)</span><br><span class="line">	head := &amp;types.Header&#123; <span class="comment">//go-ethereum\core\types\block.go  创建区块头</span></span><br><span class="line">		Number:     <span class="built_in">new</span>(big.Int).SetUint64(g.Number),</span><br><span class="line">		Nonce:      types.EncodeNonce(g.Nonce),</span><br><span class="line">		Time:       <span class="built_in">new</span>(big.Int).SetUint64(g.Timestamp),</span><br><span class="line">		ParentHash: g.ParentHash,</span><br><span class="line">		Extra:      g.ExtraData,</span><br><span class="line">		GasLimit:   g.GasLimit,</span><br><span class="line">		GasUsed:    g.GasUsed,</span><br><span class="line">		Difficulty: g.Difficulty,</span><br><span class="line">		MixDigest:  g.Mixhash,</span><br><span class="line">		Coinbase:   g.Coinbase,</span><br><span class="line">		Root:       root,</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">if</span> g.GasLimit == <span class="number">0</span> &#123;</span><br><span class="line">		head.GasLimit = params.GenesisGasLimit <span class="comment">//默认为4712388  go-ethereum\params\protocol_params.go</span></span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">if</span> g.Difficulty == <span class="literal">nil</span> &#123;</span><br><span class="line">		head.Difficulty = params.GenesisDifficulty <span class="comment">//默认为131072</span></span><br><span class="line">	&#125;</span><br><span class="line">	statedb.Commit(<span class="literal">false</span>)</span><br><span class="line">	statedb.Database().TrieDB().Commit(root, <span class="literal">true</span>)</span><br><span class="line"></span><br><span class="line">	<span class="keyword">return</span> types.NewBlock(head, <span class="literal">nil</span>, <span class="literal">nil</span>, <span class="literal">nil</span>)<span class="comment">//创建一个新的区块 go-ethereum\core\types\block.go</span></span><br><span class="line">											<span class="comment">//每个区块有四部分内容，区块头，交易列表，叔块，收据</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>Commit方法中首先调用了ToBlock，在这里创建了一个实例化的区块对象并返回，之后再Commit中写入各种信息到数据库中，我们以总难度为例，看它是如何写入的：<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">rawdb.WriteTd(db, block.Hash(), block.NumberU64(), g.Difficulty)</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">WriteTd</span><span class="params">(db DatabaseWriter, hash common.Hash, number <span class="keyword">uint64</span>, td *big.Int)</span></span> &#123;</span><br><span class="line">	data, err := rlp.EncodeToBytes(td)</span><br><span class="line">	<span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">		log.Crit(<span class="string">"Failed to RLP encode block total difficulty"</span>, <span class="string">"err"</span>, err)</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">if</span> err := db.Put(headerTDKey(number, hash), data); err != <span class="literal">nil</span> &#123;</span><br><span class="line">		log.Crit(<span class="string">"Failed to store block total difficulty"</span>, <span class="string">"err"</span>, err)</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>首先WriteTd接收四个参数，分别是数据库的实例，区块hash，区块编号，难度值。之后将难度值进行RLP编码，然后调用db.Put()写入数据库，写入的键是headerTDKey(number, hash)，值就是编码过得数据。在commit的最后，写入所有数据后，返回了区块实例，然后回到initGenesis方法，最终返回了错误信息和区块hash。到此init的流程就结束了。创世区块的内容也被写入了数据库。</p>
+
+      
+    </div>
+
+    
+
+    
+    
+    
+
+    
+
+    
+      
+    
+    
+      <div>
+        <div style="padding: 10px 0; margin: 20px auto; width: 90%; text-align: center;">
+  <div>谢谢你请我吃糖</div>
+  <button id="rewardButton" disable="enable" onclick="var qr = document.getElementById('QR'); if (qr.style.display === 'none') {qr.style.display='block';} else {qr.style.display='none'}">
+    <span>打赏</span>
+  </button>
+  <div id="QR" style="display: none;">
+
+    
+      <div id="wechat" style="display: inline-block">
+        <img id="wechat_qr" src="/assets/img/wechatpay.jpg" alt="AmorFati 微信支付">
+        <p>微信支付</p>
+      </div>
+    
+
+    
+      <div id="alipay" style="display: inline-block">
+        <img id="alipay_qr" src="/assets/img/alipay.jpg" alt="AmorFati 支付宝">
+        <p>支付宝</p>
+      </div>
+    
+
+    
+
+  </div>
+</div>
+
+      </div>
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/区块链/" rel="tag"># 区块链</a>
+          
+            <a href="/tags/以太坊/" rel="tag"># 以太坊</a>
+          
+            <a href="/tags/go-ethereum/" rel="tag"># go-ethereum</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2019/02/21/go-ethereum编译流程简单学习/" rel="next" title="go-ethereum编译流程简单学习">
+                <i class="fa fa-chevron-left"></i> go-ethereum编译流程简单学习
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+  </div>
+
+
+          </div>
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image" src="/assets/img/icon.jpg" alt="AmorFati">
+            
+              <p class="site-author-name" itemprop="name">AmorFati</p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          
+            <nav class="site-state motion-element">
+              
+                <div class="site-state-item site-state-posts">
+                
+                  <a href="/archives/">
+                
+                    <span class="site-state-item-count">4</span>
+                    <span class="site-state-item-name">日志</span>
+                  </a>
+                </div>
+              
+
+              
+                
+                
+                <div class="site-state-item site-state-categories">
+                  <a href="/categories/index.html">
+                    
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">3</span>
+                    <span class="site-state-item-name">分类</span>
+                  </a>
+                </div>
+              
+
+              
+                
+                
+                <div class="site-state-item site-state-tags">
+                  <a href="/tags/index.html">
+                    
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">5</span>
+                    <span class="site-state-item-name">标签</span>
+                  </a>
+                </div>
+              
+            </nav>
+          
+
+          
+
+          
+            <div class="links-of-author motion-element">
+              
+                <span class="links-of-author-item">
+                  
+                  
+                    
+                  
+                  
+                    
+                  
+                  <a href="https://github.com/chenyaoyang" title="GitHub &rarr; https://github.com/chenyaoyang" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i>GitHub</a>
+                </span>
+              
+                <span class="links-of-author-item">
+                  
+                  
+                    
+                  
+                  
+                    
+                  
+                  <a href="mailto:chenyang4346@foxmail.com" title="E-Mail &rarr; mailto:chenyang4346@foxmail.com" rel="noopener" target="_blank"><i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+                </span>
+              
+                <span class="links-of-author-item">
+                  
+                  
+                    
+                  
+                  
+                    
+                  
+                  <a href="https://www.jianshu.com/u/52c1bec4559c" title="Jianshu &rarr; https://www.jianshu.com/u/52c1bec4559c" rel="noopener" target="_blank"><i class="fa fa-fw fa-globe"></i>Jianshu</a>
+                </span>
+              
+            </div>
+          
+
+          
+
+          
+          
+
+          
+            
+          
+          
+
+        </div>
+      </div>
+
+      
+      <!--noindex-->
+        <div class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+            
+            
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#1-geth总览"><span class="nav-number">1.</span> <span class="nav-text">1.geth总览</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#2-init"><span class="nav-number">2.</span> <span class="nav-text">2.init</span></a></li></ol></div>
+            
+
+          </div>
+        </div>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; 2018 – <span itemprop="copyrightYear">2019</span>
+  <span class="with-love" id="animate">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">AmorFati</span>
+
+  
+
+  
+</div>
+
+
+  <div class="powered-by">由 <a href="https://hexo.io" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v3.8.0</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 – <a href="https://theme-next.org" class="theme-link" rel="noopener" target="_blank">NexT.Pisces</a> v6.6.0</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+    
+
+    
+  </div>
+
+  
+
+<script>
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+
+  
+
+
+  <script src="/js/src/utils.js?v=6.6.0"></script>
+
+  <script src="/js/src/motion.js?v=6.6.0"></script>
+
+
+
+  
+  
+
+
+  <script src="/js/src/affix.js?v=6.6.0"></script>
+
+  <script src="/js/src/schemes/pisces.js?v=6.6.0"></script>
+
+
+
+  
+  <script src="/js/src/scrollspy.js?v=6.6.0"></script>
+<script src="/js/src/post-details.js?v=6.6.0"></script>
+
+
+
+  
+
+
+  <script src="/js/src/bootstrap.js?v=6.6.0"></script>
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  <script>
+    // Popup Window;
+    var isfetched = false;
+    var isXml = true;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length === 0) {
+      search_path = "search.xml";
+    } else if (/json$/i.test(search_path)) {
+      isXml = false;
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    var onPopupClose = function (e) {
+      $('.popup').hide();
+      $('#local-search-input').val('');
+      $('.search-result-list').remove();
+      $('#no-result').remove();
+      $(".local-search-pop-overlay").remove();
+      $('body').css('overflow', '');
+    }
+
+    function proceedsearch() {
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay"></div>')
+        .css('overflow', 'hidden');
+      $('.search-popup-overlay').click(onPopupClose);
+      $('.popup').toggle();
+      var $localSearchInput = $('#local-search-input');
+      $localSearchInput.attr("autocapitalize", "none");
+      $localSearchInput.attr("autocorrect", "off");
+      $localSearchInput.focus();
+    }
+
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+      'use strict';
+
+      // start loading animation
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay">' +
+          '<div id="search-loading-icon">' +
+          '<i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>' +
+          '</div>' +
+          '</div>')
+        .css('overflow', 'hidden');
+      $("#search-loading-icon").css('margin', '20% auto 0 auto').css('text-align', 'center');
+
+      
+
+      $.ajax({
+        url: path,
+        dataType: isXml ? "xml" : "json",
+        async: true,
+        success: function(res) {
+          // get the contents from search data
+          isfetched = true;
+          $('.popup').detach().appendTo('.header-inner');
+          var datas = isXml ? $("entry", res).map(function() {
+            return {
+              title: $("title", this).text(),
+              content: $("content",this).text(),
+              url: $("url" , this).text()
+            };
+          }).get() : res;
+          var input = document.getElementById(search_id);
+          var resultContent = document.getElementById(content_id);
+          var inputEventFunction = function() {
+            var searchText = input.value.trim().toLowerCase();
+            var keywords = searchText.split(/[\s\-]+/);
+            if (keywords.length > 1) {
+              keywords.push(searchText);
+            }
+            var resultItems = [];
+            if (searchText.length > 0) {
+              // perform local searching
+              datas.forEach(function(data) {
+                var isMatch = false;
+                var hitCount = 0;
+                var searchTextCount = 0;
+                var title = data.title.trim();
+                var titleInLowerCase = title.toLowerCase();
+                var content = data.content.trim().replace(/<[^>]+>/g,"");
+                
+                var contentInLowerCase = content.toLowerCase();
+                var articleUrl = decodeURIComponent(data.url);
+                var indexOfTitle = [];
+                var indexOfContent = [];
+                // only match articles with not empty titles
+                if(title != '') {
+                  keywords.forEach(function(keyword) {
+                    function getIndexByWord(word, text, caseSensitive) {
+                      var wordLen = word.length;
+                      if (wordLen === 0) {
+                        return [];
+                      }
+                      var startPosition = 0, position = [], index = [];
+                      if (!caseSensitive) {
+                        text = text.toLowerCase();
+                        word = word.toLowerCase();
+                      }
+                      while ((position = text.indexOf(word, startPosition)) > -1) {
+                        index.push({position: position, word: word});
+                        startPosition = position + wordLen;
+                      }
+                      return index;
+                    }
+
+                    indexOfTitle = indexOfTitle.concat(getIndexByWord(keyword, titleInLowerCase, false));
+                    indexOfContent = indexOfContent.concat(getIndexByWord(keyword, contentInLowerCase, false));
+                  });
+                  if (indexOfTitle.length > 0 || indexOfContent.length > 0) {
+                    isMatch = true;
+                    hitCount = indexOfTitle.length + indexOfContent.length;
+                  }
+                }
+
+                // show search results
+
+                if (isMatch) {
+                  // sort index by position of keyword
+
+                  [indexOfTitle, indexOfContent].forEach(function (index) {
+                    index.sort(function (itemLeft, itemRight) {
+                      if (itemRight.position !== itemLeft.position) {
+                        return itemRight.position - itemLeft.position;
+                      } else {
+                        return itemLeft.word.length - itemRight.word.length;
+                      }
+                    });
+                  });
+
+                  // merge hits into slices
+
+                  function mergeIntoSlice(text, start, end, index) {
+                    var item = index[index.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    var hits = [];
+                    var searchTextCountInSlice = 0;
+                    while (position + word.length <= end && index.length != 0) {
+                      if (word === searchText) {
+                        searchTextCountInSlice++;
+                      }
+                      hits.push({position: position, length: word.length});
+                      var wordEnd = position + word.length;
+
+                      // move to next position of hit
+
+                      index.pop();
+                      while (index.length != 0) {
+                        item = index[index.length - 1];
+                        position = item.position;
+                        word = item.word;
+                        if (wordEnd > position) {
+                          index.pop();
+                        } else {
+                          break;
+                        }
+                      }
+                    }
+                    searchTextCount += searchTextCountInSlice;
+                    return {
+                      hits: hits,
+                      start: start,
+                      end: end,
+                      searchTextCount: searchTextCountInSlice
+                    };
+                  }
+
+                  var slicesOfTitle = [];
+                  if (indexOfTitle.length != 0) {
+                    slicesOfTitle.push(mergeIntoSlice(title, 0, title.length, indexOfTitle));
+                  }
+
+                  var slicesOfContent = [];
+                  while (indexOfContent.length != 0) {
+                    var item = indexOfContent[indexOfContent.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    // cut out 100 characters
+                    var start = position - 20;
+                    var end = position + 80;
+                    if(start < 0){
+                      start = 0;
+                    }
+                    if (end < position + word.length) {
+                      end = position + word.length;
+                    }
+                    if(end > content.length){
+                      end = content.length;
+                    }
+                    slicesOfContent.push(mergeIntoSlice(content, start, end, indexOfContent));
+                  }
+
+                  // sort slices in content by search text's count and hits' count
+
+                  slicesOfContent.sort(function (sliceLeft, sliceRight) {
+                    if (sliceLeft.searchTextCount !== sliceRight.searchTextCount) {
+                      return sliceRight.searchTextCount - sliceLeft.searchTextCount;
+                    } else if (sliceLeft.hits.length !== sliceRight.hits.length) {
+                      return sliceRight.hits.length - sliceLeft.hits.length;
+                    } else {
+                      return sliceLeft.start - sliceRight.start;
+                    }
+                  });
+
+                  // select top N slices in content
+
+                  var upperBound = parseInt('1');
+                  if (upperBound >= 0) {
+                    slicesOfContent = slicesOfContent.slice(0, upperBound);
+                  }
+
+                  // highlight title and content
+
+                  function highlightKeyword(text, slice) {
+                    var result = '';
+                    var prevEnd = slice.start;
+                    slice.hits.forEach(function (hit) {
+                      result += text.substring(prevEnd, hit.position);
+                      var end = hit.position + hit.length;
+                      result += '<b class="search-keyword">' + text.substring(hit.position, end) + '</b>';
+                      prevEnd = end;
+                    });
+                    result += text.substring(prevEnd, slice.end);
+                    return result;
+                  }
+
+                  var resultItem = '';
+
+                  if (slicesOfTitle.length != 0) {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + highlightKeyword(title, slicesOfTitle[0]) + "</a>";
+                  } else {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + title + "</a>";
+                  }
+
+                  slicesOfContent.forEach(function (slice) {
+                    resultItem += "<a href='" + articleUrl + "'>" +
+                      "<p class=\"search-result\">" + highlightKeyword(content, slice) +
+                      "...</p>" + "</a>";
+                  });
+
+                  resultItem += "</li>";
+                  resultItems.push({
+                    item: resultItem,
+                    searchTextCount: searchTextCount,
+                    hitCount: hitCount,
+                    id: resultItems.length
+                  });
+                }
+              })
+            };
+            if (keywords.length === 1 && keywords[0] === "") {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>'
+            } else if (resultItems.length === 0) {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>'
+            } else {
+              resultItems.sort(function (resultLeft, resultRight) {
+                if (resultLeft.searchTextCount !== resultRight.searchTextCount) {
+                  return resultRight.searchTextCount - resultLeft.searchTextCount;
+                } else if (resultLeft.hitCount !== resultRight.hitCount) {
+                  return resultRight.hitCount - resultLeft.hitCount;
+                } else {
+                  return resultRight.id - resultLeft.id;
+                }
+              });
+              var searchResultList = '<ul class=\"search-result-list\">';
+              resultItems.forEach(function (result) {
+                searchResultList += result.item;
+              })
+              searchResultList += "</ul>";
+              resultContent.innerHTML = searchResultList;
+            }
+          }
+
+          if ('auto' === 'auto') {
+            input.addEventListener('input', inputEventFunction);
+          } else {
+            $('.search-icon').click(inputEventFunction);
+            input.addEventListener('keypress', function (event) {
+              if (event.keyCode === 13) {
+                inputEventFunction();
+              }
+            });
+          }
+
+          // remove loading animation
+          $(".local-search-pop-overlay").remove();
+          $('body').css('overflow', '');
+
+          proceedsearch();
+        }
+      });
+    }
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched === false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+    });
+
+    $('.popup-btn-close').click(onPopupClose);
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+    $(document).on('keyup', function (event) {
+      var shouldDismissSearchPopup = event.which === 27 &&
+        $('.search-popup').is(':visible');
+      if (shouldDismissSearchPopup) {
+        onPopupClose();
+      }
+    });
+  </script>
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+  
+
+  
+
+
+  
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>
