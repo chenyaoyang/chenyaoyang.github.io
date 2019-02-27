@@ -148,21 +148,29 @@
 
 
 
-  <meta name="keywords" content="Android">
-<meta property="og:type" content="website">
-<meta property="og:title" content="AmorFati">
-<meta property="og:url" content="http://yoursite.com/categories/Go语言学习/index.html">
+  <meta name="description" content="go语言学习笔记：signal包">
+<meta name="keywords" content="go">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Go语言signal包使用指南">
+<meta property="og:url" content="http://yoursite.com/2019/02/27/Go语言signal包使用指南/index.html">
 <meta property="og:site_name" content="AmorFati">
+<meta property="og:description" content="go语言学习笔记：signal包">
 <meta property="og:locale" content="zh-CN">
+<meta property="og:image" content="https://upload-images.jianshu.io/upload_images/5111131-a1d3798432600008.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240">
+<meta property="og:image" content="https://upload-images.jianshu.io/upload_images/5111131-8b11a3432706afb1.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240">
+<meta property="og:image" content="https://upload-images.jianshu.io/upload_images/5111131-f7af8c1d3ef4a6cf.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240">
+<meta property="og:updated_time" content="2019-02-27T08:34:51.511Z">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="AmorFati">
+<meta name="twitter:title" content="Go语言signal包使用指南">
+<meta name="twitter:description" content="go语言学习笔记：signal包">
+<meta name="twitter:image" content="https://upload-images.jianshu.io/upload_images/5111131-a1d3798432600008.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240">
 
 
 
 
 
 
-  <link rel="canonical" href="http://yoursite.com/categories/Go语言学习/">
+  <link rel="canonical" href="http://yoursite.com/2019/02/27/Go语言signal包使用指南/">
 
 
 
@@ -172,7 +180,7 @@
   };
 </script>
 
-  <title>分类: Go语言学习 | AmorFati</title>
+  <title>Go语言signal包使用指南 | AmorFati</title>
   
 
 
@@ -220,7 +228,7 @@
     
   
 
-  <div class="container sidebar-position-left ">
+  <div class="container sidebar-position-left page-post-detail">
     <div class="headband"></div>
 
     <header id="header" class="header" itemscope="" itemtype="http://schema.org/WPHeader">
@@ -313,7 +321,7 @@
         
         
           
-          <li class="menu-item menu-item-categories menu-item-active">
+          <li class="menu-item menu-item-categories">
 
     
     
@@ -401,83 +409,244 @@
           
             
 
-    
-    
-      
-      
-    
-      
-      
-    
-      
-      
-    
-      
-      
-    
-      
-      
-    
-    
-
-  
-
-
           
           <div id="content" class="content">
             
 
-  
-  
-  
-  <div class="post-block category">
+  <div id="posts" class="posts-expand">
+    
 
-    <div id="posts" class="posts-collapse">
-      <div class="collection-title">
-        <h1>Go语言学习<small>分类</small>
-        </h1>
-      </div>
+  
 
-      
-        
+  
+  
+  
+
+  
 
   <article class="post post-type-normal" itemscope="" itemtype="http://schema.org/Article">
-    <header class="post-header">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/02/27/Go语言signal包使用指南/">
 
-      <h2 class="post-title">
+    <span hidden itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="AmorFati">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/assets/img/icon.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope="" itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="AmorFati">
+    </span>
+
+    
+      <header class="post-header">
+
         
-            <a class="post-title-link" href="/2019/02/21/go的CLI程序开发/" itemprop="url">
-              
-                <span itemprop="name">go的CLI程序开发</span>
-              
-            </a>
         
-      </h2>
+          <h1 class="post-title" itemprop="name headline">Go语言signal包使用指南
 
-      <div class="post-meta">
-        <time class="post-time" itemprop="dateCreated" datetime="2019-02-21T18:26:06+08:00" content="2019-02-21">
-          02-21
-        </time>
-      </div>
+              
+            
+          </h1>
+        
 
-    </header>
-  </article>
+        <div class="post-meta">
+          <span class="post-time">
 
+            
+            
+            
+
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+
+              
+                
+              
+
+              <time title="创建时间：2019-02-27 16:28:14 / 修改时间：16:34:51" itemprop="dateCreated datePublished" datetime="2019-02-27T16:28:14+08:00">2019-02-27</time>
+            
+
+            
+              
+
+              
+            
+          </span>
+
+          
+            <span class="post-category">
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope="" itemtype="http://schema.org/Thing"><a href="/categories/go语言学习笔记/" itemprop="url" rel="index"><span itemprop="name">go语言学习笔记</span></a></span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <blockquote class="blockquote-center"><p>go语言学习笔记：signal包 </p>
+</blockquote>  
+<a id="more"></a>
+<p>os/signal主要用于实现对信号的处理(<a href="https://golang.org/pkg/os/signal/" target="_blank" rel="noopener">官方文档</a>)</p>
+<h1 id="信号类型"><a href="#信号类型" class="headerlink" title="信号类型"></a>信号类型</h1><p>首先关于linux信号机制课自行查找资料，这里不再赘述。linux中的全部信号如下图：</p>
+<p><img src="https://upload-images.jianshu.io/upload_images/5111131-a1d3798432600008.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="信号"></p>
+<p>在go中预定义了几种信号：<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//"syscall"</span></span><br><span class="line"><span class="keyword">const</span> (</span><br><span class="line">	<span class="comment">// More invented values for signals</span></span><br><span class="line">	SIGHUP  = Signal(<span class="number">0x1</span>)</span><br><span class="line">	SIGINT  = Signal(<span class="number">0x2</span>)</span><br><span class="line">	SIGQUIT = Signal(<span class="number">0x3</span>)</span><br><span class="line">	SIGILL  = Signal(<span class="number">0x4</span>)</span><br><span class="line">	SIGTRAP = Signal(<span class="number">0x5</span>)</span><br><span class="line">	SIGABRT = Signal(<span class="number">0x6</span>)</span><br><span class="line">	SIGBUS  = Signal(<span class="number">0x7</span>)</span><br><span class="line">	SIGFPE  = Signal(<span class="number">0x8</span>)</span><br><span class="line">	SIGKILL = Signal(<span class="number">0x9</span>)</span><br><span class="line">	SIGSEGV = Signal(<span class="number">0xb</span>)</span><br><span class="line">	SIGPIPE = Signal(<span class="number">0xd</span>)</span><br><span class="line">	SIGALRM = Signal(<span class="number">0xe</span>)</span><br><span class="line">	SIGTERM = Signal(<span class="number">0xf</span>)</span><br><span class="line">)</span><br></pre></td></tr></table></figure></p>
+<p>首先在这么多信号中，SIGKILL和SIGSTOP是无法被程序捕获的，其中SIGKILL就是我们常用的kill -9 pid方法锁触发的。其次一些有程序执行中的错误所触发的同步信号如SIGBUS，SIGFPE和SIGSEGV，go会将其转为panic，不过若是我们通过kill方式触发也是可以被捕获的。</p>
+<p>除了那些同步信号，其余都是异步信号，是由内核或其他程序发送的，我们都可以捕获。</p>
+<p>在异步信号中，当程序丢失终端时收到SIGHUP，在终端按下中断字符(一般为ctrl+c)时收到SIGINT，在终端按下退出字符(一般为^\)时收到SIGQUIT。</p>
+<p>正常的，信号都是有默认动作的，最常见的如按下ctrl+c退出程序。其余的SIGHUP，SIGINT或SIGTERM信号导致程序退出。SIGQUIT，SIGILL，SIGTRAP，SIGABRT，SIGSTKFLT，SIGEMT或SIGSYS信号导致程序以堆栈转储退出。SIGTSTP，SIGTTIN或SIGTTOU信号获取系统默认行为（shell使用这些信号进行作业控制）。SIGPROF会被go运行时捕获实现runtime.CPUProfile.</p>
+<h1 id="捕获信号"><a href="#捕获信号" class="headerlink" title="捕获信号"></a>捕获信号</h1><p>signal包中提供了Notify方法，用于注册所要监听的信号。<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">Notify</span><span class="params">(c <span class="keyword">chan</span>&lt;- os.Signal, sig ...os.Signal)</span></span></span><br></pre></td></tr></table></figure></p>
+<p>该方法需要提供一个Signal类型的channel，以及要监听的信号(当不指定时会监听所有信号)。当有信号到来时，会被写入所传入的channel中，之后拿出来即可。下例是一个监听ctrl+c退出的程序：<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">main</span><span class="params">()</span></span> &#123;</span><br><span class="line">	c := <span class="built_in">make</span>(<span class="keyword">chan</span> os.Signal, <span class="number">1</span>)</span><br><span class="line">	signal.Notify(c, syscall.SIGINT)</span><br><span class="line"></span><br><span class="line">	s := &lt;-c</span><br><span class="line">	fmt.Println(<span class="string">"Got signal:"</span>, s)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>上述程序会在第五行阻塞，直到有一个信号过来。运行结果如下：</p>
+<p><img src="https://upload-images.jianshu.io/upload_images/5111131-8b11a3432706afb1.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt=""></p>
+<h1 id="其余api"><a href="#其余api" class="headerlink" title="其余api"></a>其余api</h1><h2 id="func-Stop-c-chan-lt-os-Signal"><a href="#func-Stop-c-chan-lt-os-Signal" class="headerlink" title="func Stop(c chan&lt;- os.Signal)"></a>func Stop(c chan&lt;- os.Signal)</h2><p>这个方法用于停止监听信号，之后不会再往所指定的channel中写入任何内容。搭配Notify使用如下：<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">go</span> <span class="function"><span class="keyword">func</span><span class="params">()</span></span> &#123;</span><br><span class="line">		sigc := <span class="built_in">make</span>(<span class="keyword">chan</span> os.Signal, <span class="number">1</span>)</span><br><span class="line">		signal.Notify(sigc, syscall.SIGINT, syscall.SIGTERM) <span class="comment">//监听信号</span></span><br><span class="line">		<span class="keyword">defer</span> signal.Stop(sigc) <span class="comment">//确保关闭</span></span><br><span class="line">		&lt;-sigc  <span class="comment">//线程阻塞</span></span><br><span class="line">		log.Info(<span class="string">"Got interrupt, shutting down..."</span>)</span><br><span class="line">		<span class="keyword">go</span> Stop() <span class="comment">//执行程序停止逻辑</span></span><br><span class="line">	&#125;()</span><br></pre></td></tr></table></figure></p>
+<h2 id="func-Ignore-sig-…os-Signal"><a href="#func-Ignore-sig-…os-Signal" class="headerlink" title="func Ignore(sig …os.Signal)"></a>func Ignore(sig …os.Signal)</h2><p>忽略指定的信号，同理，若是未指定，忽略所有信号</p>
+<h2 id="func-Ignored-sig-os-Signal-bool"><a href="#func-Ignored-sig-os-Signal-bool" class="headerlink" title="func Ignored(sig os.Signal) bool"></a>func Ignored(sig os.Signal) bool</h2><p>检查某个信号是否被忽略</p>
+<h2 id="func-Reset-sig-…os-Signal"><a href="#func-Reset-sig-…os-Signal" class="headerlink" title="func Reset(sig …os.Signal)"></a>func Reset(sig …os.Signal)</h2><p>重置之前调用Notify时的处理。也就是不在捕获信号，进行默认操作。注意和Ignore的区别，Ignore是不对信号做任何操作，Reset是恢复默认操作。</p>
+<h1 id="附录"><a href="#附录" class="headerlink" title="附录"></a>附录</h1><p>部分信号说明(图片来源于网络)：</p>
+<p><img src="https://upload-images.jianshu.io/upload_images/5111131-f7af8c1d3ef4a6cf.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="信号.png"></p>
 
       
     </div>
 
+    
+
+    
+    
+    
+
+    
+
+    
+      
+    
+    
+      <div>
+        <div style="padding: 10px 0; margin: 20px auto; width: 90%; text-align: center;">
+  <div>谢谢你请我吃糖</div>
+  <button id="rewardButton" disable="enable" onclick="var qr = document.getElementById('QR'); if (qr.style.display === 'none') {qr.style.display='block';} else {qr.style.display='none'}">
+    <span>打赏</span>
+  </button>
+  <div id="QR" style="display: none;">
+
+    
+      <div id="wechat" style="display: inline-block">
+        <img id="wechat_qr" src="/assets/img/wechatpay.jpg" alt="AmorFati 微信支付">
+        <p>微信支付</p>
+      </div>
+    
+
+    
+      <div id="alipay" style="display: inline-block">
+        <img id="alipay_qr" src="/assets/img/alipay.jpg" alt="AmorFati 支付宝">
+        <p>支付宝</p>
+      </div>
+    
+
+    
+
+  </div>
+</div>
+
+      </div>
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/go/" rel="tag"># go</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2019/02/26/geth的init流程分析/" rel="next" title="geth的init流程分析">
+                <i class="fa fa-chevron-left"></i> geth的init流程分析
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
   </div>
   
   
   
+  </article>
 
-  
 
+  </div>
 
 
           </div>
           
+
+  
+
+
 
         </div>
         
@@ -498,8 +667,17 @@
       
 
       
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
 
-      <div class="site-overview-wrap sidebar-panel sidebar-panel-active">
+      <div class="site-overview-wrap sidebar-panel">
         <div class="site-overview">
           <div class="site-author motion-element" itemprop="author" itemscope="" itemtype="http://schema.org/Person">
             
@@ -516,7 +694,7 @@
                 
                   <a href="/archives/">
                 
-                    <span class="site-state-item-count">4</span>
+                    <span class="site-state-item-count">5</span>
                     <span class="site-state-item-name">日志</span>
                   </a>
                 </div>
@@ -528,6 +706,8 @@
                 <div class="site-state-item site-state-categories">
                   <a href="/categories/index.html">
                     
+                    
+                      
                     
                       
                     
@@ -547,6 +727,8 @@
                 <div class="site-state-item site-state-tags">
                   <a href="/tags/index.html">
                     
+                    
+                      
                     
                       
                     
@@ -601,7 +783,7 @@
                   
                     
                   
-                  <a href="https://www.jianshu.com/u/52c1bec4559c" title="Jianshu &rarr; https://www.jianshu.com/u/52c1bec4559c" rel="noopener" target="_blank"><i class="fa fa-fw fa-globe"></i>Jianshu</a>
+                  <a href="https://www.jianshu.com/u/52c1bec4559c" title="简书 &rarr; https://www.jianshu.com/u/52c1bec4559c" rel="noopener" target="_blank"><i class="fa fa-fw fa-globe"></i>简书</a>
                 </span>
               
             </div>
@@ -620,6 +802,23 @@
         </div>
       </div>
 
+      
+      <!--noindex-->
+        <div class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+            
+            
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#信号类型"><span class="nav-number">1.</span> <span class="nav-text">信号类型</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#捕获信号"><span class="nav-number">2.</span> <span class="nav-text">捕获信号</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#其余api"><span class="nav-number">3.</span> <span class="nav-text">其余api</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#func-Stop-c-chan-lt-os-Signal"><span class="nav-number">3.1.</span> <span class="nav-text">func Stop(c chan&lt;- os.Signal)</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#func-Ignore-sig-…os-Signal"><span class="nav-number">3.2.</span> <span class="nav-text">func Ignore(sig …os.Signal)</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#func-Ignored-sig-os-Signal-bool"><span class="nav-number">3.3.</span> <span class="nav-text">func Ignored(sig os.Signal) bool</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#func-Reset-sig-…os-Signal"><span class="nav-number">3.4.</span> <span class="nav-text">func Reset(sig …os.Signal)</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#附录"><span class="nav-number">4.</span> <span class="nav-text">附录</span></a></li></ol></div>
+            
+
+          </div>
+        </div>
+      <!--/noindex-->
       
 
       
@@ -755,6 +954,10 @@
 
 
   
+  <script src="/js/src/scrollspy.js?v=6.6.0"></script>
+<script src="/js/src/post-details.js?v=6.6.0"></script>
+
+
 
   
 
