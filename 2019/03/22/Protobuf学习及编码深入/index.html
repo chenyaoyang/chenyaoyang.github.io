@@ -1,0 +1,1431 @@
+<!DOCTYPE html>
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+<html class="theme-next pisces use-motion" lang="zh-CN">
+<head><meta name="generator" content="Hexo 3.8.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+    
+      
+    
+
+    
+  
+
+  
+
+  
+    
+      
+    
+
+    
+  
+
+  
+    
+      
+    
+
+    
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Monda:300,300italic,400,400italic,700,700italic|Roboto Slab:300,300italic,400,400italic,700,700italic|Dancing Script:300,300italic,400,400italic,700,700italic|Consolas:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css">
+
+<link href="/css/main.css?v=6.6.0" rel="stylesheet" type="text/css">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=6.6.0">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=6.6.0">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=6.6.0">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=6.6.0" color="#222">
+
+
+
+
+
+
+
+
+
+<script id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    version: '6.6.0',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: false,
+    fastclick: false,
+    lazyload: false,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+  
+
+
+
+
+  <meta name="keywords" content="java,编码">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Protobuf学习及编码深入">
+<meta property="og:url" content="http://yoursite.com/2019/03/22/Protobuf学习及编码深入/index.html">
+<meta property="og:site_name" content="AmorFati">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:image" content="https://upload-images.jianshu.io/upload_images/5111131-334198e34b07e8a1.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240">
+<meta property="og:image" content="https://upload-images.jianshu.io/upload_images/5111131-43c2d0f4aa4e43bb.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240">
+<meta property="og:image" content="https://upload-images.jianshu.io/upload_images/5111131-e48ce2ad6d3136cf.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240">
+<meta property="og:image" content="https://upload-images.jianshu.io/upload_images/5111131-06c73f7b58ed61dc.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240">
+<meta property="og:updated_time" content="2019-03-22T04:46:00.198Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Protobuf学习及编码深入">
+<meta name="twitter:image" content="https://upload-images.jianshu.io/upload_images/5111131-334198e34b07e8a1.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240">
+
+
+
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2019/03/22/Protobuf学习及编码深入/">
+
+
+
+<script id="page.configurations">
+  CONFIG.page = {
+    sidebar: "",
+  };
+</script>
+
+  <title>Protobuf学习及编码深入 | AmorFati</title>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  <noscript>
+  <style>
+    .use-motion .motion-element,
+    .use-motion .brand,
+    .use-motion .menu-item,
+    .sidebar-inner,
+    .use-motion .post-block,
+    .use-motion .pagination,
+    .use-motion .comments,
+    .use-motion .post-header,
+    .use-motion .post-body,
+    .use-motion .collection-title { opacity: initial; }
+
+    .use-motion .logo,
+    .use-motion .site-title,
+    .use-motion .site-subtitle {
+      opacity: initial;
+      top: initial;
+    }
+
+    .use-motion .logo-line-before i { left: initial; }
+    .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope="" itemtype="http://schema.org/WebPage" lang="zh-CN">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope="" itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">AmorFati</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+    
+      
+        <p class="site-subtitle">风吹过窗前的书，又翻过一页</p>
+      
+    
+    
+  </div>
+
+  <div class="site-nav-toggle">
+    <button aria-label="切换导航栏">
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  
+    <ul id="menu" class="menu">
+      
+        
+        
+        
+          
+          <li class="menu-item menu-item-home">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/" rel="section"><i class="menu-item-icon fa fa-fw fa-home"></i> <br>首页</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-about">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/about/" rel="section"><i class="menu-item-icon fa fa-fw fa-user"></i> <br>关于</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-tags">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/tags/" rel="section"><i class="menu-item-icon fa fa-fw fa-tags"></i> <br>标签</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-categories">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/categories/" rel="section"><i class="menu-item-icon fa fa-fw fa-th"></i> <br>分类</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-archives">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/archives/" rel="section"><i class="menu-item-icon fa fa-fw fa-archive"></i> <br>归档</a>
+
+  </li>
+
+      
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br>搜索</a>
+        </li>
+      
+    </ul>
+  
+
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup search-popup local-search-popup">
+  <div class="local-search-header clearfix">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+    <div class="local-search-input-wrapper">
+      <input autocomplete="off" placeholder="搜索..." spellcheck="false" type="text" id="local-search-input">
+    </div>
+  </div>
+  <div id="local-search-result"></div>
+</div>
+
+
+
+    </div>
+  
+</nav>
+
+
+
+  
+
+
+
+</div>
+    </header>
+
+    
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+            
+
+          
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  
+
+  <article class="post post-type-normal" itemscope="" itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/03/22/Protobuf学习及编码深入/">
+
+    <span hidden itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="AmorFati">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/assets/img/icon.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope="" itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="AmorFati">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">Protobuf学习及编码深入
+
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+
+            
+            
+            
+
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+
+              
+                
+              
+
+              <time title="创建时间：2019-03-22 12:33:54 / 修改时间：12:46:00" itemprop="dateCreated datePublished" datetime="2019-03-22T12:33:54+08:00">2019-03-22</time>
+            
+
+            
+              
+
+              
+            
+          </span>
+
+          
+            <span class="post-category">
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope="" itemtype="http://schema.org/Thing"><a href="/categories/编码/" itemprop="url" rel="index"><span itemprop="name">编码</span></a></span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p><img src="https://upload-images.jianshu.io/upload_images/5111131-334198e34b07e8a1.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt=""><br><a id="more"></a></p>
+<h1 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h1><p>按照官方的介绍，Protocol buffers是一种与具体平台或者编程语言无关的可扩展的序列化语言，类似于XML或者JSON，由其对比XML而言，具有更小更快更简单的特点。接下来我们就来了解一下这个东西。</p>
+<h1 id="简单使用"><a href="#简单使用" class="headerlink" title="简单使用"></a>简单使用</h1><p>一般而言，使用步骤有三步。首先定义Protobuf模板文件，以.proto为后缀；然后生成特定语言的接口代码；最后利用接口代码进行序列化或者反序列操作。整体步骤和我们利用一些第三方库如Gson去操作json文件类似，下面就具体看一下这几个过程：</p>
+<h2 id="定义Protobuf文件"><a href="#定义Protobuf文件" class="headerlink" title="定义Protobuf文件"></a>定义Protobuf文件</h2><p>下面这个例子是官方文档给出，定义了一个地址簿的数据结构：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">syntax = &quot;proto2&quot;;</span><br><span class="line"></span><br><span class="line">package tutorial;</span><br><span class="line"></span><br><span class="line">option java_package = &quot;code.protobuf&quot;;</span><br><span class="line">option java_outer_classname = &quot;AddressBookProtos&quot;;</span><br><span class="line"></span><br><span class="line">message Person &#123;</span><br><span class="line">  required string name = 1;</span><br><span class="line">  required int32 id = 2;</span><br><span class="line">  optional string email = 3;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">message AddressBook &#123;</span><br><span class="line">  repeated Person people = 1;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>具体语法我们稍后再介绍，首先可以看到，Protobuf文件的格式很像一些面向对象语言中类的定义，上面例子一个message就像一个类定义，类之间可以嵌套。AddressBook中有Person对象，Person中又有PhoneNumber对象。Person中也有一些基本类型如string和int。用过Gson之类的库解析json的应该感觉这和解析json时定义的类很像。</p>
+<h2 id="编译"><a href="#编译" class="headerlink" title="编译"></a>编译</h2><p>写好Protobuf文件后，就相当于写好一个模板文件，在不同平台或者不同语言间交互时都以这个文件为标准，但是还不能直接，根据具体的编程语言，我们还要有接口文件，我们可以利用官方给的<a href="https://github.com/protocolbuffers/protobuf/releases/tag/v3.7.0" target="_blank" rel="noopener">编译工具</a>生成我们需要的接口代码，以java语言为例：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">protoc --java_out=src\ src\code\protobuf\addressbook.proto</span><br></pre></td></tr></table></figure></p>
+<p>–java_out表示生成的接口文件路径，由于我们在Protobuf文件文件中定义了java_package，所以只需指定包所在目录即可，生成的文件会自动放在具体包下，最后指定Protobuf文件具体路径。生成的文件名在Protobuf文件中java_outer_classname字段定义。</p>
+<h2 id="接口操作"><a href="#接口操作" class="headerlink" title="接口操作"></a>接口操作</h2><p>执行完命令后，在code.protobuf包下生成了AddressBookProtos.java文件(要使用这个代码还需要导入相关库)。代码还是很长的，我们仅仅定义了一个简单的地址簿数据结构，就生成了近2000行代码，但是对于我们所使用的接口而言，生成的这个代码其实就是一个JavaBean类，它使用了建造者模式，当我们要构造一个Person对象时，如下：<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">AddressBookProtos.Person john = AddressBookProtos.Person.newBuilder().setId(<span class="number">1234</span>)</span><br><span class="line">                .setName(<span class="string">"John"</span>)</span><br><span class="line">                .setEmail(<span class="string">"john@163.com"</span>)</span><br><span class="line">                .addPhones(AddressBookProtos.Person.PhoneNumber.newBuilder()</span><br><span class="line">                        .setNumber(<span class="string">"15463"</span>)</span><br><span class="line">                        .setType(AddressBookProtos.Person.PhoneType.HOME)</span><br><span class="line">                        .build())</span><br><span class="line">                .build();</span><br></pre></td></tr></table></figure></p>
+<p>除了常用的get与set方法，还提供了：toString()方法用于转为有意义的字符串形式；isInitialized()方法用于检测所有必需字段是否设置；clear()方法用于清空所有字段；mergeFrom(Message other)用于合并两个对象。</p>
+<p>当然作为序列化工具，生成的对象也提供了序列化和反序列化相关的方法：toByteArray()和parseFrom(byte[] data)。另外还可以直接操作流：writeTo(OutputStream output)和parseFrom(InputStream input)。</p>
+<h2 id="简单示例"><a href="#简单示例" class="headerlink" title="简单示例"></a>简单示例</h2><p>这里演示一个简单的跨语言的传输数据的例子。使用Go语言编写服务端，java编写客户端，从客户端向服务端发送数据。protobuf文件还使用上面的例子，这里在使用编译工具编译go语言的接口文件，protobuf文件不用做任何修改：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">protoc --go_out=.\ src\code\protobuf\addressbook.proto</span><br></pre></td></tr></table></figure></p>
+<p>java的客户端代码如下：<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">    AddressBookProtos.Person person = AddressBookProtos.Person.newBuilder()</span><br><span class="line">            .setName(<span class="string">"jack"</span>)</span><br><span class="line">            .setId(<span class="number">1</span>)</span><br><span class="line">            .setEmail(<span class="string">"jack@163.com"</span>)</span><br><span class="line">            .build();</span><br><span class="line">    AddressBookProtos.AddressBook book = AddressBookProtos.AddressBook.newBuilder()</span><br><span class="line">            .addPeople(person)</span><br><span class="line">            .build();</span><br><span class="line">    <span class="keyword">try</span> (Socket socket = <span class="keyword">new</span> Socket(<span class="string">"127.0.0.1"</span>,<span class="number">1234</span>))&#123;</span><br><span class="line">        OutputStream out = socket.getOutputStream();</span><br><span class="line">        out.write(book.toByteArray());</span><br><span class="line">        socket.shutdownOutput();</span><br><span class="line">    &#125; <span class="keyword">catch</span> (Exception e) &#123;</span><br><span class="line">        e.printStackTrace();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>go的服务端代码如下<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">main</span><span class="params">()</span></span> &#123;</span><br><span class="line">	listener,err:=net.Listen(<span class="string">"tcp"</span>,<span class="string">":1234"</span>)</span><br><span class="line">	<span class="keyword">if</span> err!=<span class="literal">nil</span>&#123;</span><br><span class="line">		log.Fatalln(<span class="string">"Listen："</span>,err.Error())</span><br><span class="line">	&#125;</span><br><span class="line">	con,err:=listener.Accept()</span><br><span class="line">	<span class="keyword">if</span> err!=<span class="literal">nil</span>&#123;</span><br><span class="line">		log.Fatalln(<span class="string">"Accept："</span>,err.Error())</span><br><span class="line">	&#125;</span><br><span class="line">	result,err:=ioutil.ReadAll(con)</span><br><span class="line">	<span class="keyword">if</span> err!=<span class="literal">nil</span>&#123;</span><br><span class="line">		log.Fatalln(<span class="string">"ReadAll："</span>,err.Error())</span><br><span class="line">	&#125;</span><br><span class="line">	book := &amp;tutorial.AddressBook&#123;&#125;</span><br><span class="line">	<span class="keyword">if</span> err := proto.Unmarshal(result, book); err != <span class="literal">nil</span> &#123;</span><br><span class="line">		log.Fatalln(<span class="string">"Failed to parse address book:"</span>, err)</span><br><span class="line">	&#125;</span><br><span class="line">	fmt.Println(*book.People[<span class="number">0</span>].Email)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<h1 id="详细语法"><a href="#详细语法" class="headerlink" title="详细语法"></a>详细语法</h1><p>首先在文件第一行在指定语法版本，如：syntax = “proto2”;</p>
+<h2 id="基本字段类型"><a href="#基本字段类型" class="headerlink" title="基本字段类型"></a>基本字段类型</h2><p>message中每个字段都要指定数据类型。如下表：<br><img src="https://upload-images.jianshu.io/upload_images/5111131-43c2d0f4aa4e43bb.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="TIM截图20190308165734.png"></p>
+<h2 id="分配字段编号"><a href="#分配字段编号" class="headerlink" title="分配字段编号"></a>分配字段编号</h2><p>如例子中所示，每个字段都要分配一个独一无二编号，编号范围在1~536,870,911，主要是为了标记字段，并且不能改变，需要注意的是19000到19999是不能使用的。关于编号，官方文档建议，对于频繁使用的元素应当使用1到15的编号，因为这些序号被编码为1byte，而16到2047被编码为2byte。</p>
+<h2 id="字段约束"><a href="#字段约束" class="headerlink" title="字段约束"></a>字段约束</h2><p>有以下几个修饰词:<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">required：使用时必须被指定的字段</span><br><span class="line">optional：可以不被指定，但是最多只能指定一个</span><br><span class="line">repeated：可以出现次的，也可以不出现，相当于数组的概念。官方建议使用[packed=true]选项提高编码效率：repeated int32 samples = 4 [packed=true];</span><br></pre></td></tr></table></figure></p>
+<p>了解完字段类型，编号，约束词以后，我们可以得到message中一个字段的完整定义:<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">字段约束 类型 名称 = 字段编号;</span><br><span class="line">required string query = 1;</span><br></pre></td></tr></table></figure></p>
+<h2 id="注释"><a href="#注释" class="headerlink" title="注释"></a>注释</h2><p>类似于java等语言的注释风格：使用// 或/**/</p>
+<h2 id="保留字"><a href="#保留字" class="headerlink" title="保留字"></a>保留字</h2><p>对于以删除的字段，若是后面再被使用，可能会导致问题，所以可以用reserved标记出来，若被使用编译器将报错。reserved使用方法如下：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">message Foo &#123;</span><br><span class="line">  reserved 2, 15, 9 to 11;</span><br><span class="line">  reserved &quot;foo&quot;, &quot;bar&quot;;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>注意字段和编号不能混合在一起用reserved标记</p>
+<h2 id="可选字段的默认值"><a href="#可选字段的默认值" class="headerlink" title="可选字段的默认值"></a>可选字段的默认值</h2><p>对于optional修饰的字段，若未定义，会有一个与字段类型对应的默认值，如string为空，bool为false等，我们也可以指定默认值如下所示：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">optional int32 result_per_page = 3 [default = 10];</span><br></pre></td></tr></table></figure></p>
+<h2 id="枚举类型"><a href="#枚举类型" class="headerlink" title="枚举类型"></a>枚举类型</h2><p>定义如下：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">enum Corpus &#123;</span><br><span class="line">    UNIVERSAL = 0;</span><br><span class="line">    WEB = 1;</span><br><span class="line">    IMAGES = 2;</span><br><span class="line">    LOCAL = 3;</span><br><span class="line">    NEWS = 4;</span><br><span class="line">    PRODUCTS = 5;</span><br><span class="line">    VIDEO = 6;</span><br><span class="line">  &#125;</span><br></pre></td></tr></table></figure></p>
+<p>在一个枚举中，可以指定一些相同值的成员，这样会被解析为别名，同时需要加上option allow_alias = true<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">enum EnumAllowingAlias &#123;</span><br><span class="line">  option allow_alias = true;</span><br><span class="line">  UNKNOWN = 0;</span><br><span class="line">  STARTED = 1;</span><br><span class="line">  RUNNING = 1;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>若在一个message中使用另一个message的enum可以以MessageType.EnumType的形式调用</p>
+<h2 id="导包"><a href="#导包" class="headerlink" title="导包"></a>导包</h2><p>protobuf也有导包的概念，如果要从一个proto文件中引用另一个proto文件中的一个message，需要使用import关键字进行导包。注意在编译时使用-I指定搜索包的路径，否则只会默认搜索当前目录下的文件</p>
+<h2 id="嵌套定义"><a href="#嵌套定义" class="headerlink" title="嵌套定义"></a>嵌套定义</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">message SearchResponse &#123;</span><br><span class="line">  message Result &#123;</span><br><span class="line">    required string url = 1;</span><br><span class="line">    optional string title = 2;</span><br><span class="line">    repeated string snippets = 3;</span><br><span class="line">  &#125;</span><br><span class="line">  repeated Result result = 1;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>上面例子在一个message中定义了另一个message，使用时利用SearchResponse.Result引用内部定义的message</p>
+<h2 id="Extensions"><a href="#Extensions" class="headerlink" title="Extensions"></a>Extensions</h2><p>扩展实际上是一个占位符，它代表未在原始文件中定义的字段<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">message Foo &#123;</span><br><span class="line">  extensions 100 to 199;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>其他用户可以使用extensions指定的字段为原来的message添加新字段<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">extend Foo &#123;</span><br><span class="line">  optional int32 bar = 126;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>访问extension也有特殊的api，示例：<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//序列化</span></span><br><span class="line">AddressBookProtos.AddressBook book = AddressBookProtos.AddressBook.newBuilder()</span><br><span class="line">                .setExtension(AddressBookProtos.bar,<span class="number">10</span>)</span><br><span class="line">                .build();</span><br><span class="line"></span><br><span class="line"><span class="keyword">byte</span>[] out = book.toByteArray();</span><br><span class="line"></span><br><span class="line"><span class="comment">//反序列化</span></span><br><span class="line">ExtensionRegistry registry = ExtensionRegistry.newInstance();</span><br><span class="line">registry.add(AddressBookProtos.bar);</span><br><span class="line">AddressBookProtos.AddressBook ob = AddressBookProtos.AddressBook.parseFrom(out,registry);</span><br><span class="line">System.out.println(ob.hasExtension(AddressBookProtos.bar));</span><br></pre></td></tr></table></figure></p>
+<p>注意在反序列化时候要注册需要解析的extension，并作为参数传入parseFrom</p>
+<h2 id="Oneof"><a href="#Oneof" class="headerlink" title="Oneof"></a>Oneof</h2><p>oneof的出现是为了实现这样的需求：一个message中有多个成员，但同一时间只能有一个成员被赋值。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">oneof test&#123;</span><br><span class="line">    string a = 4;</span><br><span class="line">    string b = 5;</span><br><span class="line">    string c = 6;</span><br><span class="line">  &#125;</span><br></pre></td></tr></table></figure></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">AddressBookProtos.Person p2 = AddressBookProtos.Person.newBuilder()</span><br><span class="line">                .setName(<span class="string">"tom"</span>)</span><br><span class="line">                .setId(<span class="number">2</span>)</span><br><span class="line">                .setEmail(<span class="string">"tom@163.com"</span>)</span><br><span class="line">                .setA(<span class="string">"hello"</span>)</span><br><span class="line">                .setB(<span class="string">"world"</span>)</span><br><span class="line">                .build();</span><br><span class="line">AddressBookProtos.AddressBook book = AddressBookProtos.AddressBook.newBuilder()</span><br><span class="line">                .addPeople(p2)</span><br><span class="line">                .build();                </span><br><span class="line"><span class="keyword">byte</span>[] out = book.toByteArray();</span><br><span class="line">AddressBookProtos.AddressBook ob = AddressBookProtos.AddressBook.parseFrom(out);</span><br><span class="line">System.out.println(ob.getPeople(<span class="number">0</span>).hasA());</span><br><span class="line">System.out.println(ob.getPeople(<span class="number">0</span>).hasB());</span><br></pre></td></tr></table></figure>
+<p>可见我们虽然同时对A，B都进行了赋值，但是只有B被赋值成功，也就是同时只有一个成员可以被赋值<br>需要有以下几点注意：</p>
+<ol>
+<li>对一个成员赋值，会自动清除其他已赋值的成员</li>
+<li>extension不支持oneof</li>
+<li>oneof不能被修饰为repeated</li>
+</ol>
+<p>实际上对于oneof修饰的一组成员，完全可以把它们当做普通的optional成员看待，只不过这几个成员之间又互相依赖关系</p>
+<p>另外，oneof：</p>
+<ol>
+<li>安全的移除或添加字段，但会可能会导致数据丢失</li>
+<li>可以删除一个oneof，也可能会导致数据丢失</li>
+<li>可以分割或合并oneof，效果类似移除或添加字段</li>
+</ol>
+<h2 id="maps"><a href="#maps" class="headerlink" title="maps"></a>maps</h2><p>一般意义上的映射数据类型。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">map&lt;string, Project&gt; projects = 3;</span><br></pre></td></tr></table></figure></p>
+<p>key可以使任何整数或string（也就是浮点和字节类型除外），枚举也不能做为key。value可以是除map外的任何类型。注意事项：</p>
+<ol>
+<li>extension不支持map</li>
+<li>map不能有repeated, optional, 或 required修饰</li>
+<li>map是无序的</li>
+</ol>
+<p>map等效于下面的实现：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">message MapFieldEntry &#123;</span><br><span class="line">  optional key_type key = 1;</span><br><span class="line">  optional value_type value = 2;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">repeated MapFieldEntry map_field = N;</span><br></pre></td></tr></table></figure></p>
+<h2 id="Message更新"><a href="#Message更新" class="headerlink" title="Message更新"></a>Message更新</h2><p>更新需要遵循以下规则</p>
+<ol>
+<li>不要改变已有字段的编号</li>
+<li>新字段只能使用optional或repeated修饰。这样也很好理解，旧的代码序列化的数据仍然可以被新代码解析，否则会由于缺少required而报错</li>
+<li>非required修饰的字段可以被移除，但是注意被删除的字段所使用的编号不能再次使用</li>
+<li>只要类型或者编号不便，非required字段可以转为extension</li>
+<li>int32, uint32, int64, uint64 和 bool 是可以互相兼容的，也就是可以互相转换</li>
+<li>sint32和sint64彼此兼容，但不和其他整数类型兼容</li>
+<li>string和bytes互相兼容，前提是使用UTF-8编码</li>
+<li>fixed32和sfixed32、fixed64、sfixed64是兼容的</li>
+<li>optional与repeated是兼容的，若输入的是repeated，在解析为optional时，以最后一个输入为主，或合并输入</li>
+<li>可以改变默认值，但要注意不同版本的protobuf文件的默认不同时会在带来潜在的冲突</li>
+<li>enum 和 int32, uint32, int64, uint64是兼容的</li>
+<li>将optional改为oneof是安全的</li>
+</ol>
+<h2 id="packages"><a href="#packages" class="headerlink" title="packages"></a>packages</h2><p>在proto文件中指定package字段来防止名字冲突。在java中，除非指定java_package字段，否则会以package作为包名</p>
+<h2 id="自定义选项"><a href="#自定义选项" class="headerlink" title="自定义选项"></a>自定义选项</h2><ol>
+<li>java_package ：指定生成的java文件所在的包</li>
+<li>java_outer_classname ：指定生成的java文件名</li>
+<li>optimize_for ：优化选项，有SPEED, CODE_SIZE, 和 LITE_RUNTIME三种选择。SPEED是默认选项，对代码进行优化。CODE_SIZE可以减小生成代码量，但解析速度会下降，LITE_RUNTIME生成的代码最少，但会失去一些特性<br>4.deprecated：被标记为true的字段表示不再使用：optional int32 old_field = 6 [deprecated=true];</li>
+</ol>
+<h1 id="proto3语法"><a href="#proto3语法" class="headerlink" title="proto3语法"></a>proto3语法</h1><p>proto3的语法和2有很多相似之处，所以这里只介绍一些不同点</p>
+<h2 id="版本号"><a href="#版本号" class="headerlink" title="版本号"></a>版本号</h2><p>当然版本号要更改为proto3<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">syntax = &quot;proto3&quot;;</span><br></pre></td></tr></table></figure></p>
+<h2 id="修饰词"><a href="#修饰词" class="headerlink" title="修饰词"></a>修饰词</h2><p>移除了required修饰词；<br>所有字段默认都是singular，也就是原来的optional，但是不能显式的指定为singular<br>repeated被保留了</p>
+<p>正常情况下一个message书写如下：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">syntax = &quot;proto3&quot;;</span><br><span class="line"></span><br><span class="line">message SearchRequest &#123;</span><br><span class="line">  string query = 1;</span><br><span class="line">  int32 page_number = 2;</span><br><span class="line">  int32 result_per_page = 3;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<h2 id="默认值"><a href="#默认值" class="headerlink" title="默认值"></a>默认值</h2><p>取消了default选项，也就是说默认值只能有系统默认指定，如字符串为空串，bool型为false，数字为0等。还有对于枚举类，默认是编号为0的成员。</p>
+<h2 id="枚举类型-1"><a href="#枚举类型-1" class="headerlink" title="枚举类型"></a>枚举类型</h2><p>必须有一个编号为0的成员来作为其第一个成员。</p>
+<h2 id="未知字段"><a href="#未知字段" class="headerlink" title="未知字段"></a>未知字段</h2><p>在3.5版本之前，不能被解析的字段会被直接抛弃，但是在3.5版本之后，这种特性又回归到proto2上，即不能被解析的字段仍然会保留到下次序列化的输出中</p>
+<h2 id="any"><a href="#any" class="headerlink" title="any"></a>any</h2><p>用于替代extensions，不过尚在开发中</p>
+<h1 id="编码"><a href="#编码" class="headerlink" title="编码"></a>编码</h1><h2 id="Varints规则"><a href="#Varints规则" class="headerlink" title="Varints规则"></a>Varints规则</h2><p>protobuf的编码基础是Varints，它是将整数序列化为一个或多个byte的方法。 Varints规则是用每byte的第7位存储值，第8位为标志位，若标志位为1，表示后面还有数据，若为0，表示该byte为最后一个。最后Varints采用小端存储。下面举一个例子：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">以整数300为例，300的二进制表示如下：</span><br><span class="line">    100101100</span><br><span class="line">按小端存储并每7位一组：</span><br><span class="line">    0101100 0000010</span><br><span class="line">再加上标志位，最终表示如下：</span><br><span class="line">    10101100 00000010</span><br></pre></td></tr></table></figure></p>
+<p>Varints的优点是，由于标志位存在，省去了编码长度的表示，其次越小的数编码越短，但是由于标志位的存在，也牺牲了容量，如4byte实际可用表示数值的只有28位</p>
+<h2 id="基本编码规则"><a href="#基本编码规则" class="headerlink" title="基本编码规则"></a>基本编码规则</h2><p>我们首先看一下message中每个成员变量的定义<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">int32 a = 1;</span><br></pre></td></tr></table></figure></p>
+<p>有三部分组成，变量类型，变量名和变量序号。其中变量名只是为了帮助我们做识别，在编码时不会写入，仅仅用变量序号作为标识，所以也就有了在更新message时序号不能复用的规则，以及可以安全地添加新成员（没有被识别的会直接跳过）。</p>
+<p>在编码中，成员变量是以键值对形式出现的，键有两部分组成：成员序号加上成员类型代码，具体代码如下</p>
+<p><img src="https://upload-images.jianshu.io/upload_images/5111131-e48ce2ad6d3136cf.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt=""></p>
+<p>总共有6种代码，其中group使用的两个代码已被弃用，但是依旧保留。这6个代码需要3位二进制表示，所以键的组成是：字段编号+类型代码（加好表示拼接，并不是运算），示例如下：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">当我们有一个inst32类型的成员a，编号为1，被赋值为150时</span><br><span class="line">由于是int32类型，根据上图采用varint规则，首先对150进行Varints规则编码（过程略）：</span><br><span class="line">    10010110 00000001</span><br><span class="line">由于是int32类型，类型代码为0，编号为1，类型代码采用三位二进制表示为000，二者拼接之后如下：</span><br><span class="line">    0001000</span><br><span class="line">所以a的最终编码为</span><br><span class="line">    0001000 10010110 00000001</span><br><span class="line">改用16进制表示如下</span><br><span class="line">    08 96 01</span><br></pre></td></tr></table></figure></p>
+<h2 id="其他类型规则"><a href="#其他类型规则" class="headerlink" title="其他类型规则"></a>其他类型规则</h2><h3 id="sint32-sint64"><a href="#sint32-sint64" class="headerlink" title="sint32, sint64"></a>sint32, sint64</h3><p>对于Varints规则不适用与存储负数，负数最高位为1，造成编码极大的浪费，为了节省空间，引入了ZigZag编码格式，基本思想就是将有符号整数转为无符号整数。转换规则如下：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">(n &lt;&lt; 1) ^ (n &gt;&gt; 31)  #sint32</span><br><span class="line">(n &lt;&lt; 1) ^ (n &gt;&gt; 63)  #sint64</span><br></pre></td></tr></table></figure></p>
+<p>示例如下：</p>
+<p><img src="https://upload-images.jianshu.io/upload_images/5111131-06c73f7b58ed61dc.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt=""></p>
+<p>转为无符号的整数后，再用varints编码即可。</p>
+<h3 id="64-bit-和-32-bit-类型"><a href="#64-bit-和-32-bit-类型" class="headerlink" title="64-bit 和 32-bit 类型"></a>64-bit 和 32-bit 类型</h3><p>这两种分有不同的类型代码，而且编码时不进行其他转换，直接以64位或32位原始存储（注意也是小端存储），读取时根据类型代码直接读取64位或32位</p>
+<h3 id="Strings"><a href="#Strings" class="headerlink" title="Strings"></a>Strings</h3><p>类型代码2表示一类Length-delimited数据。这种编码类型还附带有长度信息，就是在键值之间附加一个用varints编码的长度编码，例子如下：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">我们有一个string类型的变量b，编号为2，赋值为testing</span><br><span class="line">首先testing的utf-8编码如下：</span><br><span class="line">    74 65 73 74 69 6e 67</span><br><span class="line">长度为7，varints格式编码如下：</span><br><span class="line">    00000111</span><br><span class="line">编号加类型代码拼接后如下：</span><br><span class="line">    00010010</span><br><span class="line">最后组合在一起用十六进制表示如下：</span><br><span class="line">    12 07 74 65 73 74 69 6e 67</span><br></pre></td></tr></table></figure></p>
+<p>除了表示字符串这种简单信息，还可以表示其他message，如下：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">message Test3 &#123;</span><br><span class="line">  optional Test1 c = 3;</span><br><span class="line">&#125;</span><br><span class="line">其中Test1：</span><br><span class="line">message Test1 &#123;</span><br><span class="line">  optional int32 a = 1;</span><br><span class="line">&#125;</span><br><span class="line">我们对Test1中a赋值为150，上面已经计算过，最后编码为</span><br><span class="line">    08 96 01</span><br><span class="line">对于Test1类型的变量c表示如下：</span><br><span class="line">首先原始数据就是08 96 01，长度为3，编号为3，类型代码为2，组合起来就是</span><br><span class="line">    1a 03 08 96 01</span><br></pre></td></tr></table></figure></p>
+<h2 id="packed"><a href="#packed" class="headerlink" title="packed"></a>packed</h2><p>在proto3中packed为默认的，在proto2中需要手动指定。使用proto3 模式将会使编码更加紧凑（主要针对repeated 类型）。设想，对于一个repeated类型的成员，他们有多个值时，虽然值不同，前键都是相同的，我们可以减少键的数量，如下例：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">假设有一个int32类型的变量d，序号为4，是一个repeated类型，我们赋了4个值，分别是3,270,86942.</span><br><span class="line">使用packed模式后，如下</span><br><span class="line">22 06 03 8E 02 9E A7 05</span><br><span class="line">注意22是编号加类型代码（为2，指packed repeated fields），06表示数据长度</span><br><span class="line">后面实际数据，都是varints编码，但是互有区分</span><br></pre></td></tr></table></figure></p>
+<h2 id="顺序"><a href="#顺序" class="headerlink" title="顺序"></a>顺序</h2><p>编解码顺序和字段顺序无关，由键值对保证即可。未知字段会写在已知字段后。</p>
+
+      
+    </div>
+
+    
+
+    
+    
+    
+
+    
+
+    
+      
+    
+    
+      <div>
+        <div style="padding: 10px 0; margin: 20px auto; width: 90%; text-align: center;">
+  <div>谢谢你请我吃糖</div>
+  <button id="rewardButton" disable="enable" onclick="var qr = document.getElementById('QR'); if (qr.style.display === 'none') {qr.style.display='block';} else {qr.style.display='none'}">
+    <span>打赏</span>
+  </button>
+  <div id="QR" style="display: none;">
+
+    
+      <div id="wechat" style="display: inline-block">
+        <img id="wechat_qr" src="/assets/img/wechatpay.jpg" alt="AmorFati 微信支付">
+        <p>微信支付</p>
+      </div>
+    
+
+    
+      <div id="alipay" style="display: inline-block">
+        <img id="alipay_qr" src="/assets/img/alipay.jpg" alt="AmorFati 支付宝">
+        <p>支付宝</p>
+      </div>
+    
+
+    
+
+  </div>
+</div>
+
+      </div>
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/java/" rel="tag"># java</a>
+          
+            <a href="/tags/编码/" rel="tag"># 编码</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2019/03/20/Playfair密码/" rel="next" title="Playfair密码">
+                <i class="fa fa-chevron-left"></i> Playfair密码
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+  </div>
+
+
+          </div>
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image" src="/assets/img/icon.jpg" alt="AmorFati">
+            
+              <p class="site-author-name" itemprop="name">AmorFati</p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          
+            <nav class="site-state motion-element">
+              
+                <div class="site-state-item site-state-posts">
+                
+                  <a href="/archives/">
+                
+                    <span class="site-state-item-count">8</span>
+                    <span class="site-state-item-name">日志</span>
+                  </a>
+                </div>
+              
+
+              
+                
+                
+                <div class="site-state-item site-state-categories">
+                  <a href="/categories/index.html">
+                    
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">5</span>
+                    <span class="site-state-item-name">分类</span>
+                  </a>
+                </div>
+              
+
+              
+                
+                
+                <div class="site-state-item site-state-tags">
+                  <a href="/tags/index.html">
+                    
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">8</span>
+                    <span class="site-state-item-name">标签</span>
+                  </a>
+                </div>
+              
+            </nav>
+          
+
+          
+
+          
+            <div class="links-of-author motion-element">
+              
+                <span class="links-of-author-item">
+                  
+                  
+                    
+                  
+                  
+                    
+                  
+                  <a href="https://github.com/chenyaoyang" title="GitHub &rarr; https://github.com/chenyaoyang" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i>GitHub</a>
+                </span>
+              
+                <span class="links-of-author-item">
+                  
+                  
+                    
+                  
+                  
+                    
+                  
+                  <a href="mailto:chenyang4346@foxmail.com" title="E-Mail &rarr; mailto:chenyang4346@foxmail.com" rel="noopener" target="_blank"><i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+                </span>
+              
+                <span class="links-of-author-item">
+                  
+                  
+                    
+                  
+                  
+                    
+                  
+                  <a href="https://www.jianshu.com/u/52c1bec4559c" title="简书 &rarr; https://www.jianshu.com/u/52c1bec4559c" rel="noopener" target="_blank"><i class="fa fa-fw fa-globe"></i>简书</a>
+                </span>
+              
+            </div>
+          
+
+          
+
+          
+          
+
+          
+            
+          
+          
+
+        </div>
+      </div>
+
+      
+      <!--noindex-->
+        <div class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+            
+            
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#简介"><span class="nav-number">1.</span> <span class="nav-text">简介</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#简单使用"><span class="nav-number">2.</span> <span class="nav-text">简单使用</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#定义Protobuf文件"><span class="nav-number">2.1.</span> <span class="nav-text">定义Protobuf文件</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#编译"><span class="nav-number">2.2.</span> <span class="nav-text">编译</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#接口操作"><span class="nav-number">2.3.</span> <span class="nav-text">接口操作</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#简单示例"><span class="nav-number">2.4.</span> <span class="nav-text">简单示例</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#详细语法"><span class="nav-number">3.</span> <span class="nav-text">详细语法</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#基本字段类型"><span class="nav-number">3.1.</span> <span class="nav-text">基本字段类型</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#分配字段编号"><span class="nav-number">3.2.</span> <span class="nav-text">分配字段编号</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#字段约束"><span class="nav-number">3.3.</span> <span class="nav-text">字段约束</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#注释"><span class="nav-number">3.4.</span> <span class="nav-text">注释</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#保留字"><span class="nav-number">3.5.</span> <span class="nav-text">保留字</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#可选字段的默认值"><span class="nav-number">3.6.</span> <span class="nav-text">可选字段的默认值</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#枚举类型"><span class="nav-number">3.7.</span> <span class="nav-text">枚举类型</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#导包"><span class="nav-number">3.8.</span> <span class="nav-text">导包</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#嵌套定义"><span class="nav-number">3.9.</span> <span class="nav-text">嵌套定义</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Extensions"><span class="nav-number">3.10.</span> <span class="nav-text">Extensions</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Oneof"><span class="nav-number">3.11.</span> <span class="nav-text">Oneof</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#maps"><span class="nav-number">3.12.</span> <span class="nav-text">maps</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Message更新"><span class="nav-number">3.13.</span> <span class="nav-text">Message更新</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#packages"><span class="nav-number">3.14.</span> <span class="nav-text">packages</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#自定义选项"><span class="nav-number">3.15.</span> <span class="nav-text">自定义选项</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#proto3语法"><span class="nav-number">4.</span> <span class="nav-text">proto3语法</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#版本号"><span class="nav-number">4.1.</span> <span class="nav-text">版本号</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#修饰词"><span class="nav-number">4.2.</span> <span class="nav-text">修饰词</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#默认值"><span class="nav-number">4.3.</span> <span class="nav-text">默认值</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#枚举类型-1"><span class="nav-number">4.4.</span> <span class="nav-text">枚举类型</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#未知字段"><span class="nav-number">4.5.</span> <span class="nav-text">未知字段</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#any"><span class="nav-number">4.6.</span> <span class="nav-text">any</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#编码"><span class="nav-number">5.</span> <span class="nav-text">编码</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#Varints规则"><span class="nav-number">5.1.</span> <span class="nav-text">Varints规则</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#基本编码规则"><span class="nav-number">5.2.</span> <span class="nav-text">基本编码规则</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#其他类型规则"><span class="nav-number">5.3.</span> <span class="nav-text">其他类型规则</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#sint32-sint64"><span class="nav-number">5.3.1.</span> <span class="nav-text">sint32, sint64</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#64-bit-和-32-bit-类型"><span class="nav-number">5.3.2.</span> <span class="nav-text">64-bit 和 32-bit 类型</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Strings"><span class="nav-number">5.3.3.</span> <span class="nav-text">Strings</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#packed"><span class="nav-number">5.4.</span> <span class="nav-text">packed</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#顺序"><span class="nav-number">5.5.</span> <span class="nav-text">顺序</span></a></li></ol></li></ol></div>
+            
+
+          </div>
+        </div>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; 2018 – <span itemprop="copyrightYear">2019</span>
+  <span class="with-love" id="animate">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">AmorFati</span>
+
+  
+
+  
+</div>
+
+
+  <div class="powered-by">由 <a href="https://hexo.io" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v3.8.0</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 – <a href="https://theme-next.org" class="theme-link" rel="noopener" target="_blank">NexT.Pisces</a> v6.6.0</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+    
+
+    
+  </div>
+
+  
+
+<script>
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+
+  
+
+
+  <script src="/js/src/utils.js?v=6.6.0"></script>
+
+  <script src="/js/src/motion.js?v=6.6.0"></script>
+
+
+
+  
+  
+
+
+  <script src="/js/src/affix.js?v=6.6.0"></script>
+
+  <script src="/js/src/schemes/pisces.js?v=6.6.0"></script>
+
+
+
+  
+  <script src="/js/src/scrollspy.js?v=6.6.0"></script>
+<script src="/js/src/post-details.js?v=6.6.0"></script>
+
+
+
+  
+
+
+  <script src="/js/src/bootstrap.js?v=6.6.0"></script>
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  <script>
+    // Popup Window;
+    var isfetched = false;
+    var isXml = true;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length === 0) {
+      search_path = "search.xml";
+    } else if (/json$/i.test(search_path)) {
+      isXml = false;
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    var onPopupClose = function (e) {
+      $('.popup').hide();
+      $('#local-search-input').val('');
+      $('.search-result-list').remove();
+      $('#no-result').remove();
+      $(".local-search-pop-overlay").remove();
+      $('body').css('overflow', '');
+    }
+
+    function proceedsearch() {
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay"></div>')
+        .css('overflow', 'hidden');
+      $('.search-popup-overlay').click(onPopupClose);
+      $('.popup').toggle();
+      var $localSearchInput = $('#local-search-input');
+      $localSearchInput.attr("autocapitalize", "none");
+      $localSearchInput.attr("autocorrect", "off");
+      $localSearchInput.focus();
+    }
+
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+      'use strict';
+
+      // start loading animation
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay">' +
+          '<div id="search-loading-icon">' +
+          '<i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>' +
+          '</div>' +
+          '</div>')
+        .css('overflow', 'hidden');
+      $("#search-loading-icon").css('margin', '20% auto 0 auto').css('text-align', 'center');
+
+      
+
+      $.ajax({
+        url: path,
+        dataType: isXml ? "xml" : "json",
+        async: true,
+        success: function(res) {
+          // get the contents from search data
+          isfetched = true;
+          $('.popup').detach().appendTo('.header-inner');
+          var datas = isXml ? $("entry", res).map(function() {
+            return {
+              title: $("title", this).text(),
+              content: $("content",this).text(),
+              url: $("url" , this).text()
+            };
+          }).get() : res;
+          var input = document.getElementById(search_id);
+          var resultContent = document.getElementById(content_id);
+          var inputEventFunction = function() {
+            var searchText = input.value.trim().toLowerCase();
+            var keywords = searchText.split(/[\s\-]+/);
+            if (keywords.length > 1) {
+              keywords.push(searchText);
+            }
+            var resultItems = [];
+            if (searchText.length > 0) {
+              // perform local searching
+              datas.forEach(function(data) {
+                var isMatch = false;
+                var hitCount = 0;
+                var searchTextCount = 0;
+                var title = data.title.trim();
+                var titleInLowerCase = title.toLowerCase();
+                var content = data.content.trim().replace(/<[^>]+>/g,"");
+                
+                var contentInLowerCase = content.toLowerCase();
+                var articleUrl = decodeURIComponent(data.url);
+                var indexOfTitle = [];
+                var indexOfContent = [];
+                // only match articles with not empty titles
+                if(title != '') {
+                  keywords.forEach(function(keyword) {
+                    function getIndexByWord(word, text, caseSensitive) {
+                      var wordLen = word.length;
+                      if (wordLen === 0) {
+                        return [];
+                      }
+                      var startPosition = 0, position = [], index = [];
+                      if (!caseSensitive) {
+                        text = text.toLowerCase();
+                        word = word.toLowerCase();
+                      }
+                      while ((position = text.indexOf(word, startPosition)) > -1) {
+                        index.push({position: position, word: word});
+                        startPosition = position + wordLen;
+                      }
+                      return index;
+                    }
+
+                    indexOfTitle = indexOfTitle.concat(getIndexByWord(keyword, titleInLowerCase, false));
+                    indexOfContent = indexOfContent.concat(getIndexByWord(keyword, contentInLowerCase, false));
+                  });
+                  if (indexOfTitle.length > 0 || indexOfContent.length > 0) {
+                    isMatch = true;
+                    hitCount = indexOfTitle.length + indexOfContent.length;
+                  }
+                }
+
+                // show search results
+
+                if (isMatch) {
+                  // sort index by position of keyword
+
+                  [indexOfTitle, indexOfContent].forEach(function (index) {
+                    index.sort(function (itemLeft, itemRight) {
+                      if (itemRight.position !== itemLeft.position) {
+                        return itemRight.position - itemLeft.position;
+                      } else {
+                        return itemLeft.word.length - itemRight.word.length;
+                      }
+                    });
+                  });
+
+                  // merge hits into slices
+
+                  function mergeIntoSlice(text, start, end, index) {
+                    var item = index[index.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    var hits = [];
+                    var searchTextCountInSlice = 0;
+                    while (position + word.length <= end && index.length != 0) {
+                      if (word === searchText) {
+                        searchTextCountInSlice++;
+                      }
+                      hits.push({position: position, length: word.length});
+                      var wordEnd = position + word.length;
+
+                      // move to next position of hit
+
+                      index.pop();
+                      while (index.length != 0) {
+                        item = index[index.length - 1];
+                        position = item.position;
+                        word = item.word;
+                        if (wordEnd > position) {
+                          index.pop();
+                        } else {
+                          break;
+                        }
+                      }
+                    }
+                    searchTextCount += searchTextCountInSlice;
+                    return {
+                      hits: hits,
+                      start: start,
+                      end: end,
+                      searchTextCount: searchTextCountInSlice
+                    };
+                  }
+
+                  var slicesOfTitle = [];
+                  if (indexOfTitle.length != 0) {
+                    slicesOfTitle.push(mergeIntoSlice(title, 0, title.length, indexOfTitle));
+                  }
+
+                  var slicesOfContent = [];
+                  while (indexOfContent.length != 0) {
+                    var item = indexOfContent[indexOfContent.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    // cut out 100 characters
+                    var start = position - 20;
+                    var end = position + 80;
+                    if(start < 0){
+                      start = 0;
+                    }
+                    if (end < position + word.length) {
+                      end = position + word.length;
+                    }
+                    if(end > content.length){
+                      end = content.length;
+                    }
+                    slicesOfContent.push(mergeIntoSlice(content, start, end, indexOfContent));
+                  }
+
+                  // sort slices in content by search text's count and hits' count
+
+                  slicesOfContent.sort(function (sliceLeft, sliceRight) {
+                    if (sliceLeft.searchTextCount !== sliceRight.searchTextCount) {
+                      return sliceRight.searchTextCount - sliceLeft.searchTextCount;
+                    } else if (sliceLeft.hits.length !== sliceRight.hits.length) {
+                      return sliceRight.hits.length - sliceLeft.hits.length;
+                    } else {
+                      return sliceLeft.start - sliceRight.start;
+                    }
+                  });
+
+                  // select top N slices in content
+
+                  var upperBound = parseInt('1');
+                  if (upperBound >= 0) {
+                    slicesOfContent = slicesOfContent.slice(0, upperBound);
+                  }
+
+                  // highlight title and content
+
+                  function highlightKeyword(text, slice) {
+                    var result = '';
+                    var prevEnd = slice.start;
+                    slice.hits.forEach(function (hit) {
+                      result += text.substring(prevEnd, hit.position);
+                      var end = hit.position + hit.length;
+                      result += '<b class="search-keyword">' + text.substring(hit.position, end) + '</b>';
+                      prevEnd = end;
+                    });
+                    result += text.substring(prevEnd, slice.end);
+                    return result;
+                  }
+
+                  var resultItem = '';
+
+                  if (slicesOfTitle.length != 0) {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + highlightKeyword(title, slicesOfTitle[0]) + "</a>";
+                  } else {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + title + "</a>";
+                  }
+
+                  slicesOfContent.forEach(function (slice) {
+                    resultItem += "<a href='" + articleUrl + "'>" +
+                      "<p class=\"search-result\">" + highlightKeyword(content, slice) +
+                      "...</p>" + "</a>";
+                  });
+
+                  resultItem += "</li>";
+                  resultItems.push({
+                    item: resultItem,
+                    searchTextCount: searchTextCount,
+                    hitCount: hitCount,
+                    id: resultItems.length
+                  });
+                }
+              })
+            };
+            if (keywords.length === 1 && keywords[0] === "") {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>'
+            } else if (resultItems.length === 0) {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>'
+            } else {
+              resultItems.sort(function (resultLeft, resultRight) {
+                if (resultLeft.searchTextCount !== resultRight.searchTextCount) {
+                  return resultRight.searchTextCount - resultLeft.searchTextCount;
+                } else if (resultLeft.hitCount !== resultRight.hitCount) {
+                  return resultRight.hitCount - resultLeft.hitCount;
+                } else {
+                  return resultRight.id - resultLeft.id;
+                }
+              });
+              var searchResultList = '<ul class=\"search-result-list\">';
+              resultItems.forEach(function (result) {
+                searchResultList += result.item;
+              })
+              searchResultList += "</ul>";
+              resultContent.innerHTML = searchResultList;
+            }
+          }
+
+          if ('auto' === 'auto') {
+            input.addEventListener('input', inputEventFunction);
+          } else {
+            $('.search-icon').click(inputEventFunction);
+            input.addEventListener('keypress', function (event) {
+              if (event.keyCode === 13) {
+                inputEventFunction();
+              }
+            });
+          }
+
+          // remove loading animation
+          $(".local-search-pop-overlay").remove();
+          $('body').css('overflow', '');
+
+          proceedsearch();
+        }
+      });
+    }
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched === false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+    });
+
+    $('.popup-btn-close').click(onPopupClose);
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+    $(document).on('keyup', function (event) {
+      var shouldDismissSearchPopup = event.which === 27 &&
+        $('.search-popup').is(':visible');
+      if (shouldDismissSearchPopup) {
+        onPopupClose();
+      }
+    });
+  </script>
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+  
+
+  
+
+
+  
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>
