@@ -166,7 +166,7 @@
 <meta property="og:image" content="https://upload-images.jianshu.io/upload_images/5111131-230cd90dfa95da1e.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240">
 <meta property="og:image" content="https://upload-images.jianshu.io/upload_images/5111131-12bb2bb244b28fca.gif?imageMogr2/auto-orient/strip">
 <meta property="og:image" content="https://upload-images.jianshu.io/upload_images/5111131-2aa77688a886240c.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240">
-<meta property="og:updated_time" content="2019-03-25T01:44:53.540Z">
+<meta property="og:updated_time" content="2019-03-26T07:40:31.173Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="DES加密">
 <meta name="twitter:image" content="https://upload-images.jianshu.io/upload_images/5111131-fe2eefc3e0e1140d.jpg?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240">
@@ -478,12 +478,24 @@
                 
               
 
-              <time title="创建时间：2019-03-25 09:40:19 / 修改时间：09:44:53" itemprop="dateCreated datePublished" datetime="2019-03-25T09:40:19+08:00">2019-03-25</time>
+              <time title="创建时间：2019-03-25 09:40:19" itemprop="dateCreated datePublished" datetime="2019-03-25T09:40:19+08:00">2019-03-25</time>
             
 
             
               
 
+              
+                
+                <span class="post-meta-divider">|</span>
+                
+
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">更新于</span>
+                
+                <time title="修改时间：2019-03-26 15:40:31" itemprop="dateModified" datetime="2019-03-26T15:40:31+08:00">2019-03-26</time>
               
             
           </span>
@@ -538,7 +550,7 @@
 <h1 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h1><p>DES全称Data Encryption Standard，也就是数据加密标准，也被称作Data Encryption ALgorithm，DEA，数据加密算法。分类上，它属于对称秘钥加密块密码。1976年被被美国联邦政府的国家标准局确定为联邦资料处理标准，随后再全世界广泛应用，成为一种通用加密算法。虽然现在这种算法已经不安全了，但是它使用的一些思想和理念深深影响可后来许多加密算法。这个算法的官方文档见<a href="https://csrc.nist.gov/csrc/media/publications/fips/46/3/archive/1999-10-25/documents/fips46-3.pdf" target="_blank" rel="noopener">这里</a></p>
 <h1 id="基本原理"><a href="#基本原理" class="headerlink" title="基本原理"></a>基本原理</h1><p>首先这是一种块加密算法，以64位为一块，输出的密文也是64位，加解密使用相同的秘钥，秘钥的长度是56位。对于秘钥，最初是64位的，不过在算法开始前会丢弃8位（第8,16,24,32,40,48,56,64位）。</p>
 <p>之后算法的主要思想是对明文进行替换和变换（也称混淆和扩散），这是香农提出的思想，对后世的密码算法有重要影响。混淆是为了保证密文中不会出现明文线索，扩散则是增加明文的冗余度。</p>
-<p>DES主要步骤如下：</p>
+<p>DES主要步骤如下： </p>
 <ol>
 <li>将明文进行初始置换（IP）</li>
 <li>将置换后的块分为左右两部分</li>
