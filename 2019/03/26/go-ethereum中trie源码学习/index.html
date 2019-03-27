@@ -154,16 +154,16 @@
 <meta property="og:url" content="http://yoursite.com/2019/03/26/go-ethereum中trie源码学习/index.html">
 <meta property="og:site_name" content="AmorFati">
 <meta property="og:locale" content="zh-CN">
-<meta property="og:image" content="https://upload-images.jianshu.io/upload_images/5111131-af92eec4117edc8d.jpg?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240">
+<meta property="og:image" content="https://upload-images.jianshu.io/upload_images/5111131-f83c44f3ed3cf32f.jpg?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240">
 <meta property="og:image" content="https://upload-images.jianshu.io/upload_images/5111131-76084339e3a14469.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240">
 <meta property="og:image" content="https://upload-images.jianshu.io/upload_images/5111131-6d6d36c902ca7079.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240">
 <meta property="og:image" content="https://upload-images.jianshu.io/upload_images/5111131-3b979793bbc35449.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240">
 <meta property="og:image" content="https://upload-images.jianshu.io/upload_images/5111131-e0c28606ae5da9a1.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240">
 <meta property="og:image" content="https://upload-images.jianshu.io/upload_images/5111131-2d7b818314cd8d98.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240">
-<meta property="og:updated_time" content="2019-03-26T08:08:38.367Z">
+<meta property="og:updated_time" content="2019-03-27T02:19:56.866Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="go-ethereum中trie源码学习">
-<meta name="twitter:image" content="https://upload-images.jianshu.io/upload_images/5111131-af92eec4117edc8d.jpg?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240">
+<meta name="twitter:image" content="https://upload-images.jianshu.io/upload_images/5111131-f83c44f3ed3cf32f.jpg?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240">
 
 
 
@@ -472,12 +472,24 @@
                 
               
 
-              <time title="创建时间：2019-03-26 15:26:20 / 修改时间：16:08:38" itemprop="dateCreated datePublished" datetime="2019-03-26T15:26:20+08:00">2019-03-26</time>
+              <time title="创建时间：2019-03-26 15:26:20" itemprop="dateCreated datePublished" datetime="2019-03-26T15:26:20+08:00">2019-03-26</time>
             
 
             
               
 
+              
+                
+                <span class="post-meta-divider">|</span>
+                
+
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">更新于</span>
+                
+                <time title="修改时间：2019-03-27 10:19:56" itemprop="dateModified" datetime="2019-03-27T10:19:56+08:00">2019-03-27</time>
               
             
           </span>
@@ -528,7 +540,9 @@
       
 
       
-        <p><img src="https://upload-images.jianshu.io/upload_images/5111131-af92eec4117edc8d.jpg?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt=""><br><a id="more"></a><br>MPT（Merkle Patricia Tree），是以太坊实现中广泛使用的一种数据结构，如在区块头中就保存了状态树，交易树和收据树这三棵树的根的hash，而这三棵树就是MPT。MPT是Trie树、Patricia Trie树和Merkle树的变形，下面我们就来详细了解一下</p>
+        <p><img src="https://upload-images.jianshu.io/upload_images/5111131-f83c44f3ed3cf32f.jpg?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt=""></p>
+<a id="more"></a>
+<p>MPT（Merkle Patricia Tree），是以太坊实现中广泛使用的一种数据结构，如在区块头中就保存了状态树，交易树和收据树这三棵树的根的hash，而这三棵树就是MPT。MPT是Trie树、Patricia Trie树和Merkle树的变形，下面我们就来详细了解一下</p>
 <h1 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h1><h2 id="Trie树"><a href="#Trie树" class="headerlink" title="Trie树"></a>Trie树</h2><p>Trie树又称前缀树或字典树。顾名思义一个节点的所有孩子都具有同样的前缀，就像字典一样把单词按前缀分类排序。</p>
 <ol>
 <li>在Trie树中，根节点不保存信息，每个节点的最大孩子数量相同（若是保存英文字母，不区分大小写，则最多有26个孩子）。</li>
@@ -634,6 +648,9 @@
 <p>卸载的作用是节省内存，所以说经过几次commit后，就会有节点被从内存中删除，删除是在hash方法中，也就是那个方法的第一个if<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(h *hasher)</span> <span class="title">hash</span><span class="params">(n node, db *Database, force <span class="keyword">bool</span>)</span> <span class="params">(node, node, error)</span></span> &#123;</span><br><span class="line">	<span class="keyword">if</span> hash, dirty := n.cache(); hash != <span class="literal">nil</span> &#123;</span><br><span class="line">		<span class="keyword">if</span> db == <span class="literal">nil</span> &#123;</span><br><span class="line">			<span class="keyword">return</span> hash, n, <span class="literal">nil</span></span><br><span class="line">		&#125;</span><br><span class="line">		<span class="keyword">if</span> n.canUnload(h.cachegen, h.cachelimit) &#123;</span><br><span class="line">			cacheUnloadCounter.Inc(<span class="number">1</span>)</span><br><span class="line">			<span class="keyword">return</span> hash, hash, <span class="literal">nil</span></span><br><span class="line">		&#125;</span><br><span class="line">		<span class="keyword">if</span> !dirty &#123;</span><br><span class="line">			<span class="keyword">return</span> hash, n, <span class="literal">nil</span></span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">	....</span><br></pre></td></tr></table></figure></p>
 <p>获取hash是首先从节点的cache中获取，若存在的话，先不急着返回，首先判断是否可卸载，若可以，则卸载，注意卸载方式很有意思，不返回节点实例，而是返回一个hash表示节点，然后需要的时候在反序列化即可。注意若节点没有缓存hash值，则一定不进行卸载。</p>
 <h2 id="SecureTrie"><a href="#SecureTrie" class="headerlink" title="SecureTrie"></a>SecureTrie</h2><p>最后还有一个SecureTrie，是为了避免使用很长的key导致性能下降。SecureTrie包装了trie，所有的key都转化为keccak256计算的hash，但在数据库中存储原始key<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">type</span> SecureTrie <span class="keyword">struct</span> &#123;</span><br><span class="line">	trie             Trie</span><br><span class="line">	hashKeyBuf       [common.HashLength]<span class="keyword">byte</span> </span><br><span class="line">	secKeyCache      <span class="keyword">map</span>[<span class="keyword">string</span>][]<span class="keyword">byte</span> <span class="comment">//hash值和key值的映射</span></span><br><span class="line">	secKeyCacheOwner *SecureTrie </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<blockquote>
+<p>题图来自unsplash：<a href="https://unsplash.com/photos/hnw3Al47-KE" target="_blank" rel="noopener">https://unsplash.com/photos/hnw3Al47-KE</a></p>
+</blockquote>
 
       
     </div>
@@ -717,6 +734,10 @@
 
           <div class="post-nav-prev post-nav-item">
             
+              <a href="/2019/03/27/RC4加密/" rel="prev" title="RC4加密">
+                RC4加密 <i class="fa fa-chevron-right"></i>
+              </a>
+            
           </div>
         </div>
       
@@ -787,7 +808,7 @@
                 
                   <a href="/archives/">
                 
-                    <span class="site-state-item-count">12</span>
+                    <span class="site-state-item-count">13</span>
                     <span class="site-state-item-name">日志</span>
                   </a>
                 </div>
