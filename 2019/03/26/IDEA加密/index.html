@@ -148,7 +148,7 @@
 
 
 
-  <meta name="keywords" content="密码学">
+  <meta name="keywords" content="java,密码学">
 <meta property="og:type" content="article">
 <meta property="og:title" content="IDEA加密">
 <meta property="og:url" content="http://yoursite.com/2019/03/26/IDEA加密/index.html">
@@ -156,7 +156,7 @@
 <meta property="og:locale" content="zh-CN">
 <meta property="og:image" content="https://upload-images.jianshu.io/upload_images/5111131-c9a7f1871658a660.jpg?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240">
 <meta property="og:image" content="https://upload-images.jianshu.io/upload_images/5111131-29423f98dcd2616a.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240">
-<meta property="og:updated_time" content="2019-03-27T02:21:15.394Z">
+<meta property="og:updated_time" content="2019-03-28T04:31:42.809Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="IDEA加密">
 <meta name="twitter:image" content="https://upload-images.jianshu.io/upload_images/5111131-c9a7f1871658a660.jpg?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240">
@@ -485,7 +485,7 @@
                 
                   <span class="post-meta-item-text">更新于</span>
                 
-                <time title="修改时间：2019-03-27 10:21:15" itemprop="dateModified" datetime="2019-03-27T10:21:15+08:00">2019-03-27</time>
+                <time title="修改时间：2019-03-28 12:31:42" itemprop="dateModified" datetime="2019-03-28T12:31:42+08:00">2019-03-28</time>
               
             
           </span>
@@ -580,6 +580,7 @@
 <li>第 2 个和第 3 个子密钥的取法为：1.当轮数为 2，…，8 时，取相应的第 3 个和第 2 个的子密钥的2^16加法逆元 2.当轮数为 1 或 9 时，取相应的第 2 个和第 3 个子密钥对应的2^16加法逆元</li>
 <li>第 5 和第 6 个密钥不变</li>
 </ul>
+<h1 id="简单实现"><a href="#简单实现" class="headerlink" title="简单实现"></a>简单实现</h1><p>java代码见<a href="https://github.com/chenyaoyang/example/blob/master/code/crypto/IDEA.java" target="_blank" rel="noopener">这里</a></p>
 <blockquote>
 <p>题图来自unsplash：<a href="https://unsplash.com/photos/WDOJ5256Cvk" target="_blank" rel="noopener">https://unsplash.com/photos/WDOJ5256Cvk</a></p>
 </blockquote>
@@ -634,6 +635,8 @@
     <footer class="post-footer">
       
         <div class="post-tags">
+          
+            <a href="/tags/java/" rel="tag"># java</a>
           
             <a href="/tags/密码学/" rel="tag"># 密码学</a>
           
@@ -861,7 +864,7 @@
             
 
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#背景"><span class="nav-number">1.</span> <span class="nav-text">背景</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#基本原理"><span class="nav-number">2.</span> <span class="nav-text">基本原理</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#轮次"><span class="nav-number">3.</span> <span class="nav-text">轮次</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#子秘钥生成"><span class="nav-number">4.</span> <span class="nav-text">子秘钥生成</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#第一轮"><span class="nav-number">4.1.</span> <span class="nav-text">第一轮</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#第二轮"><span class="nav-number">4.2.</span> <span class="nav-text">第二轮</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#第三轮"><span class="nav-number">4.3.</span> <span class="nav-text">第三轮</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#输出变换"><span class="nav-number">5.</span> <span class="nav-text">输出变换</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#解密"><span class="nav-number">6.</span> <span class="nav-text">解密</span></a></li></ol></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#背景"><span class="nav-number">1.</span> <span class="nav-text">背景</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#基本原理"><span class="nav-number">2.</span> <span class="nav-text">基本原理</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#轮次"><span class="nav-number">3.</span> <span class="nav-text">轮次</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#子秘钥生成"><span class="nav-number">4.</span> <span class="nav-text">子秘钥生成</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#第一轮"><span class="nav-number">4.1.</span> <span class="nav-text">第一轮</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#第二轮"><span class="nav-number">4.2.</span> <span class="nav-text">第二轮</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#第三轮"><span class="nav-number">4.3.</span> <span class="nav-text">第三轮</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#输出变换"><span class="nav-number">5.</span> <span class="nav-text">输出变换</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#解密"><span class="nav-number">6.</span> <span class="nav-text">解密</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#简单实现"><span class="nav-number">7.</span> <span class="nav-text">简单实现</span></a></li></ol></div>
             
 
           </div>
