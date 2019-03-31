@@ -1,0 +1,1394 @@
+<!DOCTYPE html>
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+<html class="theme-next pisces use-motion" lang="zh-CN">
+<head><meta name="generator" content="Hexo 3.8.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+    
+      
+    
+
+    
+  
+
+  
+
+  
+    
+      
+    
+
+    
+  
+
+  
+    
+      
+    
+
+    
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Monda:300,300italic,400,400italic,700,700italic|Roboto Slab:300,300italic,400,400italic,700,700italic|Dancing Script:300,300italic,400,400italic,700,700italic|Consolas:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css">
+
+<link href="/css/main.css?v=6.6.0" rel="stylesheet" type="text/css">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=6.6.0">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=6.6.0">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=6.6.0">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=6.6.0" color="#222">
+
+
+
+
+
+
+
+
+
+<script id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    version: '6.6.0',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: false,
+    fastclick: false,
+    lazyload: false,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+  
+
+
+
+
+  <meta name="keywords" content="go">
+<meta property="og:type" content="article">
+<meta property="og:title" content="grpc学习">
+<meta property="og:url" content="http://yoursite.com/2019/03/31/grpc学习/index.html">
+<meta property="og:site_name" content="AmorFati">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:image" content="https://upload-images.jianshu.io/upload_images/5111131-bea240b690a41e47.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240">
+<meta property="og:image" content="https://upload-images.jianshu.io/upload_images/5111131-8ca7413acfb596ff.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240">
+<meta property="og:image" content="https://upload-images.jianshu.io/upload_images/5111131-c3b3b93d78f1209f.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240">
+<meta property="og:image" content="https://upload-images.jianshu.io/upload_images/5111131-5def4cc52d8b8a1c.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240">
+<meta property="og:updated_time" content="2019-03-31T04:52:03.669Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="grpc学习">
+<meta name="twitter:image" content="https://upload-images.jianshu.io/upload_images/5111131-bea240b690a41e47.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240">
+
+
+
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2019/03/31/grpc学习/">
+
+
+
+<script id="page.configurations">
+  CONFIG.page = {
+    sidebar: "",
+  };
+</script>
+
+  <title>grpc学习 | AmorFati</title>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  <noscript>
+  <style>
+    .use-motion .motion-element,
+    .use-motion .brand,
+    .use-motion .menu-item,
+    .sidebar-inner,
+    .use-motion .post-block,
+    .use-motion .pagination,
+    .use-motion .comments,
+    .use-motion .post-header,
+    .use-motion .post-body,
+    .use-motion .collection-title { opacity: initial; }
+
+    .use-motion .logo,
+    .use-motion .site-title,
+    .use-motion .site-subtitle {
+      opacity: initial;
+      top: initial;
+    }
+
+    .use-motion .logo-line-before i { left: initial; }
+    .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope="" itemtype="http://schema.org/WebPage" lang="zh-CN">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope="" itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">AmorFati</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+    
+      
+        <p class="site-subtitle">风吹过窗前的书，又翻过一页</p>
+      
+    
+    
+  </div>
+
+  <div class="site-nav-toggle">
+    <button aria-label="切换导航栏">
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  
+    <ul id="menu" class="menu">
+      
+        
+        
+        
+          
+          <li class="menu-item menu-item-home">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/" rel="section"><i class="menu-item-icon fa fa-fw fa-home"></i> <br>首页</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-about">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/about/" rel="section"><i class="menu-item-icon fa fa-fw fa-user"></i> <br>关于</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-tags">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/tags/" rel="section"><i class="menu-item-icon fa fa-fw fa-tags"></i> <br>标签</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-categories">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/categories/" rel="section"><i class="menu-item-icon fa fa-fw fa-th"></i> <br>分类</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-archives">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/archives/" rel="section"><i class="menu-item-icon fa fa-fw fa-archive"></i> <br>归档</a>
+
+  </li>
+
+      
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br>搜索</a>
+        </li>
+      
+    </ul>
+  
+
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup search-popup local-search-popup">
+  <div class="local-search-header clearfix">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+    <div class="local-search-input-wrapper">
+      <input autocomplete="off" placeholder="搜索..." spellcheck="false" type="text" id="local-search-input">
+    </div>
+  </div>
+  <div id="local-search-result"></div>
+</div>
+
+
+
+    </div>
+  
+</nav>
+
+
+
+  
+
+
+
+</div>
+    </header>
+
+    
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+            
+
+          
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  
+
+  <article class="post post-type-normal" itemscope="" itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/03/31/grpc学习/">
+
+    <span hidden itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="AmorFati">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/assets/img/icon.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope="" itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="AmorFati">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">grpc学习
+
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+
+            
+            
+            
+
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+
+              
+                
+              
+
+              <time title="创建时间：2019-03-31 12:44:58 / 修改时间：12:52:03" itemprop="dateCreated datePublished" datetime="2019-03-31T12:44:58+08:00">2019-03-31</time>
+            
+
+            
+              
+
+              
+            
+          </span>
+
+          
+            <span class="post-category">
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope="" itemtype="http://schema.org/Thing"><a href="/categories/go语言学习笔记/" itemprop="url" rel="index"><span itemprop="name">go语言学习笔记</span></a></span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p><img src="https://upload-images.jianshu.io/upload_images/5111131-bea240b690a41e47.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt=""><br><a id="more"></a></p>
+<h1 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h1><p><a href="https://grpc.io/" target="_blank" rel="noopener">gRPC</a>是一个高性能、通用的开源RPC框架，其由Google主要面向移动应用开发并基于HTTP/2协议标准而设计，基于<a href="https://developers.google.com/protocol-buffers/" target="_blank" rel="noopener">ProtoBuf</a>序列化协议开发，且支持众多开发语言。关于ProtoBuf的详细内容可以参考我的<a href="https://blog.grapefruit.tk/2019/03/22/Protobuf%E5%AD%A6%E4%B9%A0%E5%8F%8A%E7%BC%96%E7%A0%81%E6%B7%B1%E5%85%A5/" target="_blank" rel="noopener">这篇文章</a></p>
+<p>根据官方页面显示，目前支持的语言如下：</p>
+<p><img src="https://upload-images.jianshu.io/upload_images/5111131-8ca7413acfb596ff.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="image.png"></p>
+<p>也就是说在这些语言平台上，完全可以用grpc实现rpc通信，同时又由于protobuf的编码效率高，所以可以实现替代jsonrpc</p>
+<h1 id="HelloWorld"><a href="#HelloWorld" class="headerlink" title="HelloWorld"></a>HelloWorld</h1><p><img src="https://upload-images.jianshu.io/upload_images/5111131-c3b3b93d78f1209f.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt=""></p>
+<p>国际惯例，我们先用go语言写一个grpc版本的hellworld。首先要安装grpc库<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">go get -u google.golang.org/grpc</span><br></pre></td></tr></table></figure></p>
+<h2 id="protobuf定义及编译"><a href="#protobuf定义及编译" class="headerlink" title="protobuf定义及编译"></a>protobuf定义及编译</h2><p>首先定义protobuf文件如下：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line">syntax = &quot;proto3&quot;;</span><br><span class="line"></span><br><span class="line">option java_multiple_files = true;</span><br><span class="line">option java_package = &quot;io.grpc.examples.helloworld&quot;;</span><br><span class="line">option java_outer_classname = &quot;HelloWorldProto&quot;;</span><br><span class="line"></span><br><span class="line">package helloworld;</span><br><span class="line"></span><br><span class="line">service Greeter &#123;</span><br><span class="line">    rpc SayHello (HelloRequest) returns (HelloReply) &#123;&#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">message HelloRequest &#123;</span><br><span class="line">    string name = 1;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">message HelloReply &#123;</span><br><span class="line">    string msg = 1;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>几点需要注意的，首先protobuf版本为proto3，其中定义了两个message，分别用于请求和响应，又定义了一个service，其中有一个rpc方法，接受请求返回响应</p>
+<p>然后执行下面命令生成pb.go文件<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">protoc ./helloworld/helloworld.proto --go_out=plugins=grpc:./</span><br></pre></td></tr></table></figure></p>
+<p>我们看一下生成的go代码，首先定义的两个message各自成为一个struct<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">type</span> HelloRequest <span class="keyword">struct</span> &#123;</span><br><span class="line">	Name                 <span class="keyword">string</span>   <span class="string">`protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`</span></span><br><span class="line">	XXX_NoUnkeyedLiteral <span class="keyword">struct</span>&#123;&#125; <span class="string">`json:"-"`</span></span><br><span class="line">	XXX_unrecognized     []<span class="keyword">byte</span>   <span class="string">`json:"-"`</span></span><br><span class="line">	XXX_sizecache        <span class="keyword">int32</span>    <span class="string">`json:"-"`</span></span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">type</span> HelloReply <span class="keyword">struct</span> &#123;</span><br><span class="line">	Msg                  <span class="keyword">string</span>   <span class="string">`protobuf:"bytes,1,opt,name=msg,proto3" json:"msg,omitempty"`</span></span><br><span class="line">	XXX_NoUnkeyedLiteral <span class="keyword">struct</span>&#123;&#125; <span class="string">`json:"-"`</span></span><br><span class="line">	XXX_unrecognized     []<span class="keyword">byte</span>   <span class="string">`json:"-"`</span></span><br><span class="line">	XXX_sizecache        <span class="keyword">int32</span>    <span class="string">`json:"-"`</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>这两个struct中含有我们定义message时定义的成员变量。之后我们还定义了一个名为Greeter的服务，它变成了一个interface<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">type</span> GreeterServer <span class="keyword">interface</span> &#123;</span><br><span class="line">	SayHello(context.Context, *HelloRequest) (*HelloReply, error)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>这就是要我们写服务时实现这个接口才能正确定义grpc</p>
+<h2 id="服务端"><a href="#服务端" class="headerlink" title="服务端"></a>服务端</h2><p>服务端代码如下<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">type</span> server <span class="keyword">struct</span> &#123;</span><br><span class="line"></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(s *server)</span><span class="title">SayHello</span><span class="params">(ctx context.Context, in *helloworld.HelloRequest)</span> <span class="params">(*helloworld.HelloReply, error)</span></span>&#123;</span><br><span class="line">	fmt.Println(<span class="string">"received:"</span>,in.Name)</span><br><span class="line">	<span class="keyword">return</span> &amp;helloworld.HelloReply&#123;Msg:<span class="string">"hello "</span> + in.Name&#125;,<span class="literal">nil</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">main</span><span class="params">()</span></span> &#123;</span><br><span class="line">	lis,err:=net.Listen(<span class="string">"tcp"</span>,<span class="string">":1234"</span>)</span><br><span class="line">	<span class="keyword">if</span> err!=<span class="literal">nil</span> &#123;</span><br><span class="line">		log.Fatal(<span class="string">"listen:"</span>,err.Error())</span><br><span class="line">	&#125;</span><br><span class="line">	s:=grpc.NewServer()</span><br><span class="line">	helloworld.RegisterGreeterServer(s,&amp;server&#123;&#125;)</span><br><span class="line">	<span class="keyword">if</span> err := s.Serve(lis); err != <span class="literal">nil</span> &#123;</span><br><span class="line">		log.Fatalf(<span class="string">"failed to serve: %v"</span>, err)</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>和写普通rpc代码类型，先定义一个服务类，不过这里要实现我们定义的接口。在main入口里可以发现grpc还是基于tcp传输的，这里的逻辑是定义tcp连接和grpc服务，然后将我们刚才写的服务类注册到grpc中，最后用grpc提供的方法去接管tcp连接即可</p>
+<h2 id="客户端"><a href="#客户端" class="headerlink" title="客户端"></a>客户端</h2><p>客户端代码如下<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">main</span><span class="params">()</span></span> &#123;</span><br><span class="line">	conn,err:=grpc.Dial(<span class="string">"127.0.0.1:1234"</span>,grpc.WithInsecure())</span><br><span class="line">	<span class="keyword">if</span> err!=<span class="literal">nil</span> &#123;</span><br><span class="line">		log.Fatal(<span class="string">"dial:"</span>,err.Error())</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">defer</span> conn.Close()</span><br><span class="line"></span><br><span class="line">	c:=helloworld.NewGreeterClient(conn)</span><br><span class="line"></span><br><span class="line">	ctx,cancel:=context.WithTimeout(context.Background(),time.Second)</span><br><span class="line">	<span class="keyword">defer</span> cancel()</span><br><span class="line"></span><br><span class="line">	r,err:=c.SayHello(ctx,&amp;helloworld.HelloRequest&#123;Name:<span class="string">"world"</span>&#125;)</span><br><span class="line">	<span class="keyword">if</span> err!=<span class="literal">nil</span> &#123;</span><br><span class="line">		log.Fatal(<span class="string">"dial:"</span>,err.Error())</span><br><span class="line">	&#125;</span><br><span class="line">	fmt.Println(<span class="string">"greeting"</span>,r.Msg)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>可能是为了降低大家学习成本，grpc的接口设置和go rpc标准包类似。首先利用grpc提供的接口去发起一个连接。接下来，grpc很方便的帮我们包装了一个client类，其中有我们可以调用的rpc方法，省去了之前用字符串表示的麻烦，随后就像函数调用一样去调用远程方法即可，返回一个响应，然后我们从响应中读数据。</p>
+<p>有一个小问题需要注意的是，用grpc去发起连接时，目标地址如果是本机地址的话不能像go标准包那样简写为”:1234”，需要像上面代码那样写出全名。</p>
+<p>最后先运行服务端代码再运行客户端代码，就成功实现利用grpc通信。该节示例代码见<a href="https://github.com/chenyaoyang/example/tree/master/code/grpc/helloworld" target="_blank" rel="noopener">这里</a></p>
+<h1 id="grpc相关概念"><a href="#grpc相关概念" class="headerlink" title="grpc相关概念"></a>grpc相关概念</h1><h2 id="服务类型"><a href="#服务类型" class="headerlink" title="服务类型"></a>服务类型</h2><p><img src="https://upload-images.jianshu.io/upload_images/5111131-5def4cc52d8b8a1c.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt=""></p>
+<p>grpc定义了四种服务</p>
+<h3 id="单项rpc"><a href="#单项rpc" class="headerlink" title="单项rpc"></a>单项rpc</h3><p>就是最普通的请求响应模式<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">rpc SayHello(HelloRequest) returns (HelloResponse)&#123;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<h3 id="服务端流式rpc"><a href="#服务端流式rpc" class="headerlink" title="服务端流式rpc"></a>服务端流式rpc</h3><p>客户端向服务端发起一个请求，服务端返回一个数据流响应<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">rpc LotsOfReplies(HelloRequest) returns (stream HelloResponse)&#123;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<h3 id="客户端流式rpc"><a href="#客户端流式rpc" class="headerlink" title="客户端流式rpc"></a>客户端流式rpc</h3><p>客户端向服务端发送数据流请求，客户端仅返回一个响应<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">rpc LotsOfGreetings(stream HelloRequest) returns (HelloResponse) &#123;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<h3 id="双向流式rpc"><a href="#双向流式rpc" class="headerlink" title="双向流式rpc"></a>双向流式rpc</h3><p>客户端与服务端都以数据流形式通信<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">rpc BidiHello(stream HelloRequest) returns (stream HelloResponse)&#123;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<h2 id="RPC终止与取消"><a href="#RPC终止与取消" class="headerlink" title="RPC终止与取消"></a>RPC终止与取消</h2><p>在客户端与服务端，二者对调用的成功与否是独立，可能会出现不同的判断。客户端与服务端可在任何时间取消一个rpc，rpc会立即终止，但只影响之后状态，取消前完成的不会回滚。</p>
+<h2 id="超时"><a href="#超时" class="headerlink" title="超时"></a>超时</h2><p>客户端可以指定超时时间，超过这个时间没有响应测返回DEADLINE_EXCEEDED错误，服务端也可查询还有多久去完成响应。</p>
+<h1 id="详细内容"><a href="#详细内容" class="headerlink" title="详细内容"></a>详细内容</h1><p>实际上上面的helloworld已经可以说明grpc的基本使用，下面只是针对另外几种rpc服务类型进行介绍，这里引用官方的例子，完整代码见<a href="https://github.com/chenyaoyang/example/tree/master/code/grpc/route" target="_blank" rel="noopener">这里</a>。</p>
+<h2 id="protobuf定义"><a href="#protobuf定义" class="headerlink" title="protobuf定义"></a>protobuf定义</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br></pre></td><td class="code"><pre><span class="line">service RouteGuide &#123;</span><br><span class="line"></span><br><span class="line">    rpc GetFeature(Point) returns (Feature) &#123;&#125;</span><br><span class="line"></span><br><span class="line">    rpc ListFeatures(Rectangle) returns (stream Feature) &#123;&#125;</span><br><span class="line"></span><br><span class="line">    rpc RecordRoute(stream Point) returns (RouteSummary) &#123;&#125;</span><br><span class="line"></span><br><span class="line">    rpc RouteChat(stream RouteNote) returns (stream RouteNote) &#123;&#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">message Point &#123;</span><br><span class="line">    int32 latitude = 1;</span><br><span class="line">    int32 longitude = 2;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">message Rectangle &#123;</span><br><span class="line">    Point lo = 1;</span><br><span class="line"></span><br><span class="line">    Point hi = 2;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">message Feature &#123;</span><br><span class="line">    string name = 1;</span><br><span class="line"></span><br><span class="line">    Point location = 2;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">message RouteNote &#123;</span><br><span class="line">    Point location = 1;</span><br><span class="line"></span><br><span class="line">    string message = 2;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">message RouteSummary &#123;</span><br><span class="line">    int32 point_count = 1;</span><br><span class="line"></span><br><span class="line">    int32 feature_count = 2;</span><br><span class="line"></span><br><span class="line">    int32 distance = 3;</span><br><span class="line"></span><br><span class="line">    int32 elapsed_time = 4;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>如上所述，我们对四种rpc分别定义了一个方法。编译命令如下<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">protoc --go_out=plugins=grpc:./ route/route.proto</span><br></pre></td></tr></table></figure></p>
+<h2 id="创建服务端"><a href="#创建服务端" class="headerlink" title="创建服务端"></a>创建服务端</h2><p>回看刚才生成的代码，有这样一个接口<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">type</span> RouteGuideServer <span class="keyword">interface</span> &#123;</span><br><span class="line">	GetFeature(context.Context, *Point) (*Feature, error)</span><br><span class="line">	ListFeatures(*Rectangle, RouteGuide_ListFeaturesServer) error</span><br><span class="line">	RecordRoute(RouteGuide_RecordRouteServer) error</span><br><span class="line">	RouteChat(RouteGuide_RouteChatServer) error</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>我们的服务端首先要创建一个类实现这个接口</p>
+<h3 id="普通rpc"><a href="#普通rpc" class="headerlink" title="普通rpc"></a>普通rpc</h3><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(s *routeGuideServer)</span><span class="title">GetFeature</span><span class="params">(ctx context.Context, point *route.Point)</span> <span class="params">(*route.Feature, error)</span></span>&#123;</span><br><span class="line">	<span class="keyword">for</span> _,feature:=<span class="keyword">range</span> s.savedFeatures&#123;</span><br><span class="line">		<span class="keyword">if</span> proto.Equal(feature.Location,point)&#123;</span><br><span class="line">			<span class="keyword">return</span> feature,<span class="literal">nil</span></span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">return</span> &amp;route.Feature&#123;Location:point&#125;,<span class="literal">nil</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>很简单，参数中的Point和Feature都是我们定义的message，通过输入一个point，然后遍历feature集合，查找符合条件的feature。注意比较两个message可以使用proto包提供的equal方法</p>
+<h3 id="服务端流式rpc-1"><a href="#服务端流式rpc-1" class="headerlink" title="服务端流式rpc"></a>服务端流式rpc</h3><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(s *routeGuideServer)</span><span class="title">ListFeatures</span><span class="params">(rect *route.Rectangle, stream route.RouteGuide_ListFeaturesServer)</span> <span class="title">error</span></span>&#123;</span><br><span class="line">	<span class="keyword">for</span> _,feature := <span class="keyword">range</span> s.savedFeatures&#123;</span><br><span class="line">		<span class="keyword">if</span> inRange(feature.Location,rect) &#123;</span><br><span class="line">			<span class="keyword">if</span> err:=stream.Send(feature);err!=<span class="literal">nil</span>&#123;</span><br><span class="line">				<span class="keyword">return</span> err</span><br><span class="line">			&#125;</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">return</span> <span class="literal">nil</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>形象的说，这种rpc就是向服务端发送一个请求，服务端以流的形式返回数据。如代码所示，我们指定一个区域，然后判断所有保存的feature是否在区域内，每判断一个，如果符合条件就以send形式发出。grpc为我们做了很形象的包装，对于输出流，我们只需send即可，不必考虑缓存，同步之类的问题，非常方便。唯一需要注意的是，每send一个数据，就需要判断是否报错，然后随时停止。</p>
+<h3 id="客户端流式rpc-1"><a href="#客户端流式rpc-1" class="headerlink" title="客户端流式rpc"></a>客户端流式rpc</h3><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(s *routeGuideServer)</span><span class="title">RecordRoute</span><span class="params">(stream route.RouteGuide_RecordRouteServer)</span> <span class="title">error</span></span>&#123;</span><br><span class="line">	<span class="keyword">var</span> pointCount, featureCount, distance <span class="keyword">int32</span></span><br><span class="line">	<span class="keyword">var</span> lastPoint *route.Point</span><br><span class="line">	startTime := time.Now()</span><br><span class="line">	<span class="keyword">for</span> &#123;</span><br><span class="line">		point,err:=stream.Recv()</span><br><span class="line">		<span class="keyword">if</span> err == io.EOF&#123;</span><br><span class="line">			endTime := time.Now()</span><br><span class="line">			<span class="keyword">return</span> stream.SendAndClose(&amp;route.RouteSummary&#123;</span><br><span class="line">				PointCount:pointCount,</span><br><span class="line">				FeatureCount:featureCount,</span><br><span class="line">				Distance:distance,</span><br><span class="line">				ElapsedTime:<span class="keyword">int32</span>(endTime.Sub(startTime).Seconds()),</span><br><span class="line">			&#125;)</span><br><span class="line">		&#125;</span><br><span class="line">		<span class="keyword">if</span> err!=<span class="literal">nil</span>&#123;</span><br><span class="line">			<span class="keyword">return</span> err</span><br><span class="line">		&#125;</span><br><span class="line">		pointCount++</span><br><span class="line">		<span class="keyword">for</span> _,feature := <span class="keyword">range</span> s.savedFeatures&#123;</span><br><span class="line">			<span class="keyword">if</span> proto.Equal(feature.Location,point)&#123;</span><br><span class="line">				featureCount++</span><br><span class="line">			&#125;</span><br><span class="line">		&#125;</span><br><span class="line">		<span class="keyword">if</span> lastPoint != <span class="literal">nil</span>&#123;</span><br><span class="line">			distance += calcDistance(lastPoint,point)</span><br><span class="line">		&#125;</span><br><span class="line">		lastPoint = point</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>我们定义的是客户端给服务端发送流式数据，然后服务端返回一个响应。如代码所示，grpc也给我提供了一个形象的封装，对于输入流，我们只需要Recv即可，然后判断输入流是否结束，通过EOF标志位，如果结束返回一个响应。注意这里返回的方法是通过调用SendAndClose方法。通过查看SendAndClose实现，他和上面的send方法一样，都是调用了SendMsg方法。</p>
+<p>这段实现的大概意思是，客户端发送一个流，流中包含多个point数据的路径，我们遍历这个流，判断每个point是否在已有的feature集合中，然后计算路径长度，最后返回一个RouteSummary信息。</p>
+<h3 id="双向流式rpc-1"><a href="#双向流式rpc-1" class="headerlink" title="双向流式rpc"></a>双向流式rpc</h3><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(s *routeGuideServer)</span><span class="title">RouteChat</span><span class="params">(stream route.RouteGuide_RouteChatServer)</span> <span class="title">error</span></span>&#123;</span><br><span class="line">	<span class="keyword">for</span>&#123;</span><br><span class="line">		in,err:=stream.Recv()</span><br><span class="line">		<span class="keyword">if</span> err==io.EOF&#123;</span><br><span class="line">			<span class="keyword">return</span> <span class="literal">nil</span></span><br><span class="line">		&#125;</span><br><span class="line">		<span class="keyword">if</span> err!=<span class="literal">nil</span>&#123;</span><br><span class="line">			<span class="keyword">return</span> err</span><br><span class="line">		&#125;</span><br><span class="line">		key := serialize(in.Location)</span><br><span class="line"></span><br><span class="line">		s.mu.Lock()</span><br><span class="line">		s.routeNotes[key] = <span class="built_in">append</span>(s.routeNotes[key],in)</span><br><span class="line">		rn :=<span class="built_in">make</span>([]*route.RouteNote,<span class="built_in">len</span>(s.routeNotes[key]))</span><br><span class="line">		<span class="built_in">copy</span>(rn,s.routeNotes[key])</span><br><span class="line">		s.mu.Unlock()</span><br><span class="line"></span><br><span class="line">		<span class="keyword">for</span> _,note:=<span class="keyword">range</span> rn&#123;</span><br><span class="line">			<span class="keyword">if</span> err:=stream.Send(note);err!=<span class="literal">nil</span> &#123;</span><br><span class="line">				<span class="keyword">return</span> err</span><br><span class="line">			&#125;</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>既然是双向流，那么就是即能收也能发，如代码所示，每次循环通过Recv从客户端接受一个数据，经过一系列处理后通过send给客户端发送数据。最后知道客户端发送完毕或中间报错为止</p>
+<p>最后服务端main方法如下<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">newServer</span><span class="params">()</span> *<span class="title">routeGuideServer</span></span> &#123;</span><br><span class="line">	s := &amp;routeGuideServer&#123;routeNotes: <span class="built_in">make</span>(<span class="keyword">map</span>[<span class="keyword">string</span>][]*route.RouteNote)&#125;</span><br><span class="line">	data := exampleData</span><br><span class="line">	<span class="keyword">if</span> err := json.Unmarshal(data, &amp;s.savedFeatures); err != <span class="literal">nil</span> &#123;</span><br><span class="line">		log.Fatalf(<span class="string">"Failed to load default features: %v"</span>, err)</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">return</span> s</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">main</span><span class="params">()</span></span> &#123;</span><br><span class="line">	lis,err:=net.Listen(<span class="string">"tcp"</span>,<span class="string">":1234"</span>)</span><br><span class="line">	<span class="keyword">if</span> err!=<span class="literal">nil</span>&#123;</span><br><span class="line">		log.Fatal(<span class="string">"listen error:"</span>,err.Error())</span><br><span class="line">	&#125;</span><br><span class="line">	server:=grpc.NewServer()</span><br><span class="line">	route.RegisterRouteGuideServer(server,newServer())</span><br><span class="line">	server.Serve(lis)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>和helloworld一样，显示创建grpc服务实例，然后注册服务，最后让grpc接管tcp连接</p>
+<h2 id="创建客户端"><a href="#创建客户端" class="headerlink" title="创建客户端"></a>创建客户端</h2><p>首先创建连接部分还是和helloworld一样<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">conn,err:=grpc.Dial(<span class="string">"127.0.0.1:1234"</span>,grpc.WithInsecure())</span><br><span class="line"><span class="keyword">if</span> err!=<span class="literal">nil</span>&#123;</span><br><span class="line">	log.Fatal(<span class="string">"dail error"</span>,err.Error())</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">defer</span> conn.Close()</span><br><span class="line">client:=pb.NewRouteGuideClient(conn)</span><br></pre></td></tr></table></figure></p>
+<p>我们接下来还是对四种服务进行调用</p>
+<h3 id="普通rpc-1"><a href="#普通rpc-1" class="headerlink" title="普通rpc"></a>普通rpc</h3><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">printFeature(client, &amp;pb.Point&#123;Latitude: <span class="number">409146138</span>, Longitude: <span class="number">-746188906</span>&#125;)</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">printFeature</span><span class="params">(client pb.RouteGuideClient, point *pb.Point)</span></span> &#123;</span><br><span class="line">	log.Printf(<span class="string">"Getting feature for point (%d, %d)"</span>, point.Latitude, point.Longitude)</span><br><span class="line">	ctx, cancel := context.WithTimeout(context.Background(), <span class="number">10</span>*time.Second)</span><br><span class="line">	<span class="keyword">defer</span> cancel()</span><br><span class="line">	feature, err := client.GetFeature(ctx, point)</span><br><span class="line">	<span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">		log.Fatalf(<span class="string">"%v.GetFeatures(_) = _, %v: "</span>, client, err)</span><br><span class="line">	&#125;</span><br><span class="line">	log.Println(feature)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>对于普通的rpc我们当做函数调用即可，输入一个point返回一个feature</p>
+<h3 id="服务端流式rpc-2"><a href="#服务端流式rpc-2" class="headerlink" title="服务端流式rpc"></a>服务端流式rpc</h3><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line">printFeatures(client, &amp;pb.Rectangle&#123;</span><br><span class="line">	Lo: &amp;pb.Point&#123;Latitude: <span class="number">400000000</span>, Longitude: <span class="number">-750000000</span>&#125;,</span><br><span class="line">	Hi: &amp;pb.Point&#123;Latitude: <span class="number">420000000</span>, Longitude: <span class="number">-730000000</span>&#125;,</span><br><span class="line">&#125;)</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">printFeatures</span><span class="params">(client pb.RouteGuideClient, rect *pb.Rectangle)</span></span> &#123;</span><br><span class="line">	log.Printf(<span class="string">"Looking for features within %v"</span>, rect)</span><br><span class="line">	ctx, cancel := context.WithTimeout(context.Background(), <span class="number">10</span>*time.Second)</span><br><span class="line">	<span class="keyword">defer</span> cancel()</span><br><span class="line">	stream, err := client.ListFeatures(ctx, rect)</span><br><span class="line">	<span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">		log.Fatalf(<span class="string">"%v.ListFeatures(_) = _, %v"</span>, client, err)</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">for</span> &#123;</span><br><span class="line">		feature, err := stream.Recv()</span><br><span class="line">		<span class="keyword">if</span> err == io.EOF &#123;</span><br><span class="line">			<span class="keyword">break</span></span><br><span class="line">		&#125;</span><br><span class="line">		<span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">			log.Fatalf(<span class="string">"%v.ListFeatures(_) = _, %v"</span>, client, err)</span><br><span class="line">		&#125;</span><br><span class="line">		log.Println(feature)</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>前面说过，这种类型的rpc是客户端发送一个请求，服务端返回一个数据流。这里我们调用ListFeatures方法，给我们返回一个流，然后我们遍历这个流，通过Recv()一次接受一个数据，并通过EOF标志位判断流是否结束</p>
+<h3 id="客户端流式rpc-2"><a href="#客户端流式rpc-2" class="headerlink" title="客户端流式rpc"></a>客户端流式rpc</h3><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line">runRecordRoute(client)</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">runRecordRoute</span><span class="params">(client pb.RouteGuideClient)</span></span> &#123;</span><br><span class="line">	r := rand.New(rand.NewSource(time.Now().UnixNano()))</span><br><span class="line">	pointCount := <span class="keyword">int</span>(r.Int31n(<span class="number">100</span>)) + <span class="number">2</span> </span><br><span class="line">	<span class="keyword">var</span> points []*pb.Point</span><br><span class="line">	<span class="keyword">for</span> i := <span class="number">0</span>; i &lt; pointCount; i++ &#123;</span><br><span class="line">		points = <span class="built_in">append</span>(points, randomPoint(r))</span><br><span class="line">	&#125;</span><br><span class="line">	log.Printf(<span class="string">"Traversing %d points."</span>, <span class="built_in">len</span>(points))</span><br><span class="line">	ctx, cancel := context.WithTimeout(context.Background(), <span class="number">10</span>*time.Second)</span><br><span class="line">	<span class="keyword">defer</span> cancel()</span><br><span class="line">	stream, err := client.RecordRoute(ctx)</span><br><span class="line">	<span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">		log.Fatalf(<span class="string">"%v.RecordRoute(_) = _, %v"</span>, client, err)</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">for</span> _, point := <span class="keyword">range</span> points &#123;</span><br><span class="line">		<span class="keyword">if</span> err := stream.Send(point); err != <span class="literal">nil</span> &#123;</span><br><span class="line">			log.Fatalf(<span class="string">"%v.Send(%v) = %v"</span>, stream, point, err)</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">	reply, err := stream.CloseAndRecv()</span><br><span class="line">	<span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">		log.Fatalf(<span class="string">"%v.CloseAndRecv() got error %v, want %v"</span>, stream, err, <span class="literal">nil</span>)</span><br><span class="line">	&#125;</span><br><span class="line">	log.Printf(<span class="string">"Route summary: %v"</span>, reply)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>对于这种类型，客户端是发送一系列数据，而服务端返回一个响应，如上面代码所述，我们先随机一些point，然后通过send方法一个一个发送给客户端，发送完后，调用CloseAndRecv关闭流然后等待服务端响应。CloseAndRecv和服务端使用的SendAndClose相对应。</p>
+<h3 id="双向流式rpc-2"><a href="#双向流式rpc-2" class="headerlink" title="双向流式rpc"></a>双向流式rpc</h3><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br></pre></td><td class="code"><pre><span class="line">runRouteChat(client)</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">runRouteChat</span><span class="params">(client pb.RouteGuideClient)</span></span> &#123;</span><br><span class="line">	notes := []*pb.RouteNote&#123;</span><br><span class="line">		&#123;Location: &amp;pb.Point&#123;Latitude: <span class="number">0</span>, Longitude: <span class="number">1</span>&#125;, Message: <span class="string">"First message"</span>&#125;,</span><br><span class="line">		&#123;Location: &amp;pb.Point&#123;Latitude: <span class="number">0</span>, Longitude: <span class="number">2</span>&#125;, Message: <span class="string">"Second message"</span>&#125;,</span><br><span class="line">		&#123;Location: &amp;pb.Point&#123;Latitude: <span class="number">0</span>, Longitude: <span class="number">3</span>&#125;, Message: <span class="string">"Third message"</span>&#125;,</span><br><span class="line">		&#123;Location: &amp;pb.Point&#123;Latitude: <span class="number">0</span>, Longitude: <span class="number">1</span>&#125;, Message: <span class="string">"Fourth message"</span>&#125;,</span><br><span class="line">		&#123;Location: &amp;pb.Point&#123;Latitude: <span class="number">0</span>, Longitude: <span class="number">2</span>&#125;, Message: <span class="string">"Fifth message"</span>&#125;,</span><br><span class="line">		&#123;Location: &amp;pb.Point&#123;Latitude: <span class="number">0</span>, Longitude: <span class="number">3</span>&#125;, Message: <span class="string">"Sixth message"</span>&#125;,</span><br><span class="line">	&#125;</span><br><span class="line">	ctx, cancel := context.WithTimeout(context.Background(), <span class="number">10</span>*time.Second)</span><br><span class="line">	<span class="keyword">defer</span> cancel()</span><br><span class="line">	stream, err := client.RouteChat(ctx)</span><br><span class="line">	<span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">		log.Fatalf(<span class="string">"%v.RouteChat(_) = _, %v"</span>, client, err)</span><br><span class="line">	&#125;</span><br><span class="line">	waitc := <span class="built_in">make</span>(<span class="keyword">chan</span> <span class="keyword">struct</span>&#123;&#125;)</span><br><span class="line">	<span class="keyword">go</span> <span class="function"><span class="keyword">func</span><span class="params">()</span></span> &#123;</span><br><span class="line">		<span class="keyword">for</span> &#123;</span><br><span class="line">			in, err := stream.Recv()</span><br><span class="line">			<span class="keyword">if</span> err == io.EOF &#123;</span><br><span class="line">				<span class="comment">// read done.</span></span><br><span class="line">				<span class="built_in">close</span>(waitc)</span><br><span class="line">				<span class="keyword">return</span></span><br><span class="line">			&#125;</span><br><span class="line">			<span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">				log.Fatalf(<span class="string">"Failed to receive a note : %v"</span>, err)</span><br><span class="line">			&#125;</span><br><span class="line">			log.Printf(<span class="string">"Got message %s at point(%d, %d)"</span>, in.Message, in.Location.Latitude, in.Location.Longitude)</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;()</span><br><span class="line">	<span class="keyword">for</span> _, note := <span class="keyword">range</span> notes &#123;</span><br><span class="line">		<span class="keyword">if</span> err := stream.Send(note); err != <span class="literal">nil</span> &#123;</span><br><span class="line">			log.Fatalf(<span class="string">"Failed to send a note: %v"</span>, err)</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">	stream.CloseSend()</span><br><span class="line">	&lt;-waitc</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>由于客户端与服务端都是收发流数据，在服务端是收到一个数据处理一个然后返回一个，所以我们在客户端不断的发送数据的同时，也启动一个goroutine去接受数据，在发送完数据后要关闭输出流。</p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><ol>
+<li>对于普通rpc，客户端就当做方法调用一样去调用某个远端的方法，服务端接受数据后按照返回参数返回值即可</li>
+<li>对于服务端流式rpc，客户端通过调用方法发送一个数据，然后利用返回值stream去不断接受数据；而服务端在接受到请求后，不断用send发送数据。</li>
+<li>对于客户端流式rpc，客户端通过调用方法获得一个stream后，不断的send发送数据，发送完毕后调用CloseAndRecv关闭输出流并等待响应；而服务端不断使用Recv去接受数据，接受完之后调用SendAndClose关闭输入流发送响应</li>
+<li>对于双向流式rpc，客户端通过调用方法获得一个stream后，不断的send发送数据，并在发送的时候启动一个goroutine通过Recv接受数据；而服务端则不断的接受数据、处理数据、返回数据。客户端在发送完毕后注意通过CloseSend关闭输出流</li>
+</ol>
+
+      
+    </div>
+
+    
+
+    
+    
+    
+
+    
+
+    
+      
+    
+    
+      <div>
+        <div style="padding: 10px 0; margin: 20px auto; width: 90%; text-align: center;">
+  <div>谢谢你请我吃糖</div>
+  <button id="rewardButton" disable="enable" onclick="var qr = document.getElementById('QR'); if (qr.style.display === 'none') {qr.style.display='block';} else {qr.style.display='none'}">
+    <span>打赏</span>
+  </button>
+  <div id="QR" style="display: none;">
+
+    
+      <div id="wechat" style="display: inline-block">
+        <img id="wechat_qr" src="/assets/img/wechatpay.jpg" alt="AmorFati 微信支付">
+        <p>微信支付</p>
+      </div>
+    
+
+    
+      <div id="alipay" style="display: inline-block">
+        <img id="alipay_qr" src="/assets/img/alipay.jpg" alt="AmorFati 支付宝">
+        <p>支付宝</p>
+      </div>
+    
+
+    
+
+  </div>
+</div>
+
+      </div>
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/go/" rel="tag"># go</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2019/03/30/AES加密/" rel="next" title="AES加密">
+                <i class="fa fa-chevron-left"></i> AES加密
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2019/03/31/RSA加密/" rel="prev" title="RSA加密">
+                RSA加密 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+  </div>
+
+
+          </div>
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image" src="/assets/img/icon.jpg" alt="AmorFati">
+            
+              <p class="site-author-name" itemprop="name">AmorFati</p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          
+            <nav class="site-state motion-element">
+              
+                <div class="site-state-item site-state-posts">
+                
+                  <a href="/archives/">
+                
+                    <span class="site-state-item-count">19</span>
+                    <span class="site-state-item-name">日志</span>
+                  </a>
+                </div>
+              
+
+              
+                
+                
+                <div class="site-state-item site-state-categories">
+                  <a href="/categories/index.html">
+                    
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">5</span>
+                    <span class="site-state-item-name">分类</span>
+                  </a>
+                </div>
+              
+
+              
+                
+                
+                <div class="site-state-item site-state-tags">
+                  <a href="/tags/index.html">
+                    
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">10</span>
+                    <span class="site-state-item-name">标签</span>
+                  </a>
+                </div>
+              
+            </nav>
+          
+
+          
+
+          
+            <div class="links-of-author motion-element">
+              
+                <span class="links-of-author-item">
+                  
+                  
+                    
+                  
+                  
+                    
+                  
+                  <a href="https://github.com/chenyaoyang" title="GitHub &rarr; https://github.com/chenyaoyang" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i>GitHub</a>
+                </span>
+              
+                <span class="links-of-author-item">
+                  
+                  
+                    
+                  
+                  
+                    
+                  
+                  <a href="mailto:chenyang4346@foxmail.com" title="E-Mail &rarr; mailto:chenyang4346@foxmail.com" rel="noopener" target="_blank"><i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+                </span>
+              
+                <span class="links-of-author-item">
+                  
+                  
+                    
+                  
+                  
+                    
+                  
+                  <a href="https://www.jianshu.com/u/52c1bec4559c" title="简书 &rarr; https://www.jianshu.com/u/52c1bec4559c" rel="noopener" target="_blank"><i class="fa fa-fw fa-globe"></i>简书</a>
+                </span>
+              
+            </div>
+          
+
+          
+
+          
+          
+
+          
+            
+          
+          
+
+        </div>
+      </div>
+
+      
+      <!--noindex-->
+        <div class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+            
+            
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#背景"><span class="nav-number">1.</span> <span class="nav-text">背景</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#HelloWorld"><span class="nav-number">2.</span> <span class="nav-text">HelloWorld</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#protobuf定义及编译"><span class="nav-number">2.1.</span> <span class="nav-text">protobuf定义及编译</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#服务端"><span class="nav-number">2.2.</span> <span class="nav-text">服务端</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#客户端"><span class="nav-number">2.3.</span> <span class="nav-text">客户端</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#grpc相关概念"><span class="nav-number">3.</span> <span class="nav-text">grpc相关概念</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#服务类型"><span class="nav-number">3.1.</span> <span class="nav-text">服务类型</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#单项rpc"><span class="nav-number">3.1.1.</span> <span class="nav-text">单项rpc</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#服务端流式rpc"><span class="nav-number">3.1.2.</span> <span class="nav-text">服务端流式rpc</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#客户端流式rpc"><span class="nav-number">3.1.3.</span> <span class="nav-text">客户端流式rpc</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#双向流式rpc"><span class="nav-number">3.1.4.</span> <span class="nav-text">双向流式rpc</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#RPC终止与取消"><span class="nav-number">3.2.</span> <span class="nav-text">RPC终止与取消</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#超时"><span class="nav-number">3.3.</span> <span class="nav-text">超时</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#详细内容"><span class="nav-number">4.</span> <span class="nav-text">详细内容</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#protobuf定义"><span class="nav-number">4.1.</span> <span class="nav-text">protobuf定义</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#创建服务端"><span class="nav-number">4.2.</span> <span class="nav-text">创建服务端</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#普通rpc"><span class="nav-number">4.2.1.</span> <span class="nav-text">普通rpc</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#服务端流式rpc-1"><span class="nav-number">4.2.2.</span> <span class="nav-text">服务端流式rpc</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#客户端流式rpc-1"><span class="nav-number">4.2.3.</span> <span class="nav-text">客户端流式rpc</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#双向流式rpc-1"><span class="nav-number">4.2.4.</span> <span class="nav-text">双向流式rpc</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#创建客户端"><span class="nav-number">4.3.</span> <span class="nav-text">创建客户端</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#普通rpc-1"><span class="nav-number">4.3.1.</span> <span class="nav-text">普通rpc</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#服务端流式rpc-2"><span class="nav-number">4.3.2.</span> <span class="nav-text">服务端流式rpc</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#客户端流式rpc-2"><span class="nav-number">4.3.3.</span> <span class="nav-text">客户端流式rpc</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#双向流式rpc-2"><span class="nav-number">4.3.4.</span> <span class="nav-text">双向流式rpc</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#总结"><span class="nav-number">4.4.</span> <span class="nav-text">总结</span></a></li></ol></li></ol></div>
+            
+
+          </div>
+        </div>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; 2018 – <span itemprop="copyrightYear">2019</span>
+  <span class="with-love" id="animate">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">AmorFati</span>
+
+  
+
+  
+</div>
+
+
+  <div class="powered-by">由 <a href="https://hexo.io" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v3.8.0</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 – <a href="https://theme-next.org" class="theme-link" rel="noopener" target="_blank">NexT.Pisces</a> v6.6.0</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+    
+
+    
+  </div>
+
+  
+
+<script>
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+
+  
+
+
+  <script src="/js/src/utils.js?v=6.6.0"></script>
+
+  <script src="/js/src/motion.js?v=6.6.0"></script>
+
+
+
+  
+  
+
+
+  <script src="/js/src/affix.js?v=6.6.0"></script>
+
+  <script src="/js/src/schemes/pisces.js?v=6.6.0"></script>
+
+
+
+  
+  <script src="/js/src/scrollspy.js?v=6.6.0"></script>
+<script src="/js/src/post-details.js?v=6.6.0"></script>
+
+
+
+  
+
+
+  <script src="/js/src/bootstrap.js?v=6.6.0"></script>
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  <script>
+    // Popup Window;
+    var isfetched = false;
+    var isXml = true;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length === 0) {
+      search_path = "search.xml";
+    } else if (/json$/i.test(search_path)) {
+      isXml = false;
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    var onPopupClose = function (e) {
+      $('.popup').hide();
+      $('#local-search-input').val('');
+      $('.search-result-list').remove();
+      $('#no-result').remove();
+      $(".local-search-pop-overlay").remove();
+      $('body').css('overflow', '');
+    }
+
+    function proceedsearch() {
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay"></div>')
+        .css('overflow', 'hidden');
+      $('.search-popup-overlay').click(onPopupClose);
+      $('.popup').toggle();
+      var $localSearchInput = $('#local-search-input');
+      $localSearchInput.attr("autocapitalize", "none");
+      $localSearchInput.attr("autocorrect", "off");
+      $localSearchInput.focus();
+    }
+
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+      'use strict';
+
+      // start loading animation
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay">' +
+          '<div id="search-loading-icon">' +
+          '<i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>' +
+          '</div>' +
+          '</div>')
+        .css('overflow', 'hidden');
+      $("#search-loading-icon").css('margin', '20% auto 0 auto').css('text-align', 'center');
+
+      
+
+      $.ajax({
+        url: path,
+        dataType: isXml ? "xml" : "json",
+        async: true,
+        success: function(res) {
+          // get the contents from search data
+          isfetched = true;
+          $('.popup').detach().appendTo('.header-inner');
+          var datas = isXml ? $("entry", res).map(function() {
+            return {
+              title: $("title", this).text(),
+              content: $("content",this).text(),
+              url: $("url" , this).text()
+            };
+          }).get() : res;
+          var input = document.getElementById(search_id);
+          var resultContent = document.getElementById(content_id);
+          var inputEventFunction = function() {
+            var searchText = input.value.trim().toLowerCase();
+            var keywords = searchText.split(/[\s\-]+/);
+            if (keywords.length > 1) {
+              keywords.push(searchText);
+            }
+            var resultItems = [];
+            if (searchText.length > 0) {
+              // perform local searching
+              datas.forEach(function(data) {
+                var isMatch = false;
+                var hitCount = 0;
+                var searchTextCount = 0;
+                var title = data.title.trim();
+                var titleInLowerCase = title.toLowerCase();
+                var content = data.content.trim().replace(/<[^>]+>/g,"");
+                
+                var contentInLowerCase = content.toLowerCase();
+                var articleUrl = decodeURIComponent(data.url);
+                var indexOfTitle = [];
+                var indexOfContent = [];
+                // only match articles with not empty titles
+                if(title != '') {
+                  keywords.forEach(function(keyword) {
+                    function getIndexByWord(word, text, caseSensitive) {
+                      var wordLen = word.length;
+                      if (wordLen === 0) {
+                        return [];
+                      }
+                      var startPosition = 0, position = [], index = [];
+                      if (!caseSensitive) {
+                        text = text.toLowerCase();
+                        word = word.toLowerCase();
+                      }
+                      while ((position = text.indexOf(word, startPosition)) > -1) {
+                        index.push({position: position, word: word});
+                        startPosition = position + wordLen;
+                      }
+                      return index;
+                    }
+
+                    indexOfTitle = indexOfTitle.concat(getIndexByWord(keyword, titleInLowerCase, false));
+                    indexOfContent = indexOfContent.concat(getIndexByWord(keyword, contentInLowerCase, false));
+                  });
+                  if (indexOfTitle.length > 0 || indexOfContent.length > 0) {
+                    isMatch = true;
+                    hitCount = indexOfTitle.length + indexOfContent.length;
+                  }
+                }
+
+                // show search results
+
+                if (isMatch) {
+                  // sort index by position of keyword
+
+                  [indexOfTitle, indexOfContent].forEach(function (index) {
+                    index.sort(function (itemLeft, itemRight) {
+                      if (itemRight.position !== itemLeft.position) {
+                        return itemRight.position - itemLeft.position;
+                      } else {
+                        return itemLeft.word.length - itemRight.word.length;
+                      }
+                    });
+                  });
+
+                  // merge hits into slices
+
+                  function mergeIntoSlice(text, start, end, index) {
+                    var item = index[index.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    var hits = [];
+                    var searchTextCountInSlice = 0;
+                    while (position + word.length <= end && index.length != 0) {
+                      if (word === searchText) {
+                        searchTextCountInSlice++;
+                      }
+                      hits.push({position: position, length: word.length});
+                      var wordEnd = position + word.length;
+
+                      // move to next position of hit
+
+                      index.pop();
+                      while (index.length != 0) {
+                        item = index[index.length - 1];
+                        position = item.position;
+                        word = item.word;
+                        if (wordEnd > position) {
+                          index.pop();
+                        } else {
+                          break;
+                        }
+                      }
+                    }
+                    searchTextCount += searchTextCountInSlice;
+                    return {
+                      hits: hits,
+                      start: start,
+                      end: end,
+                      searchTextCount: searchTextCountInSlice
+                    };
+                  }
+
+                  var slicesOfTitle = [];
+                  if (indexOfTitle.length != 0) {
+                    slicesOfTitle.push(mergeIntoSlice(title, 0, title.length, indexOfTitle));
+                  }
+
+                  var slicesOfContent = [];
+                  while (indexOfContent.length != 0) {
+                    var item = indexOfContent[indexOfContent.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    // cut out 100 characters
+                    var start = position - 20;
+                    var end = position + 80;
+                    if(start < 0){
+                      start = 0;
+                    }
+                    if (end < position + word.length) {
+                      end = position + word.length;
+                    }
+                    if(end > content.length){
+                      end = content.length;
+                    }
+                    slicesOfContent.push(mergeIntoSlice(content, start, end, indexOfContent));
+                  }
+
+                  // sort slices in content by search text's count and hits' count
+
+                  slicesOfContent.sort(function (sliceLeft, sliceRight) {
+                    if (sliceLeft.searchTextCount !== sliceRight.searchTextCount) {
+                      return sliceRight.searchTextCount - sliceLeft.searchTextCount;
+                    } else if (sliceLeft.hits.length !== sliceRight.hits.length) {
+                      return sliceRight.hits.length - sliceLeft.hits.length;
+                    } else {
+                      return sliceLeft.start - sliceRight.start;
+                    }
+                  });
+
+                  // select top N slices in content
+
+                  var upperBound = parseInt('1');
+                  if (upperBound >= 0) {
+                    slicesOfContent = slicesOfContent.slice(0, upperBound);
+                  }
+
+                  // highlight title and content
+
+                  function highlightKeyword(text, slice) {
+                    var result = '';
+                    var prevEnd = slice.start;
+                    slice.hits.forEach(function (hit) {
+                      result += text.substring(prevEnd, hit.position);
+                      var end = hit.position + hit.length;
+                      result += '<b class="search-keyword">' + text.substring(hit.position, end) + '</b>';
+                      prevEnd = end;
+                    });
+                    result += text.substring(prevEnd, slice.end);
+                    return result;
+                  }
+
+                  var resultItem = '';
+
+                  if (slicesOfTitle.length != 0) {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + highlightKeyword(title, slicesOfTitle[0]) + "</a>";
+                  } else {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + title + "</a>";
+                  }
+
+                  slicesOfContent.forEach(function (slice) {
+                    resultItem += "<a href='" + articleUrl + "'>" +
+                      "<p class=\"search-result\">" + highlightKeyword(content, slice) +
+                      "...</p>" + "</a>";
+                  });
+
+                  resultItem += "</li>";
+                  resultItems.push({
+                    item: resultItem,
+                    searchTextCount: searchTextCount,
+                    hitCount: hitCount,
+                    id: resultItems.length
+                  });
+                }
+              })
+            };
+            if (keywords.length === 1 && keywords[0] === "") {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>'
+            } else if (resultItems.length === 0) {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>'
+            } else {
+              resultItems.sort(function (resultLeft, resultRight) {
+                if (resultLeft.searchTextCount !== resultRight.searchTextCount) {
+                  return resultRight.searchTextCount - resultLeft.searchTextCount;
+                } else if (resultLeft.hitCount !== resultRight.hitCount) {
+                  return resultRight.hitCount - resultLeft.hitCount;
+                } else {
+                  return resultRight.id - resultLeft.id;
+                }
+              });
+              var searchResultList = '<ul class=\"search-result-list\">';
+              resultItems.forEach(function (result) {
+                searchResultList += result.item;
+              })
+              searchResultList += "</ul>";
+              resultContent.innerHTML = searchResultList;
+            }
+          }
+
+          if ('auto' === 'auto') {
+            input.addEventListener('input', inputEventFunction);
+          } else {
+            $('.search-icon').click(inputEventFunction);
+            input.addEventListener('keypress', function (event) {
+              if (event.keyCode === 13) {
+                inputEventFunction();
+              }
+            });
+          }
+
+          // remove loading animation
+          $(".local-search-pop-overlay").remove();
+          $('body').css('overflow', '');
+
+          proceedsearch();
+        }
+      });
+    }
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched === false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+    });
+
+    $('.popup-btn-close').click(onPopupClose);
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+    $(document).on('keyup', function (event) {
+      var shouldDismissSearchPopup = event.which === 27 &&
+        $('.search-popup').is(':visible');
+      if (shouldDismissSearchPopup) {
+        onPopupClose();
+      }
+    });
+  </script>
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+  
+
+  
+
+
+  
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>
