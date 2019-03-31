@@ -156,7 +156,7 @@
 <meta property="og:locale" content="zh-CN">
 <meta property="og:image" content="https://upload-images.jianshu.io/upload_images/5111131-04452375e0d681aa.jpg?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240">
 <meta property="og:image" content="https://upload-images.jianshu.io/upload_images/5111131-17f707e7e8c08ce6.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240">
-<meta property="og:updated_time" content="2019-03-28T06:03:36.369Z">
+<meta property="og:updated_time" content="2019-03-31T05:36:34.017Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="RC4加密">
 <meta name="twitter:image" content="https://upload-images.jianshu.io/upload_images/5111131-04452375e0d681aa.jpg?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240">
@@ -485,7 +485,7 @@
                 
                   <span class="post-meta-item-text">更新于</span>
                 
-                <time title="修改时间：2019-03-28 14:03:36" itemprop="dateModified" datetime="2019-03-28T14:03:36+08:00">2019-03-28</time>
+                <time title="修改时间：2019-03-31 13:36:34" itemprop="dateModified" datetime="2019-03-31T13:36:34+08:00">2019-03-31</time>
               
             
           </span>
@@ -542,7 +542,7 @@
 <h1 id="详细流程"><a href="#详细流程" class="headerlink" title="详细流程"></a>详细流程</h1><h2 id="S的初始化"><a href="#S的初始化" class="headerlink" title="S的初始化"></a>S的初始化</h2><ol>
 <li>首先定义一个长度为1~256个字节的秘钥K。</li>
 <li>初始化一个向量S，S[0] = 0,S[1] = 1, … ,S[255] = 255</li>
-<li>创建临时数组T，T的长度是256，T用K填充，填不满的循环用K填充，直到T被填满</li>
+<li>创建临时数组T，T的长度是256，T用K填充，填不满的循环用K填充，直到T被填满 </li>
 </ol>
 <h2 id="S的初始置换"><a href="#S的初始置换" class="headerlink" title="S的初始置换"></a>S的初始置换</h2><p>T数组的作用是对S进行初始置换，置换规则如下：将S[i]与S[j]交换，其中j = (j + S[i] + T[i]) mod 256。j的初始值是0</p>
 <h2 id="流秘钥生成"><a href="#流秘钥生成" class="headerlink" title="流秘钥生成"></a>流秘钥生成</h2><p>根据如下计算：i = (i+1) mod 256，i初始值为0；j = (j + s[i]) mod 256,j初始值位0。然后交换s[i]和S[j]。令t = (S[i] + S[j]) mod 256。输出S[t]作为秘钥通明文进行一字节一字节的加密（异或运算）</p>
