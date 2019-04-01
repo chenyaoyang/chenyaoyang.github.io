@@ -156,7 +156,7 @@
 <meta property="og:locale" content="zh-CN">
 <meta property="og:image" content="https://upload-images.jianshu.io/upload_images/5111131-3a939cb1c2465a65.jpg?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240">
 <meta property="og:image" content="https://upload-images.jianshu.io/upload_images/5111131-26bb17ff91ab8190.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240">
-<meta property="og:updated_time" content="2019-04-01T08:42:27.358Z">
+<meta property="og:updated_time" content="2019-04-01T08:57:21.209Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Kademlia：一个基于异或度量的P2P信息系统">
 <meta name="twitter:image" content="https://upload-images.jianshu.io/upload_images/5111131-3a939cb1c2465a65.jpg?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240">
@@ -468,7 +468,7 @@
                 
               
 
-              <time title="创建时间：2019-04-01 16:37:10 / 修改时间：16:42:27" itemprop="dateCreated datePublished" datetime="2019-04-01T16:37:10+08:00">2019-04-01</time>
+              <time title="创建时间：2019-04-01 16:37:10 / 修改时间：16:57:21" itemprop="dateCreated datePublished" datetime="2019-04-01T16:37:10+08:00">2019-04-01</time>
             
 
             
@@ -537,7 +537,7 @@
 <p>我们首先注意到虽然异或不是欧几里得度量，但仍是有效的。很明显，d(x,x) = 0。如果x ≠ y则d(x,y)&gt;0。以及d(x,y)=d(y,x)。除此之外，异或还满足三角不等式，因为d(x,z) = d(x,y) xor d(y,z),而a+b &gt;= a xor b</p>
 <p>和chord的顺时针圆周度量一样，异或也是单向的。给定任意一个点x和距离d&gt;0，都会存在一个点y，使得d(x,y) = d。单向性确保所有对相同键的查找都沿着相同的路径收敛，而不管初始节点是什么。因此，沿着查找路径缓存键值对可以缓解热点。就像Pastry一样，但不像Chord，异或拓扑是对称的，即(d(x,y) = d(y,x))</p>
 <h2 id="2-1-节点状态"><a href="#2-1-节点状态" class="headerlink" title="2.1 节点状态"></a>2.1 节点状态</h2><p>Kademlia节点存储彼此之间的路由联系信息。对于每个i（0 &lt;= i &lt; 160），节点都会存储一个含有&lt;IP地址列表;UDP端口;节点ID&gt;列表，每个列表项表示距离自己2^i和2^i+1之间的节点。我们称这些列表为k桶。每个k桶都按照时间顺序进行排序，最后一次看到的节点位于头部，最近一次看到的节点位于尾部。对于较小的i值，为k桶通常是空的(因为没有合适的节点)。对于较大的i值，列表长度可以增长到k，其中k是一个系统范围的全局变量。选择k时，任何给定的k个节点都不太可能在一小时内发生故障(例如k = 20)。</p>
-<p>当Kademlia节点接收到来自另一个节点的任何消息(请求或响应)时，它将更新发送方节点ID所在的k桶。如果发送节点已经存在于收件人的k桶中，则收件人将其移动到列表的末尾。如果节点还没有在适当的的k桶中，并且桶的条目数小于k，那么接收方只需在列表的末尾插入新的发送方。但是，如果应村的k桶已满，则接收方将PING k桶的最近最少出现的节点，以决定该做什么。如果最近最少出现的节点没有响应，则将其从k桶中删除，并在末尾插入新的发送者。否则，如果最近最少出现的节点有响应，则将其移动到列表的末尾，并丢弃新发送方的联系人。</p>
+<p>当Kademlia节点接收到来自另一个节点的任何消息(请求或响应)时，它将更新发送方节点ID所在的k桶。如果发送节点已经存在于收件人的k桶中，则收件人将其移动到列表的末尾。如果节点还没有在适当的的k桶中，并且桶的条目数小于k，那么接收方只需在列表的末尾插入新的发送方。但是，如果应存的k桶已满，则接收方将PING k桶的最近最少出现的节点，以决定该做什么。如果最近最少出现的节点没有响应，则将其从k桶中删除，并在末尾插入新的发送者。否则，如果最近最少出现的节点有响应，则将其移动到列表的末尾，并丢弃新发送方的联系人。</p>
 <p>k桶有效地实现了一个最近很少键的清除策略，除非活动节点从未从列表中删除。这种对旧的联系的处理是基于对Saroiu等人收集的Gnutella微量数据分析而得出的。图1显示了Gnutella节点继续在线一个小时的百分比，这是当前正常运行的时间函数。节点运行的时间越长，它继续运行一个小时的可能性就越大。通过保留旧的联系人，k桶最大化了它们所存的节点保持在线的可能性。</p>
 <p><img src="https://upload-images.jianshu.io/upload_images/5111131-26bb17ff91ab8190.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="图一"></p>
 <p>k桶的第二个好处是，可以抵抗特定的DoS攻击。无法通过向系统中注入新节点来刷新节点的路由状态。Kademlia节点只会在旧节点离开系统时将新节点插入到k桶中。</p>
