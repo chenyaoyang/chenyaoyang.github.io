@@ -1,6 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
 <search>
   <entry>
+    <title><![CDATA[SHA-2算法]]></title>
+    <url>%2F2019%2F04%2F03%2FSHA-2%E7%AE%97%E6%B3%95%2F</url>
+    <content type="text"><![CDATA[背景前面介绍了SHA-1的详细内容。因为SHA-1已经被认为是不安全的，所以又开发了SHA-2。SHA-2可分为6种不同标准：SHA-224、SHA-256、SHA-384、SHA-512、SHA-512/224、SHA-512/256。其后数字表示摘要长度。 SHA-256和SHA-512是很新的散列函数，前者以定义一个word为32位，后者则定义一个word为64位。它们分别使用了不同的偏移量，或用不同的常量，然而，实际上二者结构是相同的，只在循环运行的次数上有所差异。SHA-224以及SHA-384则是前述二种散列函数的截短版，利用不同的初始值做计算。我们这里介绍SHA-512的内容，其余标准见标准文档 详细流程SHA-512的最大数据长度为2^128 - 1。它的摘要长度为512位，分块长度为1024位。SHA-512是按照SHA-1的模型而来的，而SHA-1又是仿照MD5而来的，所以他们之间有很多相似之处，对于相似地方我们只简要说明一下 填充填充为1024的倍数少128位，通用填充总是要进行的，即使已满足条件 添加长度将原始信息长度写成128位形式填充到最后 分块按1024一组进行分块 初始化链接变量一共有8个初始化变量，实际上多少个初始化变量是由最后摘要长度决定的。如MD5为128位，就是4个，SHA-1位160位，就是5个。而SHA-512是512位，就是8个，但每个是64位：12345678A = 6a09e667f3bcc908B = bb67ae8584caa73bC = 3c6ef372fe94f82bD = a54ff53a5f1d36f1E = 510e527fade682d1F = 9b05688c2b3e6c1fG = 1f83d9abfb41bd6bH = 5be0cd19137e2179 轮次操作 将初始化变量复制到abcdefgh中 将当前子块每64位一组，分16组 一共有80轮，每轮以当前块，abcdefgh和常量K[t]，常量总共有80个，这些常数的取值是前80个质数的立方根的小数部分的前64位。每轮操作如下：12345678910temp1 = h + ch(e,f,g) + sum1(e)+wt+kttemp2 = sum0(a) + maj(a,b,c)a = temp1 + temp2b = ac = bd = ce = d + temp1f = eg = fh = g 上面运算中t为轮次号，加法均是加完之后取2^64模，几个函数如下定义：1234ch(e,f,g) = (e and f) xor (not e and g)maj(a,b,c) = (a and b) xor (a and c) xor (b and c)sum1(e) = e&gt;&gt;14 xor e&gt;&gt;18 xor e&gt;&gt;41sum0(a) = a&gt;&gt;28 xor a&gt;&gt;34 xor a&gt;&gt;39 对于每轮中的w，前16轮就是分好的16组子块，后面的w如下计算1234wt = a1(w(t-2)) + w(t-7) + a0(w(t-15)) + w(t-16)a1(x) = x&gt;&gt;1 xor x&gt;&gt;8 xor x&gt;3a0(x) = x&gt;&gt;17 xor x&gt;&gt;19 xor x&gt;10 上面&gt;&gt;表示循环右移，&gt;表示右移，空出的补零 80轮之后计算出的abcdefgh分别加上原来的ABCDEFGH作为处理下一个块的输入 和MD5与SHA-1一样，处理完所有块之后，最后的ABCDEFGH拼接到一起就是摘要信息。 题图来自unsplash：https://unsplash.com/photos/OIYrmG5FNFg]]></content>
+      <categories>
+        <category>密码学</category>
+      </categories>
+      <tags>
+        <tag>密码学</tag>
+      </tags>
+  </entry>
+  <entry>
     <title><![CDATA[SHA-1算法]]></title>
     <url>%2F2019%2F04%2F02%2FSHA-1%E7%AE%97%E6%B3%95%2F</url>
     <content type="text"><![CDATA[背景SHA全称Secure Hash Algorithm，即安全散列算法。它是一个算法簇，包含多种算法。是FIPS所认证的安全散列算法。能计算出一个数字消息所对应到的，长度固定的字符串（又称消息摘要）的算法。且若输入的消息不同，它们对应到不同字符串的机率很高。 SHA-1于1995年发布，应用相当广泛，被认为是MD5的替代者，但是随着技术的进步SHA-1已经被认为是不安全的，特别是2017年荷兰密码学研究小组CWI和Google正式宣布攻破了SHA-1 SHA-2在2001年发布，包括SHA-224、SHA-256、SHA-384、SHA-512、SHA-512/224、SHA-512/256。虽然至今尚未出现对SHA-2有效的攻击，它的算法跟SHA-1基本上仍然相似，所以理论上也有漏洞 SHA-3在2015年正式发布，SHA-3并不是要取代SHA-2，因为SHA-2当前并没有出现明显的弱点。由于对MD5出现成功的破解，以及对SHA-0和SHA-1出现理论上破解的方法，NIST感觉需要一个与之前算法不同的，可替换的加密散列算法，也就是现在的SHA-3。 SHA家族几种算法比较如下： 这里我们先来梳理SHA-1的详细过程 详细流程SHA-1和MD5设计非常类似，标准文档链接，基本步骤如下 填充和MD5一样，填充总是增加的，也就是512的倍数少64 添加长度将原始长度的64位表示添加到末尾 分块每512位一块 初始化链接变量总共有5个，其中ABCD和MD5一样，D的值位C3D2E1F0。五个值如下12345A=67452301B=efcdab89C=98badcfeD=10325476E=c3d2e1f0 处理块 将A~E赋值到a~e 将每块分为16个子块，每个子块32位 SHA共4轮，每轮20步，输入为子块，abcde，常量。整体算法和MD5类似。与MD5不同，这里的常量仅有四个值，每轮用一个，分别是：5a827999,6ed9eba1,8f1bbcdc，ca62c1d6。 每一步的逻辑如下图所示 具体来说，一次操作的数学表达式如下：1abcde=(e + P + a&lt;&lt;5 + W[] + K[]),a,b&lt;&lt;30,c,d P依然还是一个非线性操作，&lt;&lt;表示循环左移，W[]表示计算某一子块，K[]表示该轮的常量 w是将16个子块扩展为80个，前16个就是原16个子块，后面的按照下面公式计算1w[t] = (w[t-16] xor w[t-14] xor w[t-8] xor w[t-3])&lt;&lt;1 P的具体运算如下轮次 | P—|—1 | (b AND c) OR ((NOT b) AND d)2 | b xor c xor d3 | (b AND c) or (b AND d) OR (c AND d)4 | b xor c xor d 就这样对每一块执行80次后，输出的abcde就是160位的散列值。相比于MD5无规则的运算，SHA-1基本可以用公式表示整个算法 题图来自unsplash：https://unsplash.com/photos/I2UR7wEftf4]]></content>
@@ -115,8 +126,8 @@
         <category>密码学</category>
       </categories>
       <tags>
-        <tag>密码学</tag>
         <tag>java</tag>
+        <tag>密码学</tag>
       </tags>
   </entry>
   <entry>
@@ -142,8 +153,8 @@
         <category>密码学</category>
       </categories>
       <tags>
-        <tag>密码学</tag>
         <tag>java</tag>
+        <tag>密码学</tag>
       </tags>
   </entry>
   <entry>
@@ -188,8 +199,8 @@
         <category>密码学</category>
       </categories>
       <tags>
-        <tag>密码学</tag>
         <tag>java</tag>
+        <tag>密码学</tag>
       </tags>
   </entry>
   <entry>
