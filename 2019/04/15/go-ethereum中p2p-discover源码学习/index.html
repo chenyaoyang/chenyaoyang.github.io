@@ -1,0 +1,1416 @@
+<!DOCTYPE html>
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+<html class="theme-next pisces use-motion" lang="zh-CN">
+<head><meta name="generator" content="Hexo 3.8.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+    
+      
+    
+
+    
+  
+
+  
+
+  
+    
+      
+    
+
+    
+  
+
+  
+    
+      
+    
+
+    
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Monda:300,300italic,400,400italic,700,700italic|Roboto Slab:300,300italic,400,400italic,700,700italic|Dancing Script:300,300italic,400,400italic,700,700italic|Consolas:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css">
+
+<link href="/css/main.css?v=6.6.0" rel="stylesheet" type="text/css">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=6.6.0">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=6.6.0">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=6.6.0">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=6.6.0" color="#222">
+
+
+
+
+
+
+
+
+
+<script id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    version: '6.6.0',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: false,
+    fastclick: false,
+    lazyload: false,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+  
+
+
+
+
+  <meta name="keywords" content="go,区块链,以太坊,go-ethereum">
+<meta property="og:type" content="article">
+<meta property="og:title" content="go-ethereum中p2p-discover源码学习">
+<meta property="og:url" content="http://yoursite.com/2019/04/15/go-ethereum中p2p-discover源码学习/index.html">
+<meta property="og:site_name" content="AmorFati">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:image" content="https://upload-images.jianshu.io/upload_images/5111131-cbf9f5b30a272672.jpg?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240">
+<meta property="og:updated_time" content="2019-04-15T06:28:54.996Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="go-ethereum中p2p-discover源码学习">
+<meta name="twitter:image" content="https://upload-images.jianshu.io/upload_images/5111131-cbf9f5b30a272672.jpg?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240">
+
+
+
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2019/04/15/go-ethereum中p2p-discover源码学习/">
+
+
+
+<script id="page.configurations">
+  CONFIG.page = {
+    sidebar: "",
+  };
+</script>
+
+  <title>go-ethereum中p2p-discover源码学习 | AmorFati</title>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  <noscript>
+  <style>
+    .use-motion .motion-element,
+    .use-motion .brand,
+    .use-motion .menu-item,
+    .sidebar-inner,
+    .use-motion .post-block,
+    .use-motion .pagination,
+    .use-motion .comments,
+    .use-motion .post-header,
+    .use-motion .post-body,
+    .use-motion .collection-title { opacity: initial; }
+
+    .use-motion .logo,
+    .use-motion .site-title,
+    .use-motion .site-subtitle {
+      opacity: initial;
+      top: initial;
+    }
+
+    .use-motion .logo-line-before i { left: initial; }
+    .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope="" itemtype="http://schema.org/WebPage" lang="zh-CN">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope="" itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">AmorFati</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+    
+      
+        <p class="site-subtitle">风吹过窗前的书，又翻过一页</p>
+      
+    
+    
+  </div>
+
+  <div class="site-nav-toggle">
+    <button aria-label="切换导航栏">
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  
+    <ul id="menu" class="menu">
+      
+        
+        
+        
+          
+          <li class="menu-item menu-item-home">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/" rel="section"><i class="menu-item-icon fa fa-fw fa-home"></i> <br>首页</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-about">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/about/" rel="section"><i class="menu-item-icon fa fa-fw fa-user"></i> <br>关于</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-tags">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/tags/" rel="section"><i class="menu-item-icon fa fa-fw fa-tags"></i> <br>标签</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-categories">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/categories/" rel="section"><i class="menu-item-icon fa fa-fw fa-th"></i> <br>分类</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-archives">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/archives/" rel="section"><i class="menu-item-icon fa fa-fw fa-archive"></i> <br>归档</a>
+
+  </li>
+
+      
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br>搜索</a>
+        </li>
+      
+    </ul>
+  
+
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup search-popup local-search-popup">
+  <div class="local-search-header clearfix">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+    <div class="local-search-input-wrapper">
+      <input autocomplete="off" placeholder="搜索..." spellcheck="false" type="text" id="local-search-input">
+    </div>
+  </div>
+  <div id="local-search-result"></div>
+</div>
+
+
+
+    </div>
+  
+</nav>
+
+
+
+  
+
+
+
+</div>
+    </header>
+
+    
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+            
+
+          
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  
+
+  <article class="post post-type-normal" itemscope="" itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/04/15/go-ethereum中p2p-discover源码学习/">
+
+    <span hidden itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="AmorFati">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/assets/img/icon.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope="" itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="AmorFati">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">go-ethereum中p2p-discover源码学习
+
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+
+            
+            
+            
+
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+
+              
+                
+              
+
+              <time title="创建时间：2019-04-15 14:21:29 / 修改时间：14:28:54" itemprop="dateCreated datePublished" datetime="2019-04-15T14:21:29+08:00">2019-04-15</time>
+            
+
+            
+              
+
+              
+            
+          </span>
+
+          
+            <span class="post-category">
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope="" itemtype="http://schema.org/Thing"><a href="/categories/go-ethereum源码学习/" itemprop="url" rel="index"><span itemprop="name">go-ethereum源码学习</span></a></span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p><img src="https://upload-images.jianshu.io/upload_images/5111131-cbf9f5b30a272672.jpg?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt=""><br><a id="more"></a><br>区块链系统就是一个基于P2P网络的系统，这里先来学习一下以太坊的P2P网络实现。P2P网络运作的第一个要求就是节点之间能互相发现，这里以太坊用到了一个名为Kademlia的协议算法，这里来梳理一下ethereum P2P的discover实现</p>
+<h1 id="Kademlia协议"><a href="#Kademlia协议" class="headerlink" title="Kademlia协议"></a>Kademlia协议</h1><p>这个协议是2002年美国纽约大学Petar Maymounkov和David Mazières发表的一篇论文中所介绍的，该论文的核心部分翻译见<a href="https://blog.grapefruit.tk/2019/04/01/Kademlia%EF%BC%9A%E4%B8%80%E4%B8%AA%E5%9F%BA%E4%BA%8E%E5%BC%82%E6%88%96%E5%BA%A6%E9%87%8F%E7%9A%84P2P%E4%BF%A1%E6%81%AF%E7%B3%BB%E7%BB%9F/" target="_blank" rel="noopener">这里</a>,下面我们就来详细介绍一下这个协议</p>
+<h2 id="概述"><a href="#概述" class="headerlink" title="概述"></a>概述</h2><p>Kademlia规定了网络的结构，也规定了通过节点查询进行信息交换的方式。Kademlia网络节点之间使用UDP进行通讯。参与通讯的所有节点形成一张虚拟网（或者叫做覆盖网）。这些节点通过一组数字（或称为节点ID）来进行身份标识。节点ID不仅可以用来做身份标识，还可以用来进行值定位（标识这哪些节点存储哪些资源）。</p>
+<p>当进行节点搜索时，Kademlia算法需要知道与这些值相关的键，然后分步在网络中开始搜索，每一步都会找到一些节点，这些节点的ID与键更为接近，如果有节点直接返回搜索的值或者再也无法找到与键更为接近的节点ID的时候搜索便会停止。这种搜索值的方法是非常高效的：与其他的分布式散列表的实现类似，在一个包含n个节点的系统的值的搜索中，Kademlia仅访问O(log(n))个节点。</p>
+<h2 id="节点"><a href="#节点" class="headerlink" title="节点"></a>节点</h2><p>Kademlia定义每个节点都以一个随机的ID，文中定义有160位，不必确保两个节点ID有什么联系，唯一需要做的足够随机。</p>
+<h2 id="距离度量"><a href="#距离度量" class="headerlink" title="距离度量"></a>距离度量</h2><p>Kademlia定义两个节点的距离为两个节点ID异或的结果。如节点A为010101，节点B为110001，二者异或的100100，转换为十进制就是36，则二者之间的距离就是36。关于选择异或作为距离的度量，作者表示有一些几个特点：</p>
+<ol>
+<li>一个节点到自己的距离为0，即d(x,x) = 0</li>
+<li>从A到B与从B到A的距离相等，即d(x,y) = d(y,x)</li>
+<li>满足三角不等式：d(x,z) = d(x,y) XOR d(y,z),而a+b&gt;a XOR b</li>
+</ol>
+<p>有了这三点，就足以证明异或算法也可以作为距离度量的标准，更重要的是异或计算非常高效。实际上用异或计算距离，更重要的是给出了一个节点分类的标准，类似于显示生活根据距离分类一样，便于通过一个ID搜索一个节点，也就是节点发现</p>
+<h2 id="K桶"><a href="#K桶" class="headerlink" title="K桶"></a>K桶</h2><p>文章提出了一个K桶的概念，实际上就是一个列表，如果ID有160位，那么一个节点就有160个所谓K桶，第i个桶保存着距离自己[2^i,2^i+1)范围内的节点，当寻找一个节点时，就从相应范围内的列表去搜索，k是一个列表的最大长度，如20。可知i越大，区间范围越大，里面的节点数可能越多。离自己越近的k桶内所记录的节点数虽然越少，但命中率越高。所以进行节点搜索是去寻找目标节点距离附近的节点，在进一步迭代，就能很快找到所需节点。</p>
+<p>K桶使用一种类似于最近最久未使用的淘汰算法，当新节点被探知时，如果所在k桶未满，则直接在队尾插入，如果已满，则ping队头节点，如果节点不在线，则移除，把新节点插到队尾，如果队头节点在线，则从队头移到队尾，新节点被抛弃</p>
+<h2 id="RPC消息"><a href="#RPC消息" class="headerlink" title="RPC消息"></a>RPC消息</h2><p>Kademlia是利用一系列RPC消息来维护网络的</p>
+<h3 id="PING"><a href="#PING" class="headerlink" title="PING"></a>PING</h3><p>主要作用是探测一个节点是否仍在线</p>
+<h3 id="STORE"><a href="#STORE" class="headerlink" title="STORE"></a>STORE</h3><p>通知一个节点存储一个键值对</p>
+<h3 id="FIND-NODE"><a href="#FIND-NODE" class="headerlink" title="FIND_NODE"></a>FIND_NODE</h3><p>节点定位。计算距离，寻找对应区间的k桶，选择一些节点发送消息，返回这些节点所知的距离目标节点更近的节点，然后对这些节点再次发送消息，多次迭代，最后定位到节点。</p>
+<h3 id="FIND-VALUE"><a href="#FIND-VALUE" class="headerlink" title="FIND_VALUE"></a>FIND_VALUE</h3><p>定位资源。类似于FIND_NODE，返回的是节点的信息，如IP地址，udp端口即节点ID。</p>
+<h2 id="加入网络"><a href="#加入网络" class="headerlink" title="加入网络"></a>加入网络</h2><p>要加入一个P2P首先必须要与一个网络内的节点建立通信，之后新节点进行自我定位，通过这种方法其他节点可以更新自己的k桶，新节点也可以获得网络信息。</p>
+<h2 id="其他"><a href="#其他" class="headerlink" title="其他"></a>其他</h2><p>还有一些详细的协议规范请参考论文。</p>
+<h1 id="源码分析"><a href="#源码分析" class="headerlink" title="源码分析"></a>源码分析</h1><p>go-ethereum的p2p实现源码主要集中在p2p目录下，该目录下的discover主要实现了节点方法算法，本文主要来梳理这一部分源码</p>
+<h2 id="table-go"><a href="#table-go" class="headerlink" title="table.go"></a>table.go</h2><p>在源码中table就是Kademlia的主要实现地方，先看常量和结构体<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> (</span><br><span class="line">	alpha           = <span class="number">3</span>  <span class="comment">// Kademlia concurrency factor</span></span><br><span class="line">	bucketSize      = <span class="number">16</span> <span class="comment">// Kademlia bucket size</span></span><br><span class="line">	maxReplacements = <span class="number">10</span> <span class="comment">// Size of per-bucket replacement list</span></span><br><span class="line"></span><br><span class="line">	<span class="comment">// We keep buckets for the upper 1/15 of distances because</span></span><br><span class="line">	<span class="comment">// it's very unlikely we'll ever encounter a node that's closer.</span></span><br><span class="line">	hashBits          = <span class="built_in">len</span>(common.Hash&#123;&#125;) * <span class="number">8</span></span><br><span class="line">	nBuckets          = hashBits / <span class="number">15</span>       <span class="comment">// Number of buckets</span></span><br><span class="line">	bucketMinDistance = hashBits - nBuckets <span class="comment">// Log distance of closest bucket</span></span><br><span class="line"></span><br><span class="line">	<span class="comment">// IP address limits.</span></span><br><span class="line">	bucketIPLimit, bucketSubnet = <span class="number">2</span>, <span class="number">24</span> <span class="comment">// at most 2 addresses from the same /24</span></span><br><span class="line">	tableIPLimit, tableSubnet   = <span class="number">10</span>, <span class="number">24</span></span><br><span class="line"></span><br><span class="line">	maxFindnodeFailures = <span class="number">5</span> <span class="comment">// Nodes exceeding this limit are dropped</span></span><br><span class="line">	refreshInterval     = <span class="number">30</span> * time.Minute</span><br><span class="line">	revalidateInterval  = <span class="number">10</span> * time.Second</span><br><span class="line">	copyNodesInterval   = <span class="number">30</span> * time.Second</span><br><span class="line">	seedMinTableTime    = <span class="number">5</span> * time.Minute</span><br><span class="line">	seedCount           = <span class="number">30</span></span><br><span class="line">	seedMaxAge          = <span class="number">5</span> * <span class="number">24</span> * time.Hour</span><br><span class="line">)</span><br><span class="line"></span><br><span class="line"><span class="keyword">type</span> Table <span class="keyword">struct</span> &#123;</span><br><span class="line">	mutex   sync.Mutex        <span class="comment">// protects buckets, bucket content, nursery, rand</span></span><br><span class="line">	buckets [nBuckets]*bucket <span class="comment">// index of known nodes by distance</span></span><br><span class="line">	nursery []*node           <span class="comment">// bootstrap nodes</span></span><br><span class="line">	rand    *mrand.Rand       <span class="comment">// source of randomness, periodically reseeded</span></span><br><span class="line">	ips     netutil.DistinctNetSet</span><br><span class="line"></span><br><span class="line">	db         *enode.DB <span class="comment">// database of known nodes</span></span><br><span class="line">	net        transport</span><br><span class="line">	refreshReq <span class="keyword">chan</span> <span class="keyword">chan</span> <span class="keyword">struct</span>&#123;&#125;</span><br><span class="line">	initDone   <span class="keyword">chan</span> <span class="keyword">struct</span>&#123;&#125;</span><br><span class="line"></span><br><span class="line">	closeOnce sync.Once</span><br><span class="line">	closeReq  <span class="keyword">chan</span> <span class="keyword">struct</span>&#123;&#125;</span><br><span class="line">	closed    <span class="keyword">chan</span> <span class="keyword">struct</span>&#123;&#125;</span><br><span class="line"></span><br><span class="line">	nodeAddedHook <span class="function"><span class="keyword">func</span><span class="params">(*node)</span> // <span class="title">for</span> <span class="title">testing</span></span></span><br><span class="line"><span class="function">&#125;</span></span><br></pre></td></tr></table></figure></p>
+<p>首先常量中定义了一些Kademlia协议中的一些值，如k桶容量也就是k等于16，每次查找的节点为3，k桶置换表大小为10。有一点和协议不同的是，这里定义k桶的数量为hash长度的15分之一，没有像协议中定义有hash有多长就有多少个k桶。另外还有超时重试次数，刷新间隔等定义。</p>
+<p>table中维护了一组k桶实例，一组bootstrap节点，还有数据库等辅助参数。我们看k桶的定义<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">type</span> bucket <span class="keyword">struct</span> &#123;</span><br><span class="line">	entries      []*node </span><br><span class="line">	replacements []*node </span><br><span class="line">	ips          netutil.DistinctNetSet</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>和协议中定义的类似，一组节点和一组置换节点。下面看初始化代码<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">newTable</span><span class="params">(t transport, db *enode.DB, bootnodes []*enode.Node)</span> <span class="params">(*Table, error)</span></span> &#123;</span><br><span class="line">	tab := &amp;Table&#123;</span><br><span class="line">		net:        t,</span><br><span class="line">		db:         db,</span><br><span class="line">		refreshReq: <span class="built_in">make</span>(<span class="keyword">chan</span> <span class="keyword">chan</span> <span class="keyword">struct</span>&#123;&#125;),</span><br><span class="line">		initDone:   <span class="built_in">make</span>(<span class="keyword">chan</span> <span class="keyword">struct</span>&#123;&#125;),</span><br><span class="line">		closeReq:   <span class="built_in">make</span>(<span class="keyword">chan</span> <span class="keyword">struct</span>&#123;&#125;),</span><br><span class="line">		closed:     <span class="built_in">make</span>(<span class="keyword">chan</span> <span class="keyword">struct</span>&#123;&#125;),</span><br><span class="line">		rand:       mrand.New(mrand.NewSource(<span class="number">0</span>)),</span><br><span class="line">		ips:        netutil.DistinctNetSet&#123;Subnet: tableSubnet, Limit: tableIPLimit&#125;,</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">if</span> err := tab.setFallbackNodes(bootnodes); err != <span class="literal">nil</span> &#123;</span><br><span class="line">		<span class="keyword">return</span> <span class="literal">nil</span>, err</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">for</span> i := <span class="keyword">range</span> tab.buckets &#123;</span><br><span class="line">		tab.buckets[i] = &amp;bucket&#123;</span><br><span class="line">			ips: netutil.DistinctNetSet&#123;Subnet: bucketSubnet, Limit: bucketIPLimit&#125;,</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">	tab.seedRand()</span><br><span class="line">	tab.loadSeedNodes()</span><br><span class="line"></span><br><span class="line">	<span class="keyword">go</span> tab.loop()</span><br><span class="line">	<span class="keyword">return</span> tab, <span class="literal">nil</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(tab *Table)</span> <span class="title">setFallbackNodes</span><span class="params">(nodes []*enode.Node)</span> <span class="title">error</span></span> &#123;</span><br><span class="line">	<span class="keyword">for</span> _, n := <span class="keyword">range</span> nodes &#123;</span><br><span class="line">		<span class="keyword">if</span> err := n.ValidateComplete(); err != <span class="literal">nil</span> &#123;</span><br><span class="line">			<span class="keyword">return</span> fmt.Errorf(<span class="string">"bad bootstrap node %q: %v"</span>, n, err)</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">	tab.nursery = wrapNodes(nodes)</span><br><span class="line">	<span class="keyword">return</span> <span class="literal">nil</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>首先初始化一个table实例，然后调用setFallbackNodes初始化连接节点。在setFallbackNodes中先检查所有节点是否有效，接下来的wrapNodes方法主要是将enode.Node类型对象包装为discover包内的node对象。</p>
+<p>在setFallbackNodes方法中table的bootstrap被设置完成之后，接下来的一个遍历是用来初始化所有k桶。</p>
+<p>再往下，tab.seedRand()方法先用crypto/rand中的Read随机生成一个长度为8的byte数组，并用该数组生成一个64位int类型数去作为rand的种子。接下来loadSeedNodes实现如下<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(tab *Table)</span> <span class="title">loadSeedNodes</span><span class="params">()</span></span> &#123;</span><br><span class="line">	seeds := wrapNodes(tab.db.QuerySeeds(seedCount, seedMaxAge))</span><br><span class="line">	seeds = <span class="built_in">append</span>(seeds, tab.nursery...)</span><br><span class="line">	<span class="keyword">for</span> i := <span class="keyword">range</span> seeds &#123;</span><br><span class="line">		seed := seeds[i]</span><br><span class="line">		age := log.Lazy&#123;Fn: <span class="function"><span class="keyword">func</span><span class="params">()</span> <span class="title">interface</span></span>&#123;&#125; &#123; <span class="keyword">return</span> time.Since(tab.db.LastPongReceived(seed.ID(), seed.IP())) &#125;&#125;</span><br><span class="line">		log.Trace(<span class="string">"Found seed node in database"</span>, <span class="string">"id"</span>, seed.ID(), <span class="string">"addr"</span>, seed.addr(), <span class="string">"age"</span>, age)</span><br><span class="line">		tab.addSeenNode(seed)</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>还是先用wrapNodes进行了一次包装，这次包装的对象来自于数据库，tab.db保存的是已知的节点，我们要查找的种子节点数量为30，种子节点最长寿命为5天（根据前面常量定义），QuerySeeds的逻辑也很简单，就是从数据库中随机查找，但是要过滤掉那些太老的节点，而且最后返回的节点数不超过30。接下来将数据库中返回的节点和前面的种子节点进行合并，开始遍历，遍历的目的是利用addSeenNode将节点添加到合适的桶中，既然要添加的合适的桶中，就要计算距离，我们来看看距离的计算<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// go-ethereum\p2p\enode\node.go</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">LogDist</span><span class="params">(a, b ID)</span> <span class="title">int</span></span> &#123;</span><br><span class="line">	lz := <span class="number">0</span> <span class="comment">//记录前导0数量</span></span><br><span class="line">	<span class="keyword">for</span> i := <span class="keyword">range</span> a &#123;</span><br><span class="line">		x := a[i] ^ b[i]</span><br><span class="line">		<span class="keyword">if</span> x == <span class="number">0</span> &#123; <span class="comment">//结果为8表示全为零，就是8个前导零</span></span><br><span class="line">			lz += <span class="number">8</span></span><br><span class="line">		&#125; <span class="keyword">else</span> &#123;</span><br><span class="line">			lz += bits.LeadingZeros(x)</span><br><span class="line">			<span class="keyword">break</span></span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">return</span> <span class="built_in">len</span>(a)*<span class="number">8</span> - lz</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>其实严格来说，这里已经不叫距离计算，由于前面k桶数量并不是根据原始Kademlia协议中写的那样定义而是ID的比特数除以15，所以对应的距离计算也要改变，通过阅读代码，我们发现距离定义变为比特数减去两个ID对应字节异或后前导零的数量之和的差。根据距离选桶的实现如下<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(tab *Table)</span> <span class="title">bucket</span><span class="params">(id enode.ID)</span> *<span class="title">bucket</span></span> &#123;</span><br><span class="line">	d := enode.LogDist(tab.self().ID(), id)</span><br><span class="line">	<span class="keyword">if</span> d &lt;= bucketMinDistance &#123;</span><br><span class="line">		<span class="keyword">return</span> tab.buckets[<span class="number">0</span>]</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">return</span> tab.buckets[d-bucketMinDistance<span class="number">-1</span>]</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>其中最短距离bucketMinDistance = hashBits - nBuckets。为的是确保能找到一个合适的桶，避免差值过大。在回到addSeenNode，找的合适的桶时，先判断是否满了或已包含，来决定否添加，或是否添加到缓存表中。加载完种子节点之后，启动了一个goroutine运行loop，实现如下。<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(tab *Table)</span> <span class="title">loop</span><span class="params">()</span></span> &#123;</span><br><span class="line">	<span class="keyword">var</span> (</span><br><span class="line">		revalidate     = time.NewTimer(tab.nextRevalidateTime())</span><br><span class="line">		refresh        = time.NewTicker(refreshInterval)</span><br><span class="line">		copyNodes      = time.NewTicker(copyNodesInterval)</span><br><span class="line">		refreshDone    = <span class="built_in">make</span>(<span class="keyword">chan</span> <span class="keyword">struct</span>&#123;&#125;)           <span class="comment">// where doRefresh reports completion</span></span><br><span class="line">		revalidateDone <span class="keyword">chan</span> <span class="keyword">struct</span>&#123;&#125;                   <span class="comment">// where doRevalidate reports completion</span></span><br><span class="line">		waiting        = []<span class="keyword">chan</span> <span class="keyword">struct</span>&#123;&#125;&#123;tab.initDone&#125; <span class="comment">// holds waiting callers while doRefresh runs</span></span><br><span class="line">	)</span><br><span class="line">	<span class="keyword">defer</span> refresh.Stop()</span><br><span class="line">	<span class="keyword">defer</span> revalidate.Stop()</span><br><span class="line">	<span class="keyword">defer</span> copyNodes.Stop()</span><br><span class="line"></span><br><span class="line">	<span class="comment">// Start initial refresh.</span></span><br><span class="line">	<span class="keyword">go</span> tab.doRefresh(refreshDone)</span><br><span class="line"></span><br><span class="line">loop:</span><br><span class="line">	.....</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>首先初始化了几个定时器和几个channel。之后启动了一个goroutine执行初始化刷新。<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(tab *Table)</span> <span class="title">doRefresh</span><span class="params">(done <span class="keyword">chan</span> <span class="keyword">struct</span>&#123;&#125;)</span></span> &#123;</span><br><span class="line">	<span class="keyword">defer</span> <span class="built_in">close</span>(done)</span><br><span class="line"></span><br><span class="line">	tab.loadSeedNodes()</span><br><span class="line"></span><br><span class="line">	<span class="keyword">var</span> key ecdsa.PublicKey</span><br><span class="line">	<span class="keyword">if</span> err := tab.self().Load((*enode.Secp256k1)(&amp;key)); err == <span class="literal">nil</span> &#123;</span><br><span class="line">		tab.lookup(encodePubkey(&amp;key), <span class="literal">false</span>)</span><br><span class="line">	&#125;</span><br><span class="line">	</span><br><span class="line">	<span class="keyword">for</span> i := <span class="number">0</span>; i &lt; <span class="number">3</span>; i++ &#123;</span><br><span class="line">		<span class="keyword">var</span> target encPubkey</span><br><span class="line">		crand.Read(target[:])</span><br><span class="line">		tab.lookup(target, <span class="literal">false</span>)</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>刷新操作中先加载了种子节点。之后执行了自我查找，就是查找自己，用的就是lookup，我们来看一下实现：<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(tab *Table)</span> <span class="title">lookup</span><span class="params">(targetKey encPubkey, refreshIfEmpty <span class="keyword">bool</span>)</span> []*<span class="title">node</span></span> &#123;</span><br><span class="line">	<span class="keyword">var</span> (</span><br><span class="line">		target         = enode.ID(crypto.Keccak256Hash(targetKey[:]))</span><br><span class="line">		asked          = <span class="built_in">make</span>(<span class="keyword">map</span>[enode.ID]<span class="keyword">bool</span>)</span><br><span class="line">		seen           = <span class="built_in">make</span>(<span class="keyword">map</span>[enode.ID]<span class="keyword">bool</span>)</span><br><span class="line">		reply          = <span class="built_in">make</span>(<span class="keyword">chan</span> []*node, alpha)</span><br><span class="line">		pendingQueries = <span class="number">0</span></span><br><span class="line">		result         *nodesByDistance</span><br><span class="line">	)</span><br><span class="line">	asked[tab.self().ID()] = <span class="literal">true</span></span><br><span class="line"></span><br><span class="line">	<span class="keyword">for</span> &#123;</span><br><span class="line">		tab.mutex.Lock()</span><br><span class="line">		result = tab.closest(target, bucketSize)</span><br><span class="line">		tab.mutex.Unlock()</span><br><span class="line">		<span class="keyword">if</span> <span class="built_in">len</span>(result.entries) &gt; <span class="number">0</span> || !refreshIfEmpty &#123;</span><br><span class="line">			<span class="keyword">break</span></span><br><span class="line">		&#125;</span><br><span class="line">		&lt;-tab.refresh()</span><br><span class="line">		refreshIfEmpty = <span class="literal">false</span></span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">for</span> &#123;</span><br><span class="line">		<span class="keyword">for</span> i := <span class="number">0</span>; i &lt; <span class="built_in">len</span>(result.entries) &amp;&amp; pendingQueries &lt; alpha; i++ &#123;</span><br><span class="line">			n := result.entries[i]</span><br><span class="line">			<span class="keyword">if</span> !asked[n.ID()] &#123;</span><br><span class="line">				asked[n.ID()] = <span class="literal">true</span></span><br><span class="line">				pendingQueries++</span><br><span class="line">				<span class="keyword">go</span> tab.findnode(n, targetKey, reply)</span><br><span class="line">			&#125;</span><br><span class="line">		&#125;</span><br><span class="line">		<span class="keyword">if</span> pendingQueries == <span class="number">0</span> &#123;</span><br><span class="line">			<span class="keyword">break</span></span><br><span class="line">		&#125;</span><br><span class="line">		<span class="keyword">select</span> &#123;</span><br><span class="line">		<span class="keyword">case</span> nodes := &lt;-reply:</span><br><span class="line">			<span class="keyword">for</span> _, n := <span class="keyword">range</span> nodes &#123;</span><br><span class="line">				<span class="keyword">if</span> n != <span class="literal">nil</span> &amp;&amp; !seen[n.ID()] &#123;</span><br><span class="line">					seen[n.ID()] = <span class="literal">true</span></span><br><span class="line">					result.push(n, bucketSize)</span><br><span class="line">				&#125;</span><br><span class="line">			&#125;</span><br><span class="line">		<span class="keyword">case</span> &lt;-tab.closeReq:</span><br><span class="line">			<span class="keyword">return</span> <span class="literal">nil</span> </span><br><span class="line">		&#125;</span><br><span class="line">		pendingQueries--</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">return</span> result.entries</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>首先定义了一系列变量，然后从k桶中取得离目标最近的几个节点，实现如下<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(tab *Table)</span> <span class="title">closest</span><span class="params">(target enode.ID, nresults <span class="keyword">int</span>)</span> *<span class="title">nodesByDistance</span></span> &#123;</span><br><span class="line">	<span class="built_in">close</span> := &amp;nodesByDistance&#123;target: target&#125;</span><br><span class="line">	<span class="keyword">for</span> _, b := <span class="keyword">range</span> &amp;tab.buckets &#123;</span><br><span class="line">		<span class="keyword">for</span> _, n := <span class="keyword">range</span> b.entries &#123;</span><br><span class="line">			<span class="keyword">if</span> n.livenessChecks &gt; <span class="number">0</span> &#123;</span><br><span class="line">				<span class="built_in">close</span>.push(n, nresults)</span><br><span class="line">			&#125;</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">return</span> <span class="built_in">close</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">type</span> nodesByDistance <span class="keyword">struct</span> &#123;</span><br><span class="line">	entries []*node</span><br><span class="line">	target  enode.ID</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>nodesByDistance类型存储着目标ID和一组距离目标较近的节点。实际上closest逻辑很简单，就是遍历所有桶内的节点，看是比已有的更近，判断是否添加的逻辑在push中：<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(h *nodesByDistance)</span> <span class="title">push</span><span class="params">(n *node, maxElems <span class="keyword">int</span>)</span></span> &#123;</span><br><span class="line">	ix := sort.Search(<span class="built_in">len</span>(h.entries), <span class="function"><span class="keyword">func</span><span class="params">(i <span class="keyword">int</span>)</span> <span class="title">bool</span></span> &#123;</span><br><span class="line">		<span class="keyword">return</span> enode.DistCmp(h.target, h.entries[i].ID(), n.ID()) &gt; <span class="number">0</span></span><br><span class="line">	&#125;)</span><br><span class="line">	<span class="keyword">if</span> <span class="built_in">len</span>(h.entries) &lt; maxElems &#123;</span><br><span class="line">		h.entries = <span class="built_in">append</span>(h.entries, n)</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">if</span> ix == <span class="built_in">len</span>(h.entries) &#123;</span><br><span class="line">	&#125; <span class="keyword">else</span> &#123;</span><br><span class="line">		<span class="built_in">copy</span>(h.entries[ix+<span class="number">1</span>:], h.entries[ix:])</span><br><span class="line">		h.entries[ix] = n</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>DistCmp是给a，b判断二者谁离目标更近， sort.Search则是得出给定的ID在entries的位置，如果最后ix排到末尾而且entries已满，说明这个点不比已有的点目标更近。继续回到lookup，找到一组离目标较近的节点后，在第二个循环体内，开始遍历这一组节点，对每个节点都执行findnode操作，但是最多每次并发执行alpha个，也就是3个。由于entries是有序的，所以前面的都是例目标最近的。下面看findnode操作：<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(tab *Table)</span> <span class="title">findnode</span><span class="params">(n *node, targetKey encPubkey, reply <span class="keyword">chan</span>&lt;- []*node)</span></span> &#123;</span><br><span class="line">	fails := tab.db.FindFails(n.ID(), n.IP())</span><br><span class="line">	r, err := tab.net.findnode(n.ID(), n.addr(), targetKey)</span><br><span class="line">	<span class="keyword">if</span> err == errClosed &#123;</span><br><span class="line">		reply &lt;- <span class="literal">nil</span></span><br><span class="line">		<span class="keyword">return</span></span><br><span class="line">	&#125; <span class="keyword">else</span> <span class="keyword">if</span> err != <span class="literal">nil</span> || <span class="built_in">len</span>(r) == <span class="number">0</span> &#123;</span><br><span class="line">		fails++</span><br><span class="line">		tab.db.UpdateFindFails(n.ID(), n.IP(), fails)</span><br><span class="line">		log.Trace(<span class="string">"Findnode failed"</span>, <span class="string">"id"</span>, n.ID(), <span class="string">"failcount"</span>, fails, <span class="string">"err"</span>, err)</span><br><span class="line">		<span class="keyword">if</span> fails &gt;= maxFindnodeFailures &#123;</span><br><span class="line">			log.Trace(<span class="string">"Too many findnode failures, dropping"</span>, <span class="string">"id"</span>, n.ID(), <span class="string">"failcount"</span>, fails)</span><br><span class="line">			tab.<span class="built_in">delete</span>(n)</span><br><span class="line">		&#125;</span><br><span class="line">	&#125; <span class="keyword">else</span> <span class="keyword">if</span> fails &gt; <span class="number">0</span> &#123;</span><br><span class="line">		tab.db.UpdateFindFails(n.ID(), n.IP(), fails<span class="number">-1</span>)</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">for</span> _, n := <span class="keyword">range</span> r &#123;</span><br><span class="line">		tab.addSeenNode(n)</span><br><span class="line">	&#125;</span><br><span class="line">	reply &lt;- r</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>实际上findnode的逻辑并不在这里，这里先不管后面再说，先知道findnode会返回一组离目标更近的node，否则返回一个错误。对于某个node当错误次数大于5次时就把它删除。而对于之前出错但这次成功的话，就将其累积出错次数减一。最后遍历返回的一组node，调用addSeenNode，这个方法在之前加载种子节点时出现，就是将节点添加到合适桶中。方法最后向reply中写入r。这样就回到lookup中，有一个select，当reply可以取值时，执行下面逻辑<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">case</span> nodes := &lt;-reply:</span><br><span class="line">			<span class="keyword">for</span> _, n := <span class="keyword">range</span> nodes &#123;</span><br><span class="line">				<span class="keyword">if</span> n != <span class="literal">nil</span> &amp;&amp; !seen[n.ID()] &#123;</span><br><span class="line">					seen[n.ID()] = <span class="literal">true</span></span><br><span class="line">					result.push(n, bucketSize)</span><br><span class="line">				&#125;</span><br><span class="line">			&#125;</span><br></pre></td></tr></table></figure></p>
+<p>这里继续将新得到的node添加到有序的entries中，继续启动新一轮循环按照前面的逻辑继续查找。至于什么时候停止呢？在遍历entries时，对于每个node会判断是否访问过，对于访问过就不在进行findnode，当所有entries都被访问就意味着已经找不到离目标更近的节点了，这是for循环结束，pendingQueries为0，根据代码执行break退出外层循环，返回entries。这样lookup就执行完毕。代码返回到doRefresh中，在执行完初始的自我查找之后，开始了一个小循环，进行随机查找，只查找3个，每次产生一个随机的ID调用lookup进行查找，目的都是尽可能的完善桶。doRefresh结束后后回到loop中，由于doRefresh是一个单独的goroutine，loop主要循环在loop标签的代码中：<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><span class="line">loop:</span><br><span class="line">	<span class="keyword">for</span> &#123;</span><br><span class="line">		<span class="keyword">select</span> &#123;</span><br><span class="line">		<span class="keyword">case</span> &lt;-refresh.C:</span><br><span class="line">			tab.seedRand()</span><br><span class="line">			<span class="keyword">if</span> refreshDone == <span class="literal">nil</span> &#123;</span><br><span class="line">				refreshDone = <span class="built_in">make</span>(<span class="keyword">chan</span> <span class="keyword">struct</span>&#123;&#125;)</span><br><span class="line">				<span class="keyword">go</span> tab.doRefresh(refreshDone)</span><br><span class="line">			&#125;</span><br><span class="line">		<span class="keyword">case</span> req := &lt;-tab.refreshReq:</span><br><span class="line">			waiting = <span class="built_in">append</span>(waiting, req)</span><br><span class="line">			<span class="keyword">if</span> refreshDone == <span class="literal">nil</span> &#123;</span><br><span class="line">				refreshDone = <span class="built_in">make</span>(<span class="keyword">chan</span> <span class="keyword">struct</span>&#123;&#125;)</span><br><span class="line">				<span class="keyword">go</span> tab.doRefresh(refreshDone)</span><br><span class="line">			&#125;</span><br><span class="line">		<span class="keyword">case</span> &lt;-refreshDone:</span><br><span class="line">			<span class="keyword">for</span> _, ch := <span class="keyword">range</span> waiting &#123;</span><br><span class="line">				<span class="built_in">close</span>(ch)</span><br><span class="line">			&#125;</span><br><span class="line">			waiting, refreshDone = <span class="literal">nil</span>, <span class="literal">nil</span></span><br><span class="line">		<span class="keyword">case</span> &lt;-revalidate.C:</span><br><span class="line">			revalidateDone = <span class="built_in">make</span>(<span class="keyword">chan</span> <span class="keyword">struct</span>&#123;&#125;)</span><br><span class="line">			<span class="keyword">go</span> tab.doRevalidate(revalidateDone)</span><br><span class="line">		<span class="keyword">case</span> &lt;-revalidateDone:</span><br><span class="line">			revalidate.Reset(tab.nextRevalidateTime())</span><br><span class="line">			revalidateDone = <span class="literal">nil</span></span><br><span class="line">		<span class="keyword">case</span> &lt;-copyNodes.C:</span><br><span class="line">			<span class="keyword">go</span> tab.copyLiveNodes()</span><br><span class="line">		<span class="keyword">case</span> &lt;-tab.closeReq:</span><br><span class="line">			<span class="keyword">break</span> loop</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br></pre></td></tr></table></figure></p>
+<p>可见还是一个同步代码。外层是一个无限循环，内存是一个select阻塞，根据不同的操作触发不同代码。首先是一个refresh定时器，每30分钟触发一次，调用doRefresh执行刷新。除了定时刷新还有主动刷新，使用的是refreshReq这个channel。另外还有一个revalidate定时器，它的时间不固定，随机从0到10秒内选一个时间，到时间后触发doRevalidate，逻辑如下：<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(tab *Table)</span> <span class="title">doRevalidate</span><span class="params">(done <span class="keyword">chan</span>&lt;- <span class="keyword">struct</span>&#123;&#125;)</span></span> &#123;</span><br><span class="line">	<span class="keyword">defer</span> <span class="function"><span class="keyword">func</span><span class="params">()</span></span> &#123; done &lt;- <span class="keyword">struct</span>&#123;&#125;&#123;&#125; &#125;()</span><br><span class="line"></span><br><span class="line">	last, bi := tab.nodeToRevalidate()</span><br><span class="line">	<span class="keyword">if</span> last == <span class="literal">nil</span> &#123;</span><br><span class="line">		<span class="keyword">return</span></span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	err := tab.net.ping(last.ID(), last.addr())</span><br><span class="line"></span><br><span class="line">	tab.mutex.Lock()</span><br><span class="line">	<span class="keyword">defer</span> tab.mutex.Unlock()</span><br><span class="line">	b := tab.buckets[bi]</span><br><span class="line">	<span class="keyword">if</span> err == <span class="literal">nil</span> &#123;</span><br><span class="line">		last.livenessChecks++</span><br><span class="line">		log.Debug(<span class="string">"Revalidated node"</span>, <span class="string">"b"</span>, bi, <span class="string">"id"</span>, last.ID(), <span class="string">"checks"</span>, last.livenessChecks)</span><br><span class="line">		tab.bumpInBucket(b, last)</span><br><span class="line">		<span class="keyword">return</span></span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">if</span> r := tab.replace(b, last); r != <span class="literal">nil</span> &#123;</span><br><span class="line">		log.Debug(<span class="string">"Replaced dead node"</span>, <span class="string">"b"</span>, bi, <span class="string">"id"</span>, last.ID(), <span class="string">"ip"</span>, last.IP(), <span class="string">"checks"</span>, last.livenessChecks, <span class="string">"r"</span>, r.ID(), <span class="string">"rip"</span>, r.IP())</span><br><span class="line">	&#125; <span class="keyword">else</span> &#123;</span><br><span class="line">		log.Debug(<span class="string">"Removed dead node"</span>, <span class="string">"b"</span>, bi, <span class="string">"id"</span>, last.ID(), <span class="string">"ip"</span>, last.IP(), <span class="string">"checks"</span>, last.livenessChecks)</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>这段代码主要逻辑是随机找一个非空的桶，取得其最后一个节点，然后去ping这个节点，看是否在线，如果在线将其移到桶的前部，否则从缓存节点找一个去替代这个节点。当操作结束后，重新设置revalidate时间，准备下一次随机验证。最后还有一个定时器copyNodesInterval，每30分钟触发一次，执行copyLiveNodes逻辑<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(tab *Table)</span> <span class="title">copyLiveNodes</span><span class="params">()</span></span> &#123;</span><br><span class="line">	tab.mutex.Lock()</span><br><span class="line">	<span class="keyword">defer</span> tab.mutex.Unlock()</span><br><span class="line"></span><br><span class="line">	now := time.Now()</span><br><span class="line">	<span class="keyword">for</span> _, b := <span class="keyword">range</span> &amp;tab.buckets &#123;</span><br><span class="line">		<span class="keyword">for</span> _, n := <span class="keyword">range</span> b.entries &#123;</span><br><span class="line">			<span class="keyword">if</span> n.livenessChecks &gt; <span class="number">0</span> &amp;&amp; now.Sub(n.addedAt) &gt;= seedMinTableTime &#123;</span><br><span class="line">				tab.db.UpdateNode(unwrapNode(n))</span><br><span class="line">			&#125;</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>主要逻辑是，遍历所有节点，对存活检查过的，且添加时间大于5分钟的节点存入数据库，存储的内容是经过rlp编码的数据。再回到loop中，只剩下一个关闭请求的channel，用于退出loop。退出loop的逻辑也很简单，如下<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span> refreshDone != <span class="literal">nil</span> &#123;</span><br><span class="line">	&lt;-refreshDone</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">for</span> _, ch := <span class="keyword">range</span> waiting &#123;</span><br><span class="line">	<span class="built_in">close</span>(ch)</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">if</span> revalidateDone != <span class="literal">nil</span> &#123;</span><br><span class="line">	&lt;-revalidateDone</span><br><span class="line">&#125;</span><br><span class="line"><span class="built_in">close</span>(tab.closed)</span><br></pre></td></tr></table></figure></p>
+<p>先等待刷新结束，然后关闭那些等待中的操作，再等待验证结束，最后关闭closed用于正常退出close方法。closeReq是在close方法中发出的：<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(tab *Table)</span> <span class="title">Close</span><span class="params">()</span></span> &#123;</span><br><span class="line">	tab.closeOnce.Do(<span class="function"><span class="keyword">func</span><span class="params">()</span></span> &#123;</span><br><span class="line">		<span class="keyword">if</span> tab.net != <span class="literal">nil</span> &#123;</span><br><span class="line">			tab.net.<span class="built_in">close</span>()</span><br><span class="line">		&#125;</span><br><span class="line">		<span class="built_in">close</span>(tab.closeReq)</span><br><span class="line">		&lt;-tab.closed</span><br><span class="line">	&#125;)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>到这里p2p节点的发现以及维护逻辑源码梳理完毕。总体还是很清晰的，基本都是按照Kademlia协议要求的进行的，主要流程是先加载种子节点，这些种子节点来源于用户指定或者之前数据库的值，然后利用自我查找进一步的填充k桶，最后通过各种定时器维护k桶。</p>
+<h2 id="udp-go"><a href="#udp-go" class="headerlink" title="udp.go"></a>udp.go</h2><p>前面table.go实现了Kademlia协议，udp则是进行网络通信的，先看常量的定义<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> (</span><br><span class="line">	pingPacket = <span class="literal">iota</span> + <span class="number">1</span> <span class="comment">// zero is 'reserved'</span></span><br><span class="line">	pongPacket</span><br><span class="line">	findnodePacket</span><br><span class="line">	neighborsPacket</span><br><span class="line">)</span><br></pre></td></tr></table></figure></p>
+<p>定义了4种数据包，pingPacket就是询问节点是否在线，pongPacket是对ping的回应。findnodePacket是请求节点，neighborsPacket是对findnode的响应。详细的结构体如下<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">type</span> (</span><br><span class="line">	ping <span class="keyword">struct</span> &#123;</span><br><span class="line">		senderKey *ecdsa.PublicKey <span class="comment">// filled in by preverify</span></span><br><span class="line"></span><br><span class="line">		Version    <span class="keyword">uint</span></span><br><span class="line">		From, To   rpcEndpoint</span><br><span class="line">		Expiration <span class="keyword">uint64</span></span><br><span class="line">		<span class="comment">// Ignore additional fields (for forward compatibility).</span></span><br><span class="line">		Rest []rlp.RawValue <span class="string">`rlp:"tail"`</span></span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="comment">// pong is the reply to ping.</span></span><br><span class="line">	pong <span class="keyword">struct</span> &#123;</span><br><span class="line">		<span class="comment">// This field should mirror the UDP envelope address</span></span><br><span class="line">		<span class="comment">// of the ping packet, which provides a way to discover the</span></span><br><span class="line">		<span class="comment">// the external address (after NAT).</span></span><br><span class="line">		To rpcEndpoint</span><br><span class="line"></span><br><span class="line">		ReplyTok   []<span class="keyword">byte</span> <span class="comment">// This contains the hash of the ping packet.</span></span><br><span class="line">		Expiration <span class="keyword">uint64</span> <span class="comment">// Absolute timestamp at which the packet becomes invalid.</span></span><br><span class="line">		<span class="comment">// Ignore additional fields (for forward compatibility).</span></span><br><span class="line">		Rest []rlp.RawValue <span class="string">`rlp:"tail"`</span></span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="comment">// findnode is a query for nodes close to the given target.</span></span><br><span class="line">	findnode <span class="keyword">struct</span> &#123;</span><br><span class="line">		Target     encPubkey</span><br><span class="line">		Expiration <span class="keyword">uint64</span></span><br><span class="line">		<span class="comment">// Ignore additional fields (for forward compatibility).</span></span><br><span class="line">		Rest []rlp.RawValue <span class="string">`rlp:"tail"`</span></span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="comment">// reply to findnode</span></span><br><span class="line">	neighbors <span class="keyword">struct</span> &#123;</span><br><span class="line">		Nodes      []rpcNode</span><br><span class="line">		Expiration <span class="keyword">uint64</span></span><br><span class="line">		<span class="comment">// Ignore additional fields (for forward compatibility).</span></span><br><span class="line">		Rest []rlp.RawValue <span class="string">`rlp:"tail"`</span></span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	rpcNode <span class="keyword">struct</span> &#123;</span><br><span class="line">		IP  net.IP <span class="comment">// len 4 for IPv4 or 16 for IPv6</span></span><br><span class="line">		UDP <span class="keyword">uint16</span> <span class="comment">// for discovery protocol</span></span><br><span class="line">		TCP <span class="keyword">uint16</span> <span class="comment">// for RLPx protocol</span></span><br><span class="line">		ID  encPubkey</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	rpcEndpoint <span class="keyword">struct</span> &#123;</span><br><span class="line">		IP  net.IP <span class="comment">// len 4 for IPv4 or 16 for IPv6</span></span><br><span class="line">		UDP <span class="keyword">uint16</span> <span class="comment">// for discovery protocol</span></span><br><span class="line">		TCP <span class="keyword">uint16</span> <span class="comment">// for RLPx protocol</span></span><br><span class="line">	&#125;</span><br><span class="line">)</span><br></pre></td></tr></table></figure></p>
+<p>还有两个接口，分别定义数据包和upd连接。<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">type</span> packet <span class="keyword">interface</span> &#123;</span><br><span class="line">	<span class="comment">// preverify checks whether the packet is valid and should be handled at all.</span></span><br><span class="line">	preverify(t *udp, from *net.UDPAddr, fromID enode.ID, fromKey encPubkey) error</span><br><span class="line">	<span class="comment">// handle handles the packet.</span></span><br><span class="line">	handle(t *udp, from *net.UDPAddr, fromID enode.ID, mac []<span class="keyword">byte</span>)</span><br><span class="line">	<span class="comment">// name returns the name of the packet for logging purposes.</span></span><br><span class="line">	name() <span class="keyword">string</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">type</span> conn <span class="keyword">interface</span> &#123;</span><br><span class="line">	ReadFromUDP(b []<span class="keyword">byte</span>) (n <span class="keyword">int</span>, addr *net.UDPAddr, err error)</span><br><span class="line">	WriteToUDP(b []<span class="keyword">byte</span>, addr *net.UDPAddr) (n <span class="keyword">int</span>, err error)</span><br><span class="line">	Close() error</span><br><span class="line">	LocalAddr() net.Addr</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>udp的结构如下<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">type</span> udp <span class="keyword">struct</span> &#123;</span><br><span class="line">	conn        conn</span><br><span class="line">	netrestrict *netutil.Netlist</span><br><span class="line">	priv        *ecdsa.PrivateKey</span><br><span class="line">	localNode   *enode.LocalNode</span><br><span class="line">	db          *enode.DB</span><br><span class="line">	tab         *Table</span><br><span class="line">	wg          sync.WaitGroup</span><br><span class="line"></span><br><span class="line">	addReplyMatcher <span class="keyword">chan</span> *replyMatcher</span><br><span class="line">	gotreply        <span class="keyword">chan</span> reply</span><br><span class="line">	closing         <span class="keyword">chan</span> <span class="keyword">struct</span>&#123;&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>接下来看udp的创建<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">ListenUDP</span><span class="params">(c conn, ln *enode.LocalNode, cfg Config)</span> <span class="params">(*Table, error)</span></span> &#123;</span><br><span class="line">	tab, _, err := newUDP(c, ln, cfg)</span><br><span class="line">	<span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">		<span class="keyword">return</span> <span class="literal">nil</span>, err</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">return</span> tab, <span class="literal">nil</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">newUDP</span><span class="params">(c conn, ln *enode.LocalNode, cfg Config)</span> <span class="params">(*Table, *udp, error)</span></span> &#123;</span><br><span class="line">	udp := &amp;udp&#123;</span><br><span class="line">		conn:            c,</span><br><span class="line">		priv:            cfg.PrivateKey,</span><br><span class="line">		netrestrict:     cfg.NetRestrict,</span><br><span class="line">		localNode:       ln,</span><br><span class="line">		db:              ln.Database(),</span><br><span class="line">		closing:         <span class="built_in">make</span>(<span class="keyword">chan</span> <span class="keyword">struct</span>&#123;&#125;),</span><br><span class="line">		gotreply:        <span class="built_in">make</span>(<span class="keyword">chan</span> reply),</span><br><span class="line">		addReplyMatcher: <span class="built_in">make</span>(<span class="keyword">chan</span> *replyMatcher),</span><br><span class="line">	&#125;</span><br><span class="line">	tab, err := newTable(udp, ln.Database(), cfg.Bootnodes)</span><br><span class="line">	<span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">		<span class="keyword">return</span> <span class="literal">nil</span>, <span class="literal">nil</span>, err</span><br><span class="line">	&#125;</span><br><span class="line">	udp.tab = tab</span><br><span class="line"></span><br><span class="line">	udp.wg.Add(<span class="number">2</span>)</span><br><span class="line">	<span class="keyword">go</span> udp.loop()</span><br><span class="line">	<span class="keyword">go</span> udp.readLoop(cfg.Unhandled)</span><br><span class="line">	<span class="keyword">return</span> udp.tab, udp, <span class="literal">nil</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>外部调用的是ListenUDP，传入一个连接，然后调用newUDP创建，由于UDP是为table服务的，所以也创建了table。接下来启动了两个goroutine，后面再讲，我们下面主要看看那几个PRC是如何实现的</p>
+<h3 id="ping"><a href="#ping" class="headerlink" title="ping"></a>ping</h3><p>在table中的doRevalidate也就是检查节点活性的时候调用udp的ping方法<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(t *udp)</span> <span class="title">ping</span><span class="params">(toid enode.ID, toaddr *net.UDPAddr)</span> <span class="title">error</span></span> &#123;</span><br><span class="line">	<span class="keyword">return</span> &lt;-t.sendPing(toid, toaddr, <span class="literal">nil</span>)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(t *udp)</span> <span class="title">sendPing</span><span class="params">(toid enode.ID, toaddr *net.UDPAddr, callback <span class="keyword">func</span>()</span>) &lt;-<span class="title">chan</span> <span class="title">error</span></span> &#123;</span><br><span class="line">	req := &amp;ping&#123;</span><br><span class="line">		Version:    <span class="number">4</span>,</span><br><span class="line">		From:       t.ourEndpoint(),</span><br><span class="line">		To:         makeEndpoint(toaddr, <span class="number">0</span>), </span><br><span class="line">		Expiration: <span class="keyword">uint64</span>(time.Now().Add(expiration).Unix()),</span><br><span class="line">	&#125;</span><br><span class="line">	packet, hash, err := encodePacket(t.priv, pingPacket, req)</span><br><span class="line">	<span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">		errc := <span class="built_in">make</span>(<span class="keyword">chan</span> error, <span class="number">1</span>)</span><br><span class="line">		errc &lt;- err</span><br><span class="line">		<span class="keyword">return</span> errc</span><br><span class="line">	&#125;</span><br><span class="line">	errc := t.pending(toid, toaddr.IP, pongPacket, <span class="function"><span class="keyword">func</span><span class="params">(p <span class="keyword">interface</span>&#123;&#125;)</span> <span class="params">(matched <span class="keyword">bool</span>, requestDone <span class="keyword">bool</span>)</span></span> &#123;</span><br><span class="line">		matched = bytes.Equal(p.(*pong).ReplyTok, hash)</span><br><span class="line">		<span class="keyword">if</span> matched &amp;&amp; callback != <span class="literal">nil</span> &#123;</span><br><span class="line">			callback()</span><br><span class="line">		&#125;</span><br><span class="line">		<span class="keyword">return</span> matched, matched</span><br><span class="line">	&#125;)</span><br><span class="line">	t.localNode.UDPContact(toaddr)</span><br><span class="line">	t.write(toaddr, toid, req.name(), packet)</span><br><span class="line">	<span class="keyword">return</span> errc</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>主要执行的地方在sendPing，首先构造一个ping对象，这里面指明了发送方和接收方，超时时间为20s。接收方和发送方都是以rpcEndpoint表示的，内含IP地址，udp和tcp端口。紧接着调用encodePacket打包数据。<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">encodePacket</span><span class="params">(priv *ecdsa.PrivateKey, ptype <span class="keyword">byte</span>, req <span class="keyword">interface</span>&#123;&#125;)</span> <span class="params">(packet, hash []<span class="keyword">byte</span>, err error)</span></span> &#123;</span><br><span class="line">	b := <span class="built_in">new</span>(bytes.Buffer)</span><br><span class="line">	b.Write(headSpace)</span><br><span class="line">	b.WriteByte(ptype)</span><br><span class="line">	<span class="keyword">if</span> err := rlp.Encode(b, req); err != <span class="literal">nil</span> &#123;</span><br><span class="line">		log.Error(<span class="string">"Can't encode discv4 packet"</span>, <span class="string">"err"</span>, err)</span><br><span class="line">		<span class="keyword">return</span> <span class="literal">nil</span>, <span class="literal">nil</span>, err</span><br><span class="line">	&#125;</span><br><span class="line">	packet = b.Bytes()</span><br><span class="line">	sig, err := crypto.Sign(crypto.Keccak256(packet[headSize:]), priv)</span><br><span class="line">	<span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">		log.Error(<span class="string">"Can't sign discv4 packet"</span>, <span class="string">"err"</span>, err)</span><br><span class="line">		<span class="keyword">return</span> <span class="literal">nil</span>, <span class="literal">nil</span>, err</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="built_in">copy</span>(packet[macSize:], sig)</span><br><span class="line">	hash = crypto.Keccak256(packet[macSize:])</span><br><span class="line">	<span class="built_in">copy</span>(packet, hash)</span><br><span class="line">	<span class="keyword">return</span> packet, hash, <span class="literal">nil</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>数据包中首先有一个长度为97的空字节数组，然后写入包的类型即pingPacket，最后再将刚才的ping对象编码为rlp格式写入。然后对数据进行签名，签名前先对除开头空字节部分以外的数据进行摘要。然后将签名结果写入开头预留的地方，然后在对签名数据和数据进行摘要，填充到开头，这样就完成了对数据打包，这也是常见的消息认证的步骤。回到sendPing中，有了要发送的数据，接下来调用pending<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(t *udp)</span> <span class="title">pending</span><span class="params">(id enode.ID, ip net.IP, ptype <span class="keyword">byte</span>, callback replyMatchFunc)</span> &lt;-<span class="title">chan</span> <span class="title">error</span></span> &#123;</span><br><span class="line">	ch := <span class="built_in">make</span>(<span class="keyword">chan</span> error, <span class="number">1</span>)</span><br><span class="line">	p := &amp;replyMatcher&#123;from: id, ip: ip, ptype: ptype, callback: callback, errc: ch&#125;</span><br><span class="line">	<span class="keyword">select</span> &#123;</span><br><span class="line">	<span class="keyword">case</span> t.addReplyMatcher &lt;- p:</span><br><span class="line">		<span class="comment">// loop will handle it</span></span><br><span class="line">	<span class="keyword">case</span> &lt;-t.closing:</span><br><span class="line">		ch &lt;- errClosed</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">return</span> ch</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">type</span> replyMatchFunc <span class="function"><span class="keyword">func</span><span class="params">(<span class="keyword">interface</span>&#123;&#125;)</span> <span class="params">(matched <span class="keyword">bool</span>, requestDone <span class="keyword">bool</span>)</span></span></span><br></pre></td></tr></table></figure></p>
+<p>pending主要是添加一个响应的匹配者用于匹配响应，匹配主要是通过对hash进行对比，这里的hash是前面数据包中的签名数据和数据摘要后的结果。最后发送数据。其实到这里还没有结束，sendPing返回一个channel对象err，而在ping中一直阻塞，知道可以从err中取值。err是由pending返回的，在pending中被replyMatcher持有并赋值给addReplyMatcher，这是触发loop方法（在newUDP中启动的一个goroutine）中的select结构中的一个条件<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">case</span> p := &lt;-t.addReplyMatcher:</span><br><span class="line">			p.deadline = time.Now().Add(respTimeout)</span><br><span class="line">			plist.PushBack(p)</span><br></pre></td></tr></table></figure></p>
+<p>这里将pending中构造的replyMatcher存到plist中。</p>
+<h3 id="findnode"><a href="#findnode" class="headerlink" title="findnode"></a>findnode</h3><p>在table中的lookup中使用了findnode功能，为的是进行节点查找，而实际执行的地方在udp的findnode中<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(t *udp)</span> <span class="title">findnode</span><span class="params">(toid enode.ID, toaddr *net.UDPAddr, target encPubkey)</span> <span class="params">([]*node, error)</span></span> &#123;</span><br><span class="line">	<span class="keyword">if</span> time.Since(t.db.LastPingReceived(toid, toaddr.IP)) &gt; bondExpiration &#123;</span><br><span class="line">		t.ping(toid, toaddr)</span><br><span class="line">		time.Sleep(respTimeout)</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	nodes := <span class="built_in">make</span>([]*node, <span class="number">0</span>, bucketSize)</span><br><span class="line">	nreceived := <span class="number">0</span></span><br><span class="line">	errc := t.pending(toid, toaddr.IP, neighborsPacket, <span class="function"><span class="keyword">func</span><span class="params">(r <span class="keyword">interface</span>&#123;&#125;)</span> <span class="params">(matched <span class="keyword">bool</span>, requestDone <span class="keyword">bool</span>)</span></span> &#123;</span><br><span class="line">		reply := r.(*neighbors)</span><br><span class="line">		<span class="keyword">for</span> _, rn := <span class="keyword">range</span> reply.Nodes &#123;</span><br><span class="line">			nreceived++</span><br><span class="line">			n, err := t.nodeFromRPC(toaddr, rn)</span><br><span class="line">			<span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">				log.Trace(<span class="string">"Invalid neighbor node received"</span>, <span class="string">"ip"</span>, rn.IP, <span class="string">"addr"</span>, toaddr, <span class="string">"err"</span>, err)</span><br><span class="line">				<span class="keyword">continue</span></span><br><span class="line">			&#125;</span><br><span class="line">			nodes = <span class="built_in">append</span>(nodes, n)</span><br><span class="line">		&#125;</span><br><span class="line">		<span class="keyword">return</span> <span class="literal">true</span>, nreceived &gt;= bucketSize</span><br><span class="line">	&#125;)</span><br><span class="line">	t.send(toaddr, toid, findnodePacket, &amp;findnode&#123;</span><br><span class="line">		Target:     target,</span><br><span class="line">		Expiration: <span class="keyword">uint64</span>(time.Now().Add(expiration).Unix()),</span><br><span class="line">	&#125;)</span><br><span class="line">	<span class="keyword">return</span> nodes, &lt;-errc</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>首先对于那些超过24小时没有ping过的节点先ping一次看是否存活。之后也是利用pending添加了一个响应的匹配。最后调用send发送数据，和ping一样，也是先进行打包，在发送数据。</p>
+<h3 id="响应"><a href="#响应" class="headerlink" title="响应"></a>响应</h3><p>对于响应，这里要看在新建udp时启动的第二个goroutine–readLoop。在readLoop中先分析了udp包的长度和发送者，然后处理这个包<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(t *udp)</span> <span class="title">handlePacket</span><span class="params">(from *net.UDPAddr, buf []<span class="keyword">byte</span>)</span> <span class="title">error</span></span> &#123;</span><br><span class="line">	packet, fromKey, hash, err := decodePacket(buf)</span><br><span class="line">	<span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">		log.Debug(<span class="string">"Bad discv4 packet"</span>, <span class="string">"addr"</span>, from, <span class="string">"err"</span>, err)</span><br><span class="line">		<span class="keyword">return</span> err</span><br><span class="line">	&#125;</span><br><span class="line">	fromID := fromKey.id()</span><br><span class="line">	<span class="keyword">if</span> err == <span class="literal">nil</span> &#123;</span><br><span class="line">		err = packet.preverify(t, from, fromID, fromKey)</span><br><span class="line">	&#125;</span><br><span class="line">	log.Trace(<span class="string">"&lt;&lt; "</span>+packet.name(), <span class="string">"id"</span>, fromID, <span class="string">"addr"</span>, from, <span class="string">"err"</span>, err)</span><br><span class="line">	<span class="keyword">if</span> err == <span class="literal">nil</span> &#123;</span><br><span class="line">		packet.handle(t, from, fromID, hash)</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">return</span> err</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>第一步先解包<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">decodePacket</span><span class="params">(buf []<span class="keyword">byte</span>)</span> <span class="params">(packet, encPubkey, []<span class="keyword">byte</span>, error)</span></span> &#123;</span><br><span class="line">	<span class="keyword">if</span> <span class="built_in">len</span>(buf) &lt; headSize+<span class="number">1</span> &#123;</span><br><span class="line">		<span class="keyword">return</span> <span class="literal">nil</span>, encPubkey&#123;&#125;, <span class="literal">nil</span>, errPacketTooSmall</span><br><span class="line">	&#125;</span><br><span class="line">	hash, sig, sigdata := buf[:macSize], buf[macSize:headSize], buf[headSize:]</span><br><span class="line">	shouldhash := crypto.Keccak256(buf[macSize:])</span><br><span class="line">	<span class="keyword">if</span> !bytes.Equal(hash, shouldhash) &#123;</span><br><span class="line">		<span class="keyword">return</span> <span class="literal">nil</span>, encPubkey&#123;&#125;, <span class="literal">nil</span>, errBadHash</span><br><span class="line">	&#125;</span><br><span class="line">	fromKey, err := recoverNodeKey(crypto.Keccak256(buf[headSize:]), sig)</span><br><span class="line">	<span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">		<span class="keyword">return</span> <span class="literal">nil</span>, fromKey, hash, err</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">var</span> req packet</span><br><span class="line">	<span class="keyword">switch</span> ptype := sigdata[<span class="number">0</span>]; ptype &#123;</span><br><span class="line">	<span class="keyword">case</span> pingPacket:</span><br><span class="line">		req = <span class="built_in">new</span>(ping)</span><br><span class="line">	<span class="keyword">case</span> pongPacket:</span><br><span class="line">		req = <span class="built_in">new</span>(pong)</span><br><span class="line">	<span class="keyword">case</span> findnodePacket:</span><br><span class="line">		req = <span class="built_in">new</span>(findnode)</span><br><span class="line">	<span class="keyword">case</span> neighborsPacket:</span><br><span class="line">		req = <span class="built_in">new</span>(neighbors)</span><br><span class="line">	<span class="keyword">default</span>:</span><br><span class="line">		<span class="keyword">return</span> <span class="literal">nil</span>, fromKey, hash, fmt.Errorf(<span class="string">"unknown type: %d"</span>, ptype)</span><br><span class="line">	&#125;</span><br><span class="line">	s := rlp.NewStream(bytes.NewReader(sigdata[<span class="number">1</span>:]), <span class="number">0</span>)</span><br><span class="line">	err = s.Decode(req)</span><br><span class="line">	<span class="keyword">return</span> req, fromKey, hash, err</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>解包就是打包的逆过程。我们先回顾一下打包的内容：Hash(签名加数据)，签名(对数据摘要后签名)，数据(类型，请求体)。再看解包过程，先判断长度是否争取，然后分理出hash，签名和数据。然后验证hash是否正确。再根据签名以及被签名的内容计算出公钥。之后根据类型（数据部分的第一个字节）构造出请求对象。然后解码原始数据。通过解包我们得到了请求数据，发送节点公钥，以及hash值。之后回到handlePacket中，先计算发送者ID（就是对公钥的摘要），接着根据不同的请求执行不同的逻辑。</p>
+<h3 id="ping的接受与响应"><a href="#ping的接受与响应" class="headerlink" title="ping的接受与响应"></a>ping的接受与响应</h3><p>以ping为例，执行ping的preverify和handle方法<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(req *ping)</span> <span class="title">preverify</span><span class="params">(t *udp, from *net.UDPAddr, fromID enode.ID, fromKey encPubkey)</span> <span class="title">error</span></span> &#123;</span><br><span class="line">	<span class="keyword">if</span> expired(req.Expiration) &#123;</span><br><span class="line">		<span class="keyword">return</span> errExpired</span><br><span class="line">	&#125;</span><br><span class="line">	key, err := decodePubkey(fromKey)</span><br><span class="line">	<span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">		<span class="keyword">return</span> errors.New(<span class="string">"invalid public key"</span>)</span><br><span class="line">	&#125;</span><br><span class="line">	req.senderKey = key</span><br><span class="line">	<span class="keyword">return</span> <span class="literal">nil</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>preverify主要是判断是否超时然后解码出公钥。主要处理逻辑在handle中<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(req *ping)</span> <span class="title">handle</span><span class="params">(t *udp, from *net.UDPAddr, fromID enode.ID, mac []<span class="keyword">byte</span>)</span></span> &#123;</span><br><span class="line">	t.send(from, fromID, pongPacket, &amp;pong&#123;</span><br><span class="line">		To:         makeEndpoint(from, req.From.TCP),</span><br><span class="line">		ReplyTok:   mac,</span><br><span class="line">		Expiration: <span class="keyword">uint64</span>(time.Now().Add(expiration).Unix()),</span><br><span class="line">	&#125;)</span><br><span class="line"></span><br><span class="line">	n := wrapNode(enode.NewV4(req.senderKey, from.IP, <span class="keyword">int</span>(req.From.TCP), from.Port))</span><br><span class="line">	<span class="keyword">if</span> time.Since(t.db.LastPongReceived(n.ID(), from.IP)) &gt; bondExpiration &#123;</span><br><span class="line">		t.sendPing(fromID, from, <span class="function"><span class="keyword">func</span><span class="params">()</span></span> &#123;</span><br><span class="line">			t.tab.addVerifiedNode(n)</span><br><span class="line">		&#125;)</span><br><span class="line">	&#125; <span class="keyword">else</span> &#123;</span><br><span class="line">		t.tab.addVerifiedNode(n)</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	t.db.UpdateLastPingReceived(n.ID(), from.IP, time.Now())</span><br><span class="line">	t.localNode.UDPEndpointStatement(from, &amp;net.UDPAddr&#123;IP: req.To.IP, Port: <span class="keyword">int</span>(req.To.UDP)&#125;)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>直接是调用send发送数据，由于是相应ping，所以这里类型为pongPacket，相应体也是一个pong对象，同用叶经理了打包和发送的过程。发送完之后还有一些事情要处理。首先判断这个节点上一次pong相应是否超过24小时，若是超过则进行ping，否则更新节点，随后也要更新数据库。</p>
+<h3 id="pong的接收"><a href="#pong的接收" class="headerlink" title="pong的接收"></a>pong的接收</h3><p>到这一步我们梳理了节点A发送ping到节点B，B返回一个pong相应到节点A，我们再看节点A收到pong相应的动作。直接看pong的preverify和handle。<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(req *pong)</span> <span class="title">preverify</span><span class="params">(t *udp, from *net.UDPAddr, fromID enode.ID, fromKey encPubkey)</span> <span class="title">error</span></span> &#123;</span><br><span class="line">	<span class="keyword">if</span> expired(req.Expiration) &#123;</span><br><span class="line">		<span class="keyword">return</span> errExpired</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">if</span> !t.handleReply(fromID, from.IP, pongPacket, req) &#123;</span><br><span class="line">		<span class="keyword">return</span> errUnsolicitedReply</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">return</span> <span class="literal">nil</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(t *udp)</span> <span class="title">handleReply</span><span class="params">(from enode.ID, fromIP net.IP, ptype <span class="keyword">byte</span>, req packet)</span> <span class="title">bool</span></span> &#123;</span><br><span class="line">	matched := <span class="built_in">make</span>(<span class="keyword">chan</span> <span class="keyword">bool</span>, <span class="number">1</span>)</span><br><span class="line">	<span class="keyword">select</span> &#123;</span><br><span class="line">	<span class="keyword">case</span> t.gotreply &lt;- reply&#123;from, fromIP, ptype, req, matched&#125;:</span><br><span class="line">		<span class="comment">// loop will handle it</span></span><br><span class="line">		<span class="keyword">return</span> &lt;-matched</span><br><span class="line">	<span class="keyword">case</span> &lt;-t.closing:</span><br><span class="line">		<span class="keyword">return</span> <span class="literal">false</span></span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>preverify第一步也是验证是否超时，接着调用handleReply分发相应。首先是t.gotreply获得赋值，触发loop中的select逻辑，<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">case</span> r := &lt;-t.gotreply:</span><br><span class="line">	<span class="keyword">var</span> matched <span class="keyword">bool</span> <span class="comment">// whether any replyMatcher considered the reply acceptable.</span></span><br><span class="line">	<span class="keyword">for</span> el := plist.Front(); el != <span class="literal">nil</span>; el = el.Next() &#123;</span><br><span class="line">		p := el.Value.(*replyMatcher)</span><br><span class="line">		<span class="keyword">if</span> p.from == r.from &amp;&amp; p.ptype == r.ptype &amp;&amp; p.ip.Equal(r.ip) &#123;</span><br><span class="line">			ok, requestDone := p.callback(r.data)</span><br><span class="line">			matched = matched || ok</span><br><span class="line">			<span class="keyword">if</span> requestDone &#123;</span><br><span class="line">				p.errc &lt;- <span class="literal">nil</span></span><br><span class="line">				plist.Remove(el)</span><br><span class="line">			&#125;</span><br><span class="line">			contTimeouts = <span class="number">0</span></span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">	r.matched &lt;- matched</span><br></pre></td></tr></table></figure></p>
+<p>这里首先遍历plist，plist存储着我们发送请求时的响应匹配者，也就是回调。我们通过发送者，请求类型和ip三个条件判断是否匹配。如果匹配上的话执行callback方法，对于ping的callback并没有实质的内容，只是通过比较两个hash值是否相等来判断是否匹配。两个hash值分别是发送ping请求时对签名和数据的摘要以及pong响应的ReplyTok，而ReplyTok来自于对请求包解包后得到hash，实际上也就是请求所携带的hash，只不过在响应是写到了pong的ReplyTok字段中。只有二者相等，才能证明是从正确节点得到了响应。接下来如果请求结束，则给p.errc赋值为nil并移除这个回调，对于p.err这个channel，他在发送请求后一直阻塞，知道这里阻塞得到解除，ping流程结束。回到loop的select中，接着给matched赋值，这时handleReply的阻塞得到解决，preverify方法调用结束，接着调用handle方法，这里主要就是更新节点信息。刚才是成功响应时的流程，对于超时的情况，在loop的select有一个timeout触发的case，他会检测plist中各个回调是否超时，对于超时的给p.errc赋值超时错误，然后移除该回调。同时统计超时次数，对于超时次数过多的话检查时间是否准确。这个我们稍后再讲。</p>
+<h3 id="findnode的接收与响应"><a href="#findnode的接收与响应" class="headerlink" title="findnode的接收与响应"></a>findnode的接收与响应</h3><p>我们再梳理一下findnode的接收与响应。前面的逻辑都是一样的，直接从handlePacket中开始，实际上是看preverify和handle。<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(req *findnode)</span> <span class="title">preverify</span><span class="params">(t *udp, from *net.UDPAddr, fromID enode.ID, fromKey encPubkey)</span> <span class="title">error</span></span> &#123;</span><br><span class="line">	<span class="keyword">if</span> expired(req.Expiration) &#123;</span><br><span class="line">		<span class="keyword">return</span> errExpired</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">if</span> time.Since(t.db.LastPongReceived(fromID, from.IP)) &gt; bondExpiration &#123;</span><br><span class="line">		<span class="keyword">return</span> errUnknownNode</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">return</span> <span class="literal">nil</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>首先判断是否超时，再看这个节点是否过长时间没有响应。主要看handle<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(req *findnode)</span> <span class="title">handle</span><span class="params">(t *udp, from *net.UDPAddr, fromID enode.ID, mac []<span class="keyword">byte</span>)</span></span> &#123;</span><br><span class="line">	target := enode.ID(crypto.Keccak256Hash(req.Target[:]))</span><br><span class="line">	t.tab.mutex.Lock()</span><br><span class="line">	closest := t.tab.closest(target, bucketSize).entries</span><br><span class="line">	t.tab.mutex.Unlock()</span><br><span class="line"></span><br><span class="line">	p := neighbors&#123;Expiration: <span class="keyword">uint64</span>(time.Now().Add(expiration).Unix())&#125;</span><br><span class="line">	<span class="keyword">var</span> sent <span class="keyword">bool</span></span><br><span class="line">	<span class="keyword">for</span> _, n := <span class="keyword">range</span> closest &#123;</span><br><span class="line">		<span class="keyword">if</span> netutil.CheckRelayIP(from.IP, n.IP()) == <span class="literal">nil</span> &#123;</span><br><span class="line">			p.Nodes = <span class="built_in">append</span>(p.Nodes, nodeToRPC(n))</span><br><span class="line">		&#125;</span><br><span class="line">		<span class="keyword">if</span> <span class="built_in">len</span>(p.Nodes) == maxNeighbors &#123;</span><br><span class="line">			t.send(from, fromID, neighborsPacket, &amp;p)</span><br><span class="line">			p.Nodes = p.Nodes[:<span class="number">0</span>]</span><br><span class="line">			sent = <span class="literal">true</span></span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">if</span> <span class="built_in">len</span>(p.Nodes) &gt; <span class="number">0</span> || !sent &#123;</span><br><span class="line">		t.send(from, fromID, neighborsPacket, &amp;p)</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>首先得到目标的ID，然后调用table的closest得出距目标较近的一组节点，然后构造响应体，主要有超时时间和要返回的节点，最后通过send方法发送响应。到这里我们梳理了节点A发送findnode请求到B，B找到一组节点发回A，再看A接到neighborsPacket响应时的动作，主要还是看preverify和handle。<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(req *neighbors)</span> <span class="title">preverify</span><span class="params">(t *udp, from *net.UDPAddr, fromID enode.ID, fromKey encPubkey)</span> <span class="title">error</span></span> &#123;</span><br><span class="line">	<span class="keyword">if</span> expired(req.Expiration) &#123;</span><br><span class="line">		<span class="keyword">return</span> errExpired</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">if</span> !t.handleReply(fromID, from.IP, neighborsPacket, req) &#123;</span><br><span class="line">		<span class="keyword">return</span> errUnsolicitedReply</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">return</span> <span class="literal">nil</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>先检查超时，在调用handleReply，还是回到loop中执行之前findnode时预留的回调。回调如下：<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span><span class="params">(r <span class="keyword">interface</span>&#123;&#125;)</span> <span class="params">(matched <span class="keyword">bool</span>, requestDone <span class="keyword">bool</span>)</span></span> &#123;</span><br><span class="line">		reply := r.(*neighbors)</span><br><span class="line">		<span class="keyword">for</span> _, rn := <span class="keyword">range</span> reply.Nodes &#123;</span><br><span class="line">			nreceived++</span><br><span class="line">			n, err := t.nodeFromRPC(toaddr, rn)</span><br><span class="line">			<span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">				log.Trace(<span class="string">"Invalid neighbor node received"</span>, <span class="string">"ip"</span>, rn.IP, <span class="string">"addr"</span>, toaddr, <span class="string">"err"</span>, err)</span><br><span class="line">				<span class="keyword">continue</span></span><br><span class="line">			&#125;</span><br><span class="line">			nodes = <span class="built_in">append</span>(nodes, n)</span><br><span class="line">		&#125;</span><br><span class="line">		<span class="keyword">return</span> <span class="literal">true</span>, nreceived &gt;= bucketSize</span><br><span class="line">	&#125;</span><br></pre></td></tr></table></figure></p>
+<p>在这里将接受到的节点存储到nodes中，在findnode最后errc阻塞得到接触，findnode顺利返回nodes供table使用。</p>
+<h2 id="ndoe-go"><a href="#ndoe-go" class="headerlink" title="ndoe.go"></a>ndoe.go</h2><p>这是discover包内的节点类，它包装了enode，同时又附加了节点添加时间和活性检查时间两个成员<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">type</span> node <span class="keyword">struct</span> &#123;</span><br><span class="line">	enode.Node</span><br><span class="line">	addedAt        time.Time </span><br><span class="line">	livenessChecks <span class="keyword">uint</span>      </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>这个类提供了一组对公钥操作的方法：encodePubkey是将公钥记为64字节类型，decodePubkey则是从字节数组还原公钥，recoverNodeKey从签名数据和原始数据中还原出公钥。还规定了节点的ID就是对公钥的字节数组形式摘要的结果。最后提供了一组包装与解包装enode的方法.</p>
+<h2 id="ntp-go"><a href="#ntp-go" class="headerlink" title="ntp.go"></a>ntp.go</h2><p>这是一个时间校准的工具类，在udp中如果多次超时的话就要考虑是否是本地时间出错。调用了checkClockDrift方法<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">checkClockDrift</span><span class="params">()</span></span> &#123;</span><br><span class="line">	drift, err := sntpDrift(ntpChecks)</span><br><span class="line">	<span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">		<span class="keyword">return</span></span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">if</span> drift &lt; -driftThreshold || drift &gt; driftThreshold &#123;</span><br><span class="line">		log.Warn(fmt.Sprintf(<span class="string">"System clock seems off by %v, which can prevent network connectivity"</span>, drift))</span><br><span class="line">		log.Warn(<span class="string">"Please enable network time synchronisation in system settings."</span>)</span><br><span class="line">	&#125; <span class="keyword">else</span> &#123;</span><br><span class="line">		log.Debug(<span class="string">"NTP sanity check done"</span>, <span class="string">"drift"</span>, drift)</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">sntpDrift</span><span class="params">(measurements <span class="keyword">int</span>)</span> <span class="params">(time.Duration, error)</span></span> &#123;</span><br><span class="line">	addr, err := net.ResolveUDPAddr(<span class="string">"udp"</span>, ntpPool+<span class="string">":123"</span>)</span><br><span class="line">	<span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">		<span class="keyword">return</span> <span class="number">0</span>, err</span><br><span class="line">	&#125;</span><br><span class="line">	request := <span class="built_in">make</span>([]<span class="keyword">byte</span>, <span class="number">48</span>)</span><br><span class="line">	request[<span class="number">0</span>] = <span class="number">3</span>&lt;&lt;<span class="number">3</span> | <span class="number">3</span></span><br><span class="line"></span><br><span class="line">	drifts := []time.Duration&#123;&#125;</span><br><span class="line">	<span class="keyword">for</span> i := <span class="number">0</span>; i &lt; measurements+<span class="number">2</span>; i++ &#123;</span><br><span class="line">		conn, err := net.DialUDP(<span class="string">"udp"</span>, <span class="literal">nil</span>, addr)</span><br><span class="line">		<span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">			<span class="keyword">return</span> <span class="number">0</span>, err</span><br><span class="line">		&#125;</span><br><span class="line">		<span class="keyword">defer</span> conn.Close()</span><br><span class="line"></span><br><span class="line">		sent := time.Now()</span><br><span class="line">		<span class="keyword">if</span> _, err = conn.Write(request); err != <span class="literal">nil</span> &#123;</span><br><span class="line">			<span class="keyword">return</span> <span class="number">0</span>, err</span><br><span class="line">		&#125;</span><br><span class="line">		conn.SetDeadline(time.Now().Add(<span class="number">5</span> * time.Second))</span><br><span class="line"></span><br><span class="line">		reply := <span class="built_in">make</span>([]<span class="keyword">byte</span>, <span class="number">48</span>)</span><br><span class="line">		<span class="keyword">if</span> _, err = conn.Read(reply); err != <span class="literal">nil</span> &#123;</span><br><span class="line">			<span class="keyword">return</span> <span class="number">0</span>, err</span><br><span class="line">		&#125;</span><br><span class="line">		elapsed := time.Since(sent)</span><br><span class="line"></span><br><span class="line">		sec := <span class="keyword">uint64</span>(reply[<span class="number">43</span>]) | <span class="keyword">uint64</span>(reply[<span class="number">42</span>])&lt;&lt;<span class="number">8</span> | <span class="keyword">uint64</span>(reply[<span class="number">41</span>])&lt;&lt;<span class="number">16</span> | <span class="keyword">uint64</span>(reply[<span class="number">40</span>])&lt;&lt;<span class="number">24</span></span><br><span class="line">		frac := <span class="keyword">uint64</span>(reply[<span class="number">47</span>]) | <span class="keyword">uint64</span>(reply[<span class="number">46</span>])&lt;&lt;<span class="number">8</span> | <span class="keyword">uint64</span>(reply[<span class="number">45</span>])&lt;&lt;<span class="number">16</span> | <span class="keyword">uint64</span>(reply[<span class="number">44</span>])&lt;&lt;<span class="number">24</span></span><br><span class="line"></span><br><span class="line">		nanosec := sec*<span class="number">1e9</span> + (frac*<span class="number">1e9</span>)&gt;&gt;<span class="number">32</span></span><br><span class="line"></span><br><span class="line">		t := time.Date(<span class="number">1900</span>, <span class="number">1</span>, <span class="number">1</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, time.UTC).Add(time.Duration(nanosec)).Local()</span><br><span class="line"></span><br><span class="line">		drifts = <span class="built_in">append</span>(drifts, sent.Sub(t)+elapsed/<span class="number">2</span>)</span><br><span class="line">	&#125;</span><br><span class="line">	sort.Sort(durationSlice(drifts))</span><br><span class="line"></span><br><span class="line">	drift := time.Duration(<span class="number">0</span>)</span><br><span class="line">	<span class="keyword">for</span> i := <span class="number">1</span>; i &lt; <span class="built_in">len</span>(drifts)<span class="number">-1</span>; i++ &#123;</span><br><span class="line">		drift += drifts[i]</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">return</span> drift / time.Duration(measurements), <span class="literal">nil</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>首先可以看出来是以udp方法通信的，目标地址是pool.ntp.org:123。首先构造了请求体，就是一个长度为48的字节数组，第一个字节是00011011（从左到右第3-5位表示协议版本号，也就是3，第6-8位表示操作模式，客户端为3）。接下来启动一个循环，一共5次。每次都通过udp与目标地址通信。读取到的响应长度也是48字节。分两部分，最后4字节表示秒的小数部分，再向前数4个字节表示秒。之后我们计算出服务给我们的时间的纳秒表示，之后计算出我们与服务器的时间差。详细的SNTP协议见<a href="https://tools.ietf.org/html/rfc4330#section-5" target="_blank" rel="noopener">官方文档</a></p>
+<blockquote>
+<p>题图来自unsplash：<a href="https://unsplash.com/photos/-CZERTBlepA" target="_blank" rel="noopener">https://unsplash.com/photos/-CZERTBlepA</a></p>
+</blockquote>
+
+      
+    </div>
+
+    
+
+    
+    
+    
+
+    
+
+    
+      
+    
+    
+      <div>
+        <div style="padding: 10px 0; margin: 20px auto; width: 90%; text-align: center;">
+  <div>谢谢你请我吃糖</div>
+  <button id="rewardButton" disable="enable" onclick="var qr = document.getElementById('QR'); if (qr.style.display === 'none') {qr.style.display='block';} else {qr.style.display='none'}">
+    <span>打赏</span>
+  </button>
+  <div id="QR" style="display: none;">
+
+    
+      <div id="wechat" style="display: inline-block">
+        <img id="wechat_qr" src="/assets/img/wechatpay.jpg" alt="AmorFati 微信支付">
+        <p>微信支付</p>
+      </div>
+    
+
+    
+      <div id="alipay" style="display: inline-block">
+        <img id="alipay_qr" src="/assets/img/alipay.jpg" alt="AmorFati 支付宝">
+        <p>支付宝</p>
+      </div>
+    
+
+    
+
+  </div>
+</div>
+
+      </div>
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/go/" rel="tag"># go</a>
+          
+            <a href="/tags/区块链/" rel="tag"># 区块链</a>
+          
+            <a href="/tags/以太坊/" rel="tag"># 以太坊</a>
+          
+            <a href="/tags/go-ethereum/" rel="tag"># go-ethereum</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2019/04/15/SSL/" rel="next" title="SSL协议学习">
+                <i class="fa fa-chevron-left"></i> SSL协议学习
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+  </div>
+
+
+          </div>
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image" src="/assets/img/icon.jpg" alt="AmorFati">
+            
+              <p class="site-author-name" itemprop="name">AmorFati</p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          
+            <nav class="site-state motion-element">
+              
+                <div class="site-state-item site-state-posts">
+                
+                  <a href="/archives/">
+                
+                    <span class="site-state-item-count">26</span>
+                    <span class="site-state-item-name">日志</span>
+                  </a>
+                </div>
+              
+
+              
+                
+                
+                <div class="site-state-item site-state-categories">
+                  <a href="/categories/index.html">
+                    
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">6</span>
+                    <span class="site-state-item-name">分类</span>
+                  </a>
+                </div>
+              
+
+              
+                
+                
+                <div class="site-state-item site-state-tags">
+                  <a href="/tags/index.html">
+                    
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">11</span>
+                    <span class="site-state-item-name">标签</span>
+                  </a>
+                </div>
+              
+            </nav>
+          
+
+          
+
+          
+            <div class="links-of-author motion-element">
+              
+                <span class="links-of-author-item">
+                  
+                  
+                    
+                  
+                  
+                    
+                  
+                  <a href="https://github.com/chenyaoyang" title="GitHub &rarr; https://github.com/chenyaoyang" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i>GitHub</a>
+                </span>
+              
+                <span class="links-of-author-item">
+                  
+                  
+                    
+                  
+                  
+                    
+                  
+                  <a href="mailto:chenyang4346@foxmail.com" title="E-Mail &rarr; mailto:chenyang4346@foxmail.com" rel="noopener" target="_blank"><i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+                </span>
+              
+                <span class="links-of-author-item">
+                  
+                  
+                    
+                  
+                  
+                    
+                  
+                  <a href="https://www.jianshu.com/u/52c1bec4559c" title="简书 &rarr; https://www.jianshu.com/u/52c1bec4559c" rel="noopener" target="_blank"><i class="fa fa-fw fa-globe"></i>简书</a>
+                </span>
+              
+            </div>
+          
+
+          
+
+          
+          
+
+          
+            
+          
+          
+
+        </div>
+      </div>
+
+      
+      <!--noindex-->
+        <div class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+            
+            
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#Kademlia协议"><span class="nav-number">1.</span> <span class="nav-text">Kademlia协议</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#概述"><span class="nav-number">1.1.</span> <span class="nav-text">概述</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#节点"><span class="nav-number">1.2.</span> <span class="nav-text">节点</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#距离度量"><span class="nav-number">1.3.</span> <span class="nav-text">距离度量</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#K桶"><span class="nav-number">1.4.</span> <span class="nav-text">K桶</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#RPC消息"><span class="nav-number">1.5.</span> <span class="nav-text">RPC消息</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#PING"><span class="nav-number">1.5.1.</span> <span class="nav-text">PING</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#STORE"><span class="nav-number">1.5.2.</span> <span class="nav-text">STORE</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#FIND-NODE"><span class="nav-number">1.5.3.</span> <span class="nav-text">FIND_NODE</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#FIND-VALUE"><span class="nav-number">1.5.4.</span> <span class="nav-text">FIND_VALUE</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#加入网络"><span class="nav-number">1.6.</span> <span class="nav-text">加入网络</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#其他"><span class="nav-number">1.7.</span> <span class="nav-text">其他</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#源码分析"><span class="nav-number">2.</span> <span class="nav-text">源码分析</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#table-go"><span class="nav-number">2.1.</span> <span class="nav-text">table.go</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#udp-go"><span class="nav-number">2.2.</span> <span class="nav-text">udp.go</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#ping"><span class="nav-number">2.2.1.</span> <span class="nav-text">ping</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#findnode"><span class="nav-number">2.2.2.</span> <span class="nav-text">findnode</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#响应"><span class="nav-number">2.2.3.</span> <span class="nav-text">响应</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#ping的接受与响应"><span class="nav-number">2.2.4.</span> <span class="nav-text">ping的接受与响应</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#pong的接收"><span class="nav-number">2.2.5.</span> <span class="nav-text">pong的接收</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#findnode的接收与响应"><span class="nav-number">2.2.6.</span> <span class="nav-text">findnode的接收与响应</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#ndoe-go"><span class="nav-number">2.3.</span> <span class="nav-text">ndoe.go</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#ntp-go"><span class="nav-number">2.4.</span> <span class="nav-text">ntp.go</span></a></li></ol></li></ol></div>
+            
+
+          </div>
+        </div>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; 2018 – <span itemprop="copyrightYear">2019</span>
+  <span class="with-love" id="animate">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">AmorFati</span>
+
+  
+
+  
+</div>
+
+
+  <div class="powered-by">由 <a href="https://hexo.io" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v3.8.0</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 – <a href="https://theme-next.org" class="theme-link" rel="noopener" target="_blank">NexT.Pisces</a> v6.6.0</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+    
+
+    
+  </div>
+
+  
+
+<script>
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+
+  
+
+
+  <script src="/js/src/utils.js?v=6.6.0"></script>
+
+  <script src="/js/src/motion.js?v=6.6.0"></script>
+
+
+
+  
+  
+
+
+  <script src="/js/src/affix.js?v=6.6.0"></script>
+
+  <script src="/js/src/schemes/pisces.js?v=6.6.0"></script>
+
+
+
+  
+  <script src="/js/src/scrollspy.js?v=6.6.0"></script>
+<script src="/js/src/post-details.js?v=6.6.0"></script>
+
+
+
+  
+
+
+  <script src="/js/src/bootstrap.js?v=6.6.0"></script>
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  <script>
+    // Popup Window;
+    var isfetched = false;
+    var isXml = true;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length === 0) {
+      search_path = "search.xml";
+    } else if (/json$/i.test(search_path)) {
+      isXml = false;
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    var onPopupClose = function (e) {
+      $('.popup').hide();
+      $('#local-search-input').val('');
+      $('.search-result-list').remove();
+      $('#no-result').remove();
+      $(".local-search-pop-overlay").remove();
+      $('body').css('overflow', '');
+    }
+
+    function proceedsearch() {
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay"></div>')
+        .css('overflow', 'hidden');
+      $('.search-popup-overlay').click(onPopupClose);
+      $('.popup').toggle();
+      var $localSearchInput = $('#local-search-input');
+      $localSearchInput.attr("autocapitalize", "none");
+      $localSearchInput.attr("autocorrect", "off");
+      $localSearchInput.focus();
+    }
+
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+      'use strict';
+
+      // start loading animation
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay">' +
+          '<div id="search-loading-icon">' +
+          '<i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>' +
+          '</div>' +
+          '</div>')
+        .css('overflow', 'hidden');
+      $("#search-loading-icon").css('margin', '20% auto 0 auto').css('text-align', 'center');
+
+      
+
+      $.ajax({
+        url: path,
+        dataType: isXml ? "xml" : "json",
+        async: true,
+        success: function(res) {
+          // get the contents from search data
+          isfetched = true;
+          $('.popup').detach().appendTo('.header-inner');
+          var datas = isXml ? $("entry", res).map(function() {
+            return {
+              title: $("title", this).text(),
+              content: $("content",this).text(),
+              url: $("url" , this).text()
+            };
+          }).get() : res;
+          var input = document.getElementById(search_id);
+          var resultContent = document.getElementById(content_id);
+          var inputEventFunction = function() {
+            var searchText = input.value.trim().toLowerCase();
+            var keywords = searchText.split(/[\s\-]+/);
+            if (keywords.length > 1) {
+              keywords.push(searchText);
+            }
+            var resultItems = [];
+            if (searchText.length > 0) {
+              // perform local searching
+              datas.forEach(function(data) {
+                var isMatch = false;
+                var hitCount = 0;
+                var searchTextCount = 0;
+                var title = data.title.trim();
+                var titleInLowerCase = title.toLowerCase();
+                var content = data.content.trim().replace(/<[^>]+>/g,"");
+                
+                var contentInLowerCase = content.toLowerCase();
+                var articleUrl = decodeURIComponent(data.url);
+                var indexOfTitle = [];
+                var indexOfContent = [];
+                // only match articles with not empty titles
+                if(title != '') {
+                  keywords.forEach(function(keyword) {
+                    function getIndexByWord(word, text, caseSensitive) {
+                      var wordLen = word.length;
+                      if (wordLen === 0) {
+                        return [];
+                      }
+                      var startPosition = 0, position = [], index = [];
+                      if (!caseSensitive) {
+                        text = text.toLowerCase();
+                        word = word.toLowerCase();
+                      }
+                      while ((position = text.indexOf(word, startPosition)) > -1) {
+                        index.push({position: position, word: word});
+                        startPosition = position + wordLen;
+                      }
+                      return index;
+                    }
+
+                    indexOfTitle = indexOfTitle.concat(getIndexByWord(keyword, titleInLowerCase, false));
+                    indexOfContent = indexOfContent.concat(getIndexByWord(keyword, contentInLowerCase, false));
+                  });
+                  if (indexOfTitle.length > 0 || indexOfContent.length > 0) {
+                    isMatch = true;
+                    hitCount = indexOfTitle.length + indexOfContent.length;
+                  }
+                }
+
+                // show search results
+
+                if (isMatch) {
+                  // sort index by position of keyword
+
+                  [indexOfTitle, indexOfContent].forEach(function (index) {
+                    index.sort(function (itemLeft, itemRight) {
+                      if (itemRight.position !== itemLeft.position) {
+                        return itemRight.position - itemLeft.position;
+                      } else {
+                        return itemLeft.word.length - itemRight.word.length;
+                      }
+                    });
+                  });
+
+                  // merge hits into slices
+
+                  function mergeIntoSlice(text, start, end, index) {
+                    var item = index[index.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    var hits = [];
+                    var searchTextCountInSlice = 0;
+                    while (position + word.length <= end && index.length != 0) {
+                      if (word === searchText) {
+                        searchTextCountInSlice++;
+                      }
+                      hits.push({position: position, length: word.length});
+                      var wordEnd = position + word.length;
+
+                      // move to next position of hit
+
+                      index.pop();
+                      while (index.length != 0) {
+                        item = index[index.length - 1];
+                        position = item.position;
+                        word = item.word;
+                        if (wordEnd > position) {
+                          index.pop();
+                        } else {
+                          break;
+                        }
+                      }
+                    }
+                    searchTextCount += searchTextCountInSlice;
+                    return {
+                      hits: hits,
+                      start: start,
+                      end: end,
+                      searchTextCount: searchTextCountInSlice
+                    };
+                  }
+
+                  var slicesOfTitle = [];
+                  if (indexOfTitle.length != 0) {
+                    slicesOfTitle.push(mergeIntoSlice(title, 0, title.length, indexOfTitle));
+                  }
+
+                  var slicesOfContent = [];
+                  while (indexOfContent.length != 0) {
+                    var item = indexOfContent[indexOfContent.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    // cut out 100 characters
+                    var start = position - 20;
+                    var end = position + 80;
+                    if(start < 0){
+                      start = 0;
+                    }
+                    if (end < position + word.length) {
+                      end = position + word.length;
+                    }
+                    if(end > content.length){
+                      end = content.length;
+                    }
+                    slicesOfContent.push(mergeIntoSlice(content, start, end, indexOfContent));
+                  }
+
+                  // sort slices in content by search text's count and hits' count
+
+                  slicesOfContent.sort(function (sliceLeft, sliceRight) {
+                    if (sliceLeft.searchTextCount !== sliceRight.searchTextCount) {
+                      return sliceRight.searchTextCount - sliceLeft.searchTextCount;
+                    } else if (sliceLeft.hits.length !== sliceRight.hits.length) {
+                      return sliceRight.hits.length - sliceLeft.hits.length;
+                    } else {
+                      return sliceLeft.start - sliceRight.start;
+                    }
+                  });
+
+                  // select top N slices in content
+
+                  var upperBound = parseInt('1');
+                  if (upperBound >= 0) {
+                    slicesOfContent = slicesOfContent.slice(0, upperBound);
+                  }
+
+                  // highlight title and content
+
+                  function highlightKeyword(text, slice) {
+                    var result = '';
+                    var prevEnd = slice.start;
+                    slice.hits.forEach(function (hit) {
+                      result += text.substring(prevEnd, hit.position);
+                      var end = hit.position + hit.length;
+                      result += '<b class="search-keyword">' + text.substring(hit.position, end) + '</b>';
+                      prevEnd = end;
+                    });
+                    result += text.substring(prevEnd, slice.end);
+                    return result;
+                  }
+
+                  var resultItem = '';
+
+                  if (slicesOfTitle.length != 0) {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + highlightKeyword(title, slicesOfTitle[0]) + "</a>";
+                  } else {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + title + "</a>";
+                  }
+
+                  slicesOfContent.forEach(function (slice) {
+                    resultItem += "<a href='" + articleUrl + "'>" +
+                      "<p class=\"search-result\">" + highlightKeyword(content, slice) +
+                      "...</p>" + "</a>";
+                  });
+
+                  resultItem += "</li>";
+                  resultItems.push({
+                    item: resultItem,
+                    searchTextCount: searchTextCount,
+                    hitCount: hitCount,
+                    id: resultItems.length
+                  });
+                }
+              })
+            };
+            if (keywords.length === 1 && keywords[0] === "") {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>'
+            } else if (resultItems.length === 0) {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>'
+            } else {
+              resultItems.sort(function (resultLeft, resultRight) {
+                if (resultLeft.searchTextCount !== resultRight.searchTextCount) {
+                  return resultRight.searchTextCount - resultLeft.searchTextCount;
+                } else if (resultLeft.hitCount !== resultRight.hitCount) {
+                  return resultRight.hitCount - resultLeft.hitCount;
+                } else {
+                  return resultRight.id - resultLeft.id;
+                }
+              });
+              var searchResultList = '<ul class=\"search-result-list\">';
+              resultItems.forEach(function (result) {
+                searchResultList += result.item;
+              })
+              searchResultList += "</ul>";
+              resultContent.innerHTML = searchResultList;
+            }
+          }
+
+          if ('auto' === 'auto') {
+            input.addEventListener('input', inputEventFunction);
+          } else {
+            $('.search-icon').click(inputEventFunction);
+            input.addEventListener('keypress', function (event) {
+              if (event.keyCode === 13) {
+                inputEventFunction();
+              }
+            });
+          }
+
+          // remove loading animation
+          $(".local-search-pop-overlay").remove();
+          $('body').css('overflow', '');
+
+          proceedsearch();
+        }
+      });
+    }
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched === false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+    });
+
+    $('.popup-btn-close').click(onPopupClose);
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+    $(document).on('keyup', function (event) {
+      var shouldDismissSearchPopup = event.which === 27 &&
+        $('.search-popup').is(':visible');
+      if (shouldDismissSearchPopup) {
+        onPopupClose();
+      }
+    });
+  </script>
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+  
+
+  
+
+
+  
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>
