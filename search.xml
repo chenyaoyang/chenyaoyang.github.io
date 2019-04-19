@@ -37,6 +37,17 @@
       </tags>
   </entry>
   <entry>
+    <title><![CDATA[HMAC算法]]></title>
+    <url>%2F2019%2F04%2F05%2FHMAC%E7%AE%97%E6%B3%95%2F</url>
+    <content type="text"><![CDATA[背景首先说一下什么是MAC，MAC全称Message authentication code，即消息认证码。是经过特定算法后产生的一小段信息，检查某段消息的完整性，以及作身份验证。 在网络传输中，由于一般的传输通道是透明的，所以对消息进行认证是十分必要的，认证消息是否被修改，无论是恶意攻击或意外改变。一般的操作是对消息产生认证码，然后连同消息和认证码一起发送，接收方用同样的方法计算认证码，看两个认证码是否一致。 HMAC全称Hash-based message authentication code，即散列消息认证码(官方文档)是一个比较完善的消息认证码机制。是一种通过特别计算方式之后产生的消息认证码（MAC），使用密码散列函数，同时结合一个加密密钥。它可以用来保证数据的完整性，同时可以用来作某个消息的身份验证。 详细流程调整秘钥长度秘钥是收发双发都知晓的一个对称加密的秘钥。算法第一步要调整秘钥长度，使其和消息块长度匹配。分一下三种情况 k&lt;b：秘钥长度小于消息块长，这是需要在秘钥左边填充一定的0，使其等于消息块长 k=b：不做任何处理 k&gt;b：对秘钥进行信息摘要，使其等于消息块长，摘要算法和HMAC中用到的散列算法一样 生成S1将K与ipad进行异或运算生成S1，ipad = (00110110) 重复 b/8次，也就是说ipad长度和消息块长相等 填充将消息M拼接到S1后面 消息摘要对上一步拼接后的信息进行摘要得到H 生成S2将K与opad进行异或运算生成S2，opad = (01011010) 重复 b/8次，也就是说opad长度和消息块长相等 填充将前面摘要得到的H拼接到S2后面 消息摘要对上一步拼接后的信息进行摘要得到HMAC。 整体流程还是很简单的，整体流程如下： 算法分析HMAC主要解决的发送方的认证和消息完整性认证。首先中间涉及的秘钥只有收发双发知道，所以攻击者即使篡改消息也无法生成相应的HMAC，同样且只有持有正确秘钥的发送方才能正确生成HMAC。其次，由于摘要算法，只要消息不完整，验证也不会通过。最后，由于摘要算法是单向函数，所以无法从消息和HMAC推测秘钥。 但是HMAC也存在下面几个问题： 秘钥交换问题是一个普遍存在的问题，对于中间人攻击，HMAC也无能为力 HMAC不适用与多个接收方情况，由于是对称加密，接收方并不能认证消息来自某个发送方，任何一个接收方都可以伪造消息 若是不同收发方使用不同的秘钥，则秘钥管理也比较困难 接收方也可能伪造消息，对于一个HMAC并不能判断具体是哪一方发出的。 题图来自unsplash：https://unsplash.com/photos/Anosw0HcGRk]]></content>
+      <categories>
+        <category>密码学</category>
+      </categories>
+      <tags>
+        <tag>密码学</tag>
+      </tags>
+  </entry>
+  <entry>
     <title><![CDATA[SHA-2算法]]></title>
     <url>%2F2019%2F04%2F03%2FSHA-2%E7%AE%97%E6%B3%95%2F</url>
     <content type="text"><![CDATA[背景前面介绍了SHA-1的详细内容。因为SHA-1已经被认为是不安全的，所以又开发了SHA-2。SHA-2可分为6种不同标准：SHA-224、SHA-256、SHA-384、SHA-512、SHA-512/224、SHA-512/256。其后数字表示摘要长度。 SHA-256和SHA-512是很新的散列函数，前者以定义一个word为32位，后者则定义一个word为64位。它们分别使用了不同的偏移量，或用不同的常量，然而，实际上二者结构是相同的，只在循环运行的次数上有所差异。SHA-224以及SHA-384则是前述二种散列函数的截短版，利用不同的初始值做计算。我们这里介绍SHA-512的内容，其余标准见标准文档 详细流程SHA-512的最大数据长度为2^128 - 1。它的摘要长度为512位，分块长度为1024位。SHA-512是按照SHA-1的模型而来的，而SHA-1又是仿照MD5而来的，所以他们之间有很多相似之处，对于相似地方我们只简要说明一下 填充填充为1024的倍数少128位，通用填充总是要进行的，即使已满足条件 添加长度将原始信息长度写成128位形式填充到最后 分块按1024一组进行分块 初始化链接变量一共有8个初始化变量，实际上多少个初始化变量是由最后摘要长度决定的。如MD5为128位，就是4个，SHA-1位160位，就是5个。而SHA-512是512位，就是8个，但每个是64位：12345678A = 6a09e667f3bcc908B = bb67ae8584caa73bC = 3c6ef372fe94f82bD = a54ff53a5f1d36f1E = 510e527fade682d1F = 9b05688c2b3e6c1fG = 1f83d9abfb41bd6bH = 5be0cd19137e2179 轮次操作 将初始化变量复制到abcdefgh中 将当前子块每64位一组，分16组 一共有80轮，每轮以当前块，abcdefgh和常量K[t]，常量总共有80个，这些常数的取值是前80个质数的立方根的小数部分的前64位。每轮操作如下：12345678910temp1 = h + ch(e,f,g) + sum1(e)+wt+kttemp2 = sum0(a) + maj(a,b,c)a = temp1 + temp2b = ac = bd = ce = d + temp1f = eg = fh = g 上面运算中t为轮次号，加法均是加完之后取2^64模，几个函数如下定义：1234ch(e,f,g) = (e and f) xor (not e and g)maj(a,b,c) = (a and b) xor (a and c) xor (b and c)sum1(e) = e&gt;&gt;14 xor e&gt;&gt;18 xor e&gt;&gt;41sum0(a) = a&gt;&gt;28 xor a&gt;&gt;34 xor a&gt;&gt;39 对于每轮中的w，前16轮就是分好的16组子块，后面的w如下计算1234wt = a1(w(t-2)) + w(t-7) + a0(w(t-15)) + w(t-16)a1(x) = x&gt;&gt;1 xor x&gt;&gt;8 xor x&gt;3a0(x) = x&gt;&gt;17 xor x&gt;&gt;19 xor x&gt;10 上面&gt;&gt;表示循环右移，&gt;表示右移，空出的补零 80轮之后计算出的abcdefgh分别加上原来的ABCDEFGH作为处理下一个块的输入 和MD5与SHA-1一样，处理完所有块之后，最后的ABCDEFGH拼接到一起就是摘要信息。 题图来自unsplash：https://unsplash.com/photos/OIYrmG5FNFg]]></content>
@@ -66,8 +77,8 @@
         <category>密码学</category>
       </categories>
       <tags>
-        <tag>java</tag>
         <tag>密码学</tag>
+        <tag>java</tag>
       </tags>
   </entry>
   <entry>
@@ -162,8 +173,8 @@
         <category>密码学</category>
       </categories>
       <tags>
-        <tag>java</tag>
         <tag>密码学</tag>
+        <tag>java</tag>
       </tags>
   </entry>
   <entry>
@@ -189,8 +200,8 @@
         <category>密码学</category>
       </categories>
       <tags>
-        <tag>java</tag>
         <tag>密码学</tag>
+        <tag>java</tag>
       </tags>
   </entry>
   <entry>
@@ -201,8 +212,8 @@
         <category>密码学</category>
       </categories>
       <tags>
-        <tag>java</tag>
         <tag>密码学</tag>
+        <tag>java</tag>
       </tags>
   </entry>
   <entry>
@@ -236,8 +247,8 @@
         <category>密码学</category>
       </categories>
       <tags>
-        <tag>java</tag>
         <tag>密码学</tag>
+        <tag>java</tag>
       </tags>
   </entry>
   <entry>
