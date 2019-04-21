@@ -1,0 +1,1432 @@
+<!DOCTYPE html>
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+<html class="theme-next pisces use-motion" lang="zh-CN">
+<head><meta name="generator" content="Hexo 3.8.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+    
+      
+    
+
+    
+  
+
+  
+
+  
+    
+      
+    
+
+    
+  
+
+  
+    
+      
+    
+
+    
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Monda:300,300italic,400,400italic,700,700italic|Roboto Slab:300,300italic,400,400italic,700,700italic|Dancing Script:300,300italic,400,400italic,700,700italic|Consolas:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css">
+
+<link href="/css/main.css?v=6.6.0" rel="stylesheet" type="text/css">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=6.6.0">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=6.6.0">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=6.6.0">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=6.6.0" color="#222">
+
+
+
+
+
+
+
+
+
+<script id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    version: '6.6.0',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: false,
+    fastclick: false,
+    lazyload: false,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+  
+
+
+
+
+  <meta name="keywords" content="go,区块链,以太坊,go-ethereum">
+<meta property="og:type" content="article">
+<meta property="og:title" content="go-ethereum中p2p-rlpx源码学习">
+<meta property="og:url" content="http://yoursite.com/2019/04/21/go-ethereum中p2p-rlpx源码学习/index.html">
+<meta property="og:site_name" content="AmorFati">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:image" content="https://upload-images.jianshu.io/upload_images/5111131-d529df2468b8f7c6.jpg?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240">
+<meta property="og:updated_time" content="2019-04-21T07:41:32.191Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="go-ethereum中p2p-rlpx源码学习">
+<meta name="twitter:image" content="https://upload-images.jianshu.io/upload_images/5111131-d529df2468b8f7c6.jpg?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240">
+
+
+
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2019/04/21/go-ethereum中p2p-rlpx源码学习/">
+
+
+
+<script id="page.configurations">
+  CONFIG.page = {
+    sidebar: "",
+  };
+</script>
+
+  <title>go-ethereum中p2p-rlpx源码学习 | AmorFati</title>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  <noscript>
+  <style>
+    .use-motion .motion-element,
+    .use-motion .brand,
+    .use-motion .menu-item,
+    .sidebar-inner,
+    .use-motion .post-block,
+    .use-motion .pagination,
+    .use-motion .comments,
+    .use-motion .post-header,
+    .use-motion .post-body,
+    .use-motion .collection-title { opacity: initial; }
+
+    .use-motion .logo,
+    .use-motion .site-title,
+    .use-motion .site-subtitle {
+      opacity: initial;
+      top: initial;
+    }
+
+    .use-motion .logo-line-before i { left: initial; }
+    .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope="" itemtype="http://schema.org/WebPage" lang="zh-CN">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope="" itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">AmorFati</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+    
+      
+        <p class="site-subtitle">风吹过窗前的书，又翻过一页</p>
+      
+    
+    
+  </div>
+
+  <div class="site-nav-toggle">
+    <button aria-label="切换导航栏">
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  
+    <ul id="menu" class="menu">
+      
+        
+        
+        
+          
+          <li class="menu-item menu-item-home">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/" rel="section"><i class="menu-item-icon fa fa-fw fa-home"></i> <br>首页</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-about">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/about/" rel="section"><i class="menu-item-icon fa fa-fw fa-user"></i> <br>关于</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-tags">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/tags/" rel="section"><i class="menu-item-icon fa fa-fw fa-tags"></i> <br>标签</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-categories">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/categories/" rel="section"><i class="menu-item-icon fa fa-fw fa-th"></i> <br>分类</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-archives">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/archives/" rel="section"><i class="menu-item-icon fa fa-fw fa-archive"></i> <br>归档</a>
+
+  </li>
+
+      
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br>搜索</a>
+        </li>
+      
+    </ul>
+  
+
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup search-popup local-search-popup">
+  <div class="local-search-header clearfix">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+    <div class="local-search-input-wrapper">
+      <input autocomplete="off" placeholder="搜索..." spellcheck="false" type="text" id="local-search-input">
+    </div>
+  </div>
+  <div id="local-search-result"></div>
+</div>
+
+
+
+    </div>
+  
+</nav>
+
+
+
+  
+
+
+
+</div>
+    </header>
+
+    
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+            
+
+          
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  
+
+  <article class="post post-type-normal" itemscope="" itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/04/21/go-ethereum中p2p-rlpx源码学习/">
+
+    <span hidden itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="AmorFati">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/assets/img/icon.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope="" itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="AmorFati">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">go-ethereum中p2p-rlpx源码学习
+
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+
+            
+            
+            
+
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+
+              
+                
+              
+
+              <time title="创建时间：2019-04-21 15:35:25 / 修改时间：15:41:32" itemprop="dateCreated datePublished" datetime="2019-04-21T15:35:25+08:00">2019-04-21</time>
+            
+
+            
+              
+
+              
+            
+          </span>
+
+          
+            <span class="post-category">
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope="" itemtype="http://schema.org/Thing"><a href="/categories/go-ethereum源码学习/" itemprop="url" rel="index"><span itemprop="name">go-ethereum源码学习</span></a></span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p><img src="https://upload-images.jianshu.io/upload_images/5111131-d529df2468b8f7c6.jpg?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt=""><br><a id="more"></a><br>rlpx是一种传输协议，它是基于tcp的，用于节点之间的信息，rlpx并不是什么的缩写，而是基于rlp序列化命名的。代码主要集中在p2p包的rlpx.go中，以太坊主要借助这个协议进行节点间数据传输，所传输的数据也是加密的</p>
+<h1 id="ECIES加密"><a href="#ECIES加密" class="headerlink" title="ECIES加密"></a>ECIES加密</h1><p>ECIES全称Elliptic Curve Integrated Encryption Scheme，即椭圆曲线集成加密方案，是一种混合加密方法。</p>
+<p>假设Alice要发发送一条加密消息给Bob，Alice知晓Bob的公钥KB（后文中||符号表示简单的拼接,如a||b=ab）。为了加密消息m，Alice进行如下流程：</p>
+<ol>
+<li>首先生成一个随机数r，然后生成公钥R=r*G。</li>
+<li>计算出共享秘密S = Px。其中（Px，Py）= r*KB。</li>
+<li>得到S后，计算kE || kM = KDF(S,32)（KDF是密钥生成函数，见<a href="https://csrc.nist.gov/CSRC/media/Publications/sp/800-56a/archive/2006-05-03/documents/sp800-56-draft-jul2005.pdf" target="_blank" rel="noopener">文档5.8节</a>）。</li>
+<li>随机生成一个初始化向量iv。</li>
+<li>最后发送给Bob的消息为：R || iv || c || d，其中c为以kE为密钥，以iv为初始化向量对m进行AES的CTR模式加密（<a href="https://blog.grapefruit.tk/2019/03/24/%E5%88%86%E7%BB%84%E5%AF%86%E7%A0%81%E4%B8%AD%E7%9A%84%E7%AE%97%E6%B3%95%E6%A8%A1%E5%BC%8F/" target="_blank" rel="noopener">CTR模式</a>,<a href="https://blog.grapefruit.tk/2019/03/30/AES%E5%8A%A0%E5%AF%86/" target="_blank" rel="noopener">AES加密</a>）；d为以kM为密钥，使用SHA-256作为摘要函数，对iv||c计算HMAC（<a href="https://blog.grapefruit.tk/2019/04/05/HMAC%E7%AE%97%E6%B3%95/" target="_blank" rel="noopener">HMAC</a>）</li>
+</ol>
+<p>Bob在收到消息后，进行如下步骤：</p>
+<ol>
+<li>计算共享秘密S，S=Px，其中（Px，Py） = kB*R（注意kB是Bob私钥，KB是Bob公钥，利用的椭圆曲线加密原理，简单证明如下：kB*R = kB*r*G=r*KB =（Px，Py））</li>
+<li>根据共享秘密S计算出密钥：kE || kM = KDF(S,32)</li>
+<li>先验证d，即对iv || c使用kM作为密钥计算HMAC</li>
+<li>再利用kE作为密钥，以iv为初始化向量，使用AES算法的CTR模式进行解密得到明文m</li>
+</ol>
+<p>上述步骤的大致思想就是利用非对称加密算法安全的交换密钥，在使用对称加密算法加密消息，弥补非对称算法的性能缺陷。</p>
+<h1 id="握手协议"><a href="#握手协议" class="headerlink" title="握手协议"></a>握手协议</h1><ol>
+<li>发起者尝试连接接受者，并发送auth消息</li>
+<li>接受者验证auth消息</li>
+<li>接受者构造应答auth-ack消息</li>
+<li>接受者计算共享秘密，发送第一个加密消息：hello</li>
+<li>发起者收到auth-ack消息并计算共享秘密</li>
+<li>发起者发送它的第一个加密消息：hello</li>
+<li>双方验证各自收到的对方第一个加密消息</li>
+<li>若有效，则加密握手完成</li>
+</ol>
+<p>auth消息如下：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">auth = auth-size || enc-auth-body</span><br><span class="line">auth-size：enc-auth-body的长度</span><br><span class="line">enc-auth-body = ecies.encrypt(recipient-pubk, auth-body || auth-padding, auth-size) #auth-size不会被写入密文但是会写入HMAC</span><br><span class="line">auth-padding ：任意填充数据</span><br><span class="line">auth-body = [sig, initiator-pubk, initiator-nonce, auth-vsn, ...]</span><br><span class="line">auth-vsn = 4</span><br></pre></td></tr></table></figure></p>
+<p>auth-ack消息如下：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">ack = ack-size || enc-ack-body</span><br><span class="line">ack-size = enc-ack-body的长度</span><br><span class="line">enc-ack-body = ecies.encrypt(initiator-pubk, ack-body || ack-padding, ack-size)</span><br><span class="line">ack-padding ：任意填充数据</span><br><span class="line">ack-body = [recipient-ephemeral-pubk, recipient-nonce, ack-vsn, ...]</span><br><span class="line">ack-vsn = 4</span><br></pre></td></tr></table></figure></p>
+<p>几个秘密生成算法：</p>
+<ul>
+<li>静态共享秘密：static-shared-secret = ecdh.agree(privkey, remote-pubk)。ecdh是一种基于ecc的密钥协商算法</li>
+<li>临时密钥: ephemeral-key = ecdh.agree(ephemeral-privkey, remote-ephemeral-pubk)</li>
+<li>共享秘密：shared-secret = keccak256(ephemeral-key || keccak256(nonce || initiator-nonce))</li>
+<li>aes密钥：aes-secret = keccak256(ephemeral-key || shared-secret)</li>
+<li>mac密钥：mac-secret = keccak256(ephemeral-key || aes-secret)</li>
+</ul>
+<h1 id="帧"><a href="#帧" class="headerlink" title="帧"></a>帧</h1><p>握手成功之后所有消息都是以帧的形式传播。帧的目的是在一个连接上复用多个功能。其次，由于框架型的消息为消息身份验证提供了合理的分界点，因此加密和身份验证流变得非常简单。帧通过在握手过程中生成的密钥进行加密和身份验证。</p>
+<p>帧格式如下：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">frame = header-ciphertext || header-mac || frame-ciphertext || frame-mac</span><br><span class="line">header-ciphertext = aes(aes-secret, header)</span><br><span class="line">header = frame-size || header-data || header-padding</span><br><span class="line">header-data = [capability-id, context-id]</span><br><span class="line">capability-id = integer, always zero</span><br><span class="line">context-id = integer, always zero</span><br><span class="line">header-padding = zero-fill header to 16-byte boundary</span><br><span class="line">frame-ciphertext = aes(aes-secret, frame-data || frame-padding)</span><br><span class="line">frame-padding = zero-fill frame-data to 16-byte boundary</span><br></pre></td></tr></table></figure></p>
+<h1 id="MAC"><a href="#MAC" class="headerlink" title="MAC"></a>MAC</h1><p>就是所谓的消息认证码，rlpx中使用keccak256作为hash函数，并且使用了两个不同的mac用作不同方向的通信，分别是egress-mac和ingress-mac。这两个mac会在通信中不断更新，其构造如下</p>
+<p>发送方初始状态：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">egress-mac = keccak256.init((mac-secret ^ recipient-nonce) || auth)</span><br><span class="line">ingress-mac = keccak256.init((mac-secret ^ initiator-nonce) || ack)</span><br></pre></td></tr></table></figure></p>
+<p>接收方初始状态：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">egress-mac = keccak256.init((mac-secret ^ initiator-nonce) || ack)</span><br><span class="line">ingress-mac = keccak256.init((mac-secret ^ recipient-nonce) || auth)</span><br></pre></td></tr></table></figure></p>
+<p>当帧发送时，要根据发送的数据更新egress-mac：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">header-mac-seed = aes(mac-secret, keccak256.digest(egress-mac)[:16] ^ header-ciphertext)</span><br><span class="line">egress-mac = keccak256.update(egress-mac, header-mac-seed)</span><br><span class="line">header-mac = keccak256.digest(egress-mac)[:16]</span><br></pre></td></tr></table></figure></p>
+<p>帧mac的计算如下：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">egress-mac = keccak256.update(egress-mac, frame-ciphertext)</span><br><span class="line">frame-mac-seed = aes(mac-secret, keccak256.digest(egress-mac)[:16]) ^ keccak256.digest(egress-mac)[:16]</span><br><span class="line">egress-mac = keccak256.update(egress-mac, frame-mac-seed)</span><br><span class="line">frame-mac = keccak256.digest(egress-mac)[:16]</span><br></pre></td></tr></table></figure></p>
+<p>接收方收到后，以同样方式更新ingress-mac，通过对比来判断通信完整性。</p>
+<h1 id="源码"><a href="#源码" class="headerlink" title="源码"></a>源码</h1><p>首先回顾一下rlpx的服务中的创建：<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">newTransport <span class="function"><span class="keyword">func</span><span class="params">(net.Conn)</span> <span class="title">transport</span></span></span><br><span class="line"><span class="function"></span></span><br><span class="line"><span class="function"><span class="title">srv</span>.<span class="title">newTransport</span> = <span class="title">newRLPX</span></span></span><br><span class="line"><span class="function"></span></span><br><span class="line"><span class="function"><span class="title">func</span> <span class="title">newRLPX</span><span class="params">(fd net.Conn)</span> <span class="title">transport</span></span> &#123;</span><br><span class="line">	fd.SetDeadline(time.Now().Add(handshakeTimeout))</span><br><span class="line">	<span class="keyword">return</span> &amp;rlpx&#123;fd: fd&#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">type</span> rlpx <span class="keyword">struct</span> &#123;</span><br><span class="line">	fd net.Conn</span><br><span class="line"></span><br><span class="line">	rmu, wmu sync.Mutex</span><br><span class="line">	rw       *rlpxFrameRW</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>rlpx之所以能被赋值给newTransport是因为他实现了transport接口：<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">type</span> transport <span class="keyword">interface</span> &#123;</span><br><span class="line">	doEncHandshake(prv *ecdsa.PrivateKey, dialDest *ecdsa.PublicKey) (*ecdsa.PublicKey, error)</span><br><span class="line">	doProtoHandshake(our *protoHandshake) (*protoHandshake, error)</span><br><span class="line">	</span><br><span class="line">	MsgReadWriter</span><br><span class="line">	</span><br><span class="line">	<span class="built_in">close</span>(err error)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">type</span> MsgReadWriter <span class="keyword">interface</span> &#123;</span><br><span class="line">	MsgReader</span><br><span class="line">	MsgWriter</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">type</span> MsgReader <span class="keyword">interface</span> &#123;</span><br><span class="line">	ReadMsg() (Msg, error)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">type</span> MsgWriter <span class="keyword">interface</span> &#123;</span><br><span class="line">	WriteMsg(Msg) error</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<h2 id="doEncHandshake"><a href="#doEncHandshake" class="headerlink" title="doEncHandshake"></a>doEncHandshake</h2><p>在服务的启动中配置tcp连接时，每接到一个tcp连接，在setupConn中调用了doEncHandshake执行加密握手：<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(t *rlpx)</span> <span class="title">doEncHandshake</span><span class="params">(prv *ecdsa.PrivateKey, dial *ecdsa.PublicKey)</span> <span class="params">(*ecdsa.PublicKey, error)</span></span> &#123;</span><br><span class="line">	<span class="keyword">var</span> (</span><br><span class="line">		sec secrets</span><br><span class="line">		err error</span><br><span class="line">	)</span><br><span class="line">	<span class="keyword">if</span> dial == <span class="literal">nil</span> &#123;</span><br><span class="line">		sec, err = receiverEncHandshake(t.fd, prv)</span><br><span class="line">	&#125; <span class="keyword">else</span> &#123;</span><br><span class="line">		sec, err = initiatorEncHandshake(t.fd, prv, dial)</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">		<span class="keyword">return</span> <span class="literal">nil</span>, err</span><br><span class="line">	&#125;</span><br><span class="line">	t.wmu.Lock()</span><br><span class="line">	t.rw = newRLPXFrameRW(t.fd, sec)</span><br><span class="line">	t.wmu.Unlock()</span><br><span class="line">	<span class="keyword">return</span> sec.Remote.ExportECDSA(), <span class="literal">nil</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>当收到一个连接时，dial为null，调用receiverEncHandshake，当发起一个连接时调用initiatorEncHandshake。先看发起一个连接：<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">initiatorEncHandshake</span><span class="params">(conn io.ReadWriter, prv *ecdsa.PrivateKey, remote *ecdsa.PublicKey)</span> <span class="params">(s secrets, err error)</span></span> &#123;</span><br><span class="line">	h := &amp;encHandshake&#123;initiator: <span class="literal">true</span>, remote: ecies.ImportECDSAPublic(remote)&#125;</span><br><span class="line">	authMsg, err := h.makeAuthMsg(prv)</span><br><span class="line">	<span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">		<span class="keyword">return</span> s, err</span><br><span class="line">	&#125;</span><br><span class="line">	authPacket, err := sealEIP8(authMsg, h)</span><br><span class="line">	<span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">		<span class="keyword">return</span> s, err</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">if</span> _, err = conn.Write(authPacket); err != <span class="literal">nil</span> &#123;</span><br><span class="line">		<span class="keyword">return</span> s, err</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	authRespMsg := <span class="built_in">new</span>(authRespV4)</span><br><span class="line">	authRespPacket, err := readHandshakeMsg(authRespMsg, encAuthRespLen, prv, conn)</span><br><span class="line">	<span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">		<span class="keyword">return</span> s, err</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">if</span> err := h.handleAuthResp(authRespMsg); err != <span class="literal">nil</span> &#123;</span><br><span class="line">		<span class="keyword">return</span> s, err</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">return</span> h.secrets(authPacket, authRespPacket)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>首先初始化encHandshake，并用其构造一个auth消息：<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(h *encHandshake)</span> <span class="title">makeAuthMsg</span><span class="params">(prv *ecdsa.PrivateKey)</span> <span class="params">(*authMsgV4, error)</span></span> &#123;</span><br><span class="line">	</span><br><span class="line">	h.initNonce = <span class="built_in">make</span>([]<span class="keyword">byte</span>, shaLen)</span><br><span class="line">	_, err := rand.Read(h.initNonce)</span><br><span class="line">	<span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">		<span class="keyword">return</span> <span class="literal">nil</span>, err</span><br><span class="line">	&#125;</span><br><span class="line">	</span><br><span class="line">	h.randomPrivKey, err = ecies.GenerateKey(rand.Reader, crypto.S256(), <span class="literal">nil</span>)</span><br><span class="line">	<span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">		<span class="keyword">return</span> <span class="literal">nil</span>, err</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	</span><br><span class="line">	token, err := h.staticSharedSecret(prv)</span><br><span class="line">	<span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">		<span class="keyword">return</span> <span class="literal">nil</span>, err</span><br><span class="line">	&#125;</span><br><span class="line">	signed := xor(token, h.initNonce)</span><br><span class="line">	signature, err := crypto.Sign(signed, h.randomPrivKey.ExportECDSA())</span><br><span class="line">	<span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">		<span class="keyword">return</span> <span class="literal">nil</span>, err</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	msg := <span class="built_in">new</span>(authMsgV4)</span><br><span class="line">	<span class="built_in">copy</span>(msg.Signature[:], signature)</span><br><span class="line">	<span class="built_in">copy</span>(msg.InitiatorPubkey[:], crypto.FromECDSAPub(&amp;prv.PublicKey)[<span class="number">1</span>:])</span><br><span class="line">	<span class="built_in">copy</span>(msg.Nonce[:], h.initNonce)</span><br><span class="line">	msg.Version = <span class="number">4</span></span><br><span class="line">	<span class="keyword">return</span> msg, <span class="literal">nil</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>首先随机一个随机数，长度32字节。然后构造一对秘钥用于ECDH，然后计算静态共享秘钥（使用自己私钥和对方公钥，按照ECDH算法）。接着将共享秘钥和自己的随机数异或，并将结果用ecc算法签名。字后构造出auth消息，包含签名值，自己的公钥，自己的随机数，以及版本号。</p>
+<p>生成auth消息后，按<a href="https://eips.ethereum.org/EIPS/eip-8" target="_blank" rel="noopener">EIP8</a>协议进行封装<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">sealEIP8</span><span class="params">(msg <span class="keyword">interface</span>&#123;&#125;, h *encHandshake)</span> <span class="params">([]<span class="keyword">byte</span>, error)</span></span> &#123;</span><br><span class="line">	buf := <span class="built_in">new</span>(bytes.Buffer)</span><br><span class="line">	<span class="keyword">if</span> err := rlp.Encode(buf, msg); err != <span class="literal">nil</span> &#123;</span><br><span class="line">		<span class="keyword">return</span> <span class="literal">nil</span>, err</span><br><span class="line">	&#125;</span><br><span class="line">	</span><br><span class="line">	pad := padSpace[:mrand.Intn(<span class="built_in">len</span>(padSpace)<span class="number">-100</span>)+<span class="number">100</span>]</span><br><span class="line">	buf.Write(pad)</span><br><span class="line">	prefix := <span class="built_in">make</span>([]<span class="keyword">byte</span>, <span class="number">2</span>)</span><br><span class="line">	binary.BigEndian.PutUint16(prefix, <span class="keyword">uint16</span>(buf.Len()+eciesOverhead))</span><br><span class="line"></span><br><span class="line">	enc, err := ecies.Encrypt(rand.Reader, h.remote, buf.Bytes(), <span class="literal">nil</span>, prefix)</span><br><span class="line">	<span class="keyword">return</span> <span class="built_in">append</span>(prefix, enc...), err</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>可见先进行rlp编码，然后进行填充随机长度的内容（最少100字节），然后计算长度前缀，前缀表示长度，包含填充后内容长度以及加上公钥初始化向量及MAC消息后的总长度。最后对内容进行加密（加密流程见前文ECIES加密），最后在头部补上前缀得到最后封装数据。</p>
+<p>继续回到initiatorEncHandshake一切消息准备完毕后，通过连接发送握手包，下面我们分析收到一个握手请求时的逻辑。</p>
+<p>同样还是doEncHandshake，收到一个连接请求时，也就是加密握手包，此时dial为空，执行receiverEncHandshake：<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">receiverEncHandshake</span><span class="params">(conn io.ReadWriter, prv *ecdsa.PrivateKey)</span> <span class="params">(s secrets, err error)</span></span> &#123;</span><br><span class="line">	authMsg := <span class="built_in">new</span>(authMsgV4)</span><br><span class="line">	authPacket, err := readHandshakeMsg(authMsg, encAuthMsgLen, prv, conn)</span><br><span class="line">	<span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">		<span class="keyword">return</span> s, err</span><br><span class="line">	&#125;</span><br><span class="line">	h := <span class="built_in">new</span>(encHandshake)</span><br><span class="line">	<span class="keyword">if</span> err := h.handleAuthMsg(authMsg, prv); err != <span class="literal">nil</span> &#123;</span><br><span class="line">		<span class="keyword">return</span> s, err</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	authRespMsg, err := h.makeAuthResp()</span><br><span class="line">	<span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">		<span class="keyword">return</span> s, err</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">var</span> authRespPacket []<span class="keyword">byte</span></span><br><span class="line">	<span class="keyword">if</span> authMsg.gotPlain &#123;</span><br><span class="line">		authRespPacket, err = authRespMsg.sealPlain(h)</span><br><span class="line">	&#125; <span class="keyword">else</span> &#123;</span><br><span class="line">		authRespPacket, err = sealEIP8(authRespMsg, h)</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">		<span class="keyword">return</span> s, err</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">if</span> _, err = conn.Write(authRespPacket); err != <span class="literal">nil</span> &#123;</span><br><span class="line">		<span class="keyword">return</span> s, err</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">return</span> h.secrets(authPacket, authRespPacket)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>这个方法表示接受到一个加密握手，首先调用readHandshakeMsg读取信息：这里会尝试用两种标准进行解码，一种是我们前面讲的对握手包进行了加密，这里直接尝试解密，否则进行其他尝试，具体就不细讲了，最后返回所读到的信息，同时解码authMsg。</p>
+<p>然后创建了一个encHandshake对象，执行handleAuthMsg方法：<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(h *encHandshake)</span> <span class="title">handleAuthMsg</span><span class="params">(msg *authMsgV4, prv *ecdsa.PrivateKey)</span> <span class="title">error</span></span> &#123;</span><br><span class="line">	rpub, err := importPublicKey(msg.InitiatorPubkey[:])</span><br><span class="line">	<span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">		<span class="keyword">return</span> err</span><br><span class="line">	&#125;</span><br><span class="line">	h.initNonce = msg.Nonce[:]</span><br><span class="line">	h.remote = rpub</span><br><span class="line"></span><br><span class="line">	<span class="keyword">if</span> h.randomPrivKey == <span class="literal">nil</span> &#123;</span><br><span class="line">		h.randomPrivKey, err = ecies.GenerateKey(rand.Reader, crypto.S256(), <span class="literal">nil</span>)</span><br><span class="line">		<span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">			<span class="keyword">return</span> err</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	token, err := h.staticSharedSecret(prv)</span><br><span class="line">	<span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">		<span class="keyword">return</span> err</span><br><span class="line">	&#125;</span><br><span class="line">	signedMsg := xor(token, h.initNonce)</span><br><span class="line">	remoteRandomPub, err := secp256k1.RecoverPubkey(signedMsg, msg.Signature[:])</span><br><span class="line">	<span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">		<span class="keyword">return</span> err</span><br><span class="line">	&#125;</span><br><span class="line">	h.remoteRandomPub, _ = importPublicKey(remoteRandomPub)</span><br><span class="line">	<span class="keyword">return</span> <span class="literal">nil</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>这个方法是用来处理发起方发送的auth消息。获取读取了发起方的公钥、随机数，同时自己也生成了随机的密钥对用于ECDH，之后利用自己密钥和远端公钥生成静态共享秘密，并利用该结果与对方的随机数异或，然后验证签名并得到远端随机公钥</p>
+<p>处理完远端的消息收，开始构造响应：<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(h *encHandshake)</span> <span class="title">makeAuthResp</span><span class="params">()</span> <span class="params">(msg *authRespV4, err error)</span></span> &#123;</span><br><span class="line">	h.respNonce = <span class="built_in">make</span>([]<span class="keyword">byte</span>, shaLen)</span><br><span class="line">	<span class="keyword">if</span> _, err = rand.Read(h.respNonce); err != <span class="literal">nil</span> &#123;</span><br><span class="line">		<span class="keyword">return</span> <span class="literal">nil</span>, err</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	msg = <span class="built_in">new</span>(authRespV4)</span><br><span class="line">	<span class="built_in">copy</span>(msg.Nonce[:], h.respNonce)</span><br><span class="line">	<span class="built_in">copy</span>(msg.RandomPubkey[:], exportPubkey(&amp;h.randomPrivKey.PublicKey))</span><br><span class="line">	msg.Version = <span class="number">4</span></span><br><span class="line">	<span class="keyword">return</span> msg, <span class="literal">nil</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>响应主要包含自己的随机数，自己的随机公钥和版本号。然后对消息进行封装，根据最新版本调用的是sealEIP8方法，前文已进行过分析。封装后发送给发起人。此时对于接收方握手已经完成，可以构造秘密：<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(h *encHandshake)</span> <span class="title">secrets</span><span class="params">(auth, authResp []<span class="keyword">byte</span>)</span> <span class="params">(secrets, error)</span></span> &#123;</span><br><span class="line">	ecdheSecret, err := h.randomPrivKey.GenerateShared(h.remoteRandomPub, sskLen, sskLen)</span><br><span class="line">	<span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">		<span class="keyword">return</span> secrets&#123;&#125;, err</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	sharedSecret := crypto.Keccak256(ecdheSecret, crypto.Keccak256(h.respNonce, h.initNonce))</span><br><span class="line">	aesSecret := crypto.Keccak256(ecdheSecret, sharedSecret)</span><br><span class="line">	s := secrets&#123;</span><br><span class="line">		Remote: h.remote,</span><br><span class="line">		AES:    aesSecret,</span><br><span class="line">		MAC:    crypto.Keccak256(ecdheSecret, aesSecret),</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	mac1 := sha3.NewLegacyKeccak256()</span><br><span class="line">	mac1.Write(xor(s.MAC, h.respNonce))</span><br><span class="line">	mac1.Write(auth)</span><br><span class="line">	mac2 := sha3.NewLegacyKeccak256()</span><br><span class="line">	mac2.Write(xor(s.MAC, h.initNonce))</span><br><span class="line">	mac2.Write(authResp)</span><br><span class="line">	<span class="keyword">if</span> h.initiator &#123;</span><br><span class="line">		s.EgressMAC, s.IngressMAC = mac1, mac2</span><br><span class="line">	&#125; <span class="keyword">else</span> &#123;</span><br><span class="line">		s.EgressMAC, s.IngressMAC = mac2, mac1</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">return</span> s, <span class="literal">nil</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>首先利用自己的随机私钥和远端的随机公钥生成共享秘密。然后利用该秘密和双方的随机数生成最终共享秘密。利用共享秘密和最终共享秘密生成aes秘密，再利用aes秘密个共享秘密生成mac秘密，最后远端公钥和aes、mac秘密构成一个主秘密。最后如前文介绍额方法配置EgressMAC和IngressMAC</p>
+<p>在接收方发送完响应后，再回到发起人的角度，在initiatorEncHandshake方法中<br>readHandshakeMsg方法读到一个响应，这个逻辑不在重复，之后处理这个响应：<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(h *encHandshake)</span> <span class="title">handleAuthResp</span><span class="params">(msg *authRespV4)</span> <span class="params">(err error)</span></span> &#123;</span><br><span class="line">	h.respNonce = msg.Nonce[:]</span><br><span class="line">	h.remoteRandomPub, err = importPublicKey(msg.RandomPubkey[:])</span><br><span class="line">	<span class="keyword">return</span> err</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>很简单就是获取对方的随机数和随机公钥，到这里加密握手，实际上是密钥交换的所有信息都交换完毕，双方知晓对方的随机数和随机公钥，可以独立的构建主秘密，所以在initiatorEncHandshake最后发起人也调用secrets构建了主秘密。</p>
+<p>最后回到doEncHandshake，在生成主秘密后，构建了rlpx帧的读写器，主要是构造了用于aes和hamc的加密器（都是ctr模式，初始化向量全为0），最后构造了rlpxFrameRW对象。最后将远端公钥返回。</p>
+<blockquote>
+<p>前面握手协议已经完成，中间涉及了许多秘密和密钥，我们这里来梳理一下：</p>
+<ol>
+<li>静态共享秘密：利用的是自己的私钥和对方的公钥生成，二者按照ECDH算法计算后结果一致，由于用的是自己固定的密钥对，无论在何时这个秘密都是固定的，所以称为静态共享秘密，它的作用是与随机数进行异或后进行签名，进行身份认证，因为只有是公钥对应的私钥的持有人才能计算出和发起方一致的秘密。</li>
+<li>随机密钥：在握手时双方都会生成一对随机密钥，用于后续通信的加密。</li>
+<li>共享秘密：和静态共享秘密类似，只不过是用双方随机生成的密钥对按照ECDH算法生成，这样保证了即使密钥泄漏，也只影响本次通信。</li>
+<li>最终共享秘密：为了保证密钥的随机性，现将二者随机数拼接后进行摘要，然后将结果与共享秘密拼接后再进行摘要得到最终秘密。</li>
+<li>在发起人对消息加密时，按照的就是前文ecies的流程，通过对方公钥与自己一个随机数生成秘密S，再利用KDF函数生成AES和HMAC要用的密钥。当然为了保护自己的随机数，发起方随机生成了一对密钥，并将公钥发送，用于对方计算S</li>
+</ol>
+</blockquote>
+<p>总结一下加密握手，实际上就是密钥交换，为了构建通信时的密钥，需要知道对方的随机公钥和随机数。最开始发起人只知道接受者的公钥，所以根据ECIES算法传递了自己的随机公钥和随机数，接收方收到之后自己也生成了随机公钥的随机数，测试接收方以及能构建主秘密，发起人收到响应后，根据接收方的随机公钥的随机数同样也能构建一样的主秘密。</p>
+<h2 id="doProtoHandshake"><a href="#doProtoHandshake" class="headerlink" title="doProtoHandshake"></a>doProtoHandshake</h2><p>在p2p服务的start逻辑中，紧随加密握手之后进行了协议握手<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(t *rlpx)</span> <span class="title">doProtoHandshake</span><span class="params">(our *protoHandshake)</span> <span class="params">(their *protoHandshake, err error)</span></span> &#123;</span><br><span class="line">	werr := <span class="built_in">make</span>(<span class="keyword">chan</span> error, <span class="number">1</span>)</span><br><span class="line">	<span class="keyword">go</span> <span class="function"><span class="keyword">func</span><span class="params">()</span></span> &#123; werr &lt;- Send(t.rw, handshakeMsg, our) &#125;()</span><br><span class="line">	<span class="keyword">if</span> their, err = readProtocolHandshake(t.rw, our); err != <span class="literal">nil</span> &#123;</span><br><span class="line">		&lt;-werr <span class="comment">// make sure the write terminates too</span></span><br><span class="line">		<span class="keyword">return</span> <span class="literal">nil</span>, err</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">if</span> err := &lt;-werr; err != <span class="literal">nil</span> &#123;</span><br><span class="line">		<span class="keyword">return</span> <span class="literal">nil</span>, fmt.Errorf(<span class="string">"write error: %v"</span>, err)</span><br><span class="line">	&#125;</span><br><span class="line">	</span><br><span class="line">	t.rw.snappy = their.Version &gt;= snappyProtocolVersion</span><br><span class="line"></span><br><span class="line">	<span class="keyword">return</span> their, <span class="literal">nil</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>传入的对象是protoHandshake，在sserver的etupLocalNode方法中构建了该对象，存储了自己的协议版本，服务名，ID和自己所有协议信息。在doProtoHandshake中首先调用了Send方法进行发送<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">Send</span><span class="params">(w MsgWriter, msgcode <span class="keyword">uint64</span>, data <span class="keyword">interface</span>&#123;&#125;)</span> <span class="title">error</span></span> &#123;</span><br><span class="line">	size, r, err := rlp.EncodeToReader(data)</span><br><span class="line">	<span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">		<span class="keyword">return</span> err</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">return</span> w.WriteMsg(Msg&#123;Code: msgcode, Size: <span class="keyword">uint32</span>(size), Payload: r&#125;)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>首先用rlp进行编码，然后将消息码（握手消息代码为0），消息长度和消息内容封装，并用MsgWriter的WriteMsg进行发送。MsgWriter是一个接口，在doProtoHandshake实际的执行者是rlpxFrameRW，即在加密握手最后构造的对象，它的WriteMsg实现如下：<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(rw *rlpxFrameRW)</span> <span class="title">WriteMsg</span><span class="params">(msg Msg)</span> <span class="title">error</span></span> &#123;</span><br><span class="line">	ptype, _ := rlp.EncodeToBytes(msg.Code)</span><br><span class="line"></span><br><span class="line">	<span class="keyword">if</span> rw.snappy &#123;</span><br><span class="line">		<span class="keyword">if</span> msg.Size &gt; maxUint24 &#123;</span><br><span class="line">			<span class="keyword">return</span> errPlainMessageTooLarge</span><br><span class="line">		&#125;</span><br><span class="line">		payload, _ := ioutil.ReadAll(msg.Payload)</span><br><span class="line">		payload = snappy.Encode(<span class="literal">nil</span>, payload)</span><br><span class="line"></span><br><span class="line">		msg.Payload = bytes.NewReader(payload)</span><br><span class="line">		msg.Size = <span class="keyword">uint32</span>(<span class="built_in">len</span>(payload))</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	headbuf := <span class="built_in">make</span>([]<span class="keyword">byte</span>, <span class="number">32</span>)</span><br><span class="line">	fsize := <span class="keyword">uint32</span>(<span class="built_in">len</span>(ptype)) + msg.Size</span><br><span class="line">	<span class="keyword">if</span> fsize &gt; maxUint24 &#123;</span><br><span class="line">		<span class="keyword">return</span> errors.New(<span class="string">"message size overflows uint24"</span>)</span><br><span class="line">	&#125;</span><br><span class="line">	putInt24(fsize, headbuf) <span class="comment">// <span class="doctag">TODO:</span> check overflow</span></span><br><span class="line">	<span class="built_in">copy</span>(headbuf[<span class="number">3</span>:], zeroHeader)</span><br><span class="line">	rw.enc.XORKeyStream(headbuf[:<span class="number">16</span>], headbuf[:<span class="number">16</span>]) <span class="comment">// first half is now encrypted</span></span><br><span class="line"></span><br><span class="line">	<span class="built_in">copy</span>(headbuf[<span class="number">16</span>:], updateMAC(rw.egressMAC, rw.macCipher, headbuf[:<span class="number">16</span>]))</span><br><span class="line">	<span class="keyword">if</span> _, err := rw.conn.Write(headbuf); err != <span class="literal">nil</span> &#123;</span><br><span class="line">		<span class="keyword">return</span> err</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	tee := cipher.StreamWriter&#123;S: rw.enc, W: io.MultiWriter(rw.conn, rw.egressMAC)&#125;</span><br><span class="line">	<span class="keyword">if</span> _, err := tee.Write(ptype); err != <span class="literal">nil</span> &#123;</span><br><span class="line">		<span class="keyword">return</span> err</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">if</span> _, err := io.Copy(tee, msg.Payload); err != <span class="literal">nil</span> &#123;</span><br><span class="line">		<span class="keyword">return</span> err</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">if</span> padding := fsize % <span class="number">16</span>; padding &gt; <span class="number">0</span> &#123;</span><br><span class="line">		<span class="keyword">if</span> _, err := tee.Write(zero16[:<span class="number">16</span>-padding]); err != <span class="literal">nil</span> &#123;</span><br><span class="line">			<span class="keyword">return</span> err</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	fmacseed := rw.egressMAC.Sum(<span class="literal">nil</span>)</span><br><span class="line">	mac := updateMAC(rw.egressMAC, rw.macCipher, fmacseed)</span><br><span class="line">	_, err := rw.conn.Write(mac)</span><br><span class="line">	<span class="keyword">return</span> err</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>第一步是对msg的code字段进行rlp编码，之后如果压缩可用的话对消息进行压缩，然后更新message的内容和大小。</p>
+<p>接下来是头部的构造。首先计算帧大小，包括刚才编码的code字段长度和msg的大小，不过最大长度不能大于^uint32(0) &gt;&gt; 8 (即2^24 - 1)。接下来用3个字节存储长度(大端模式)，之后填充{0xC2, 0x80, 0x80}这3个字节。之后对前16个字节进行加密（注意XORKeyStream就是aes的ctr模式加密算法）</p>
+<p>再往下是写入头的消息认证码，调用updateMAC方法<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">updateMAC</span><span class="params">(mac hash.Hash, block cipher.Block, seed []<span class="keyword">byte</span>)</span> []<span class="title">byte</span></span> &#123;</span><br><span class="line">	aesbuf := <span class="built_in">make</span>([]<span class="keyword">byte</span>, aes.BlockSize)</span><br><span class="line">	block.Encrypt(aesbuf, mac.Sum(<span class="literal">nil</span>))</span><br><span class="line">	<span class="keyword">for</span> i := <span class="keyword">range</span> aesbuf &#123;</span><br><span class="line">		aesbuf[i] ^= seed[i]</span><br><span class="line">	&#125;</span><br><span class="line">	mac.Write(aesbuf)</span><br><span class="line">	<span class="keyword">return</span> mac.Sum(<span class="literal">nil</span>)[:<span class="number">16</span>]</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>updateMAC就和前文mac那一节中介绍的一样。会多次用到，这里需要三个参数，第一个是要更新的hash，第二个是加密方法，第三个是种子。首先对hash中当前数据计算hash值然后进行加密，接下来把加密值与种子逐字节的异或，并将结果写入hash，更新完毕，同时计算并返回更新后的hash值。这这段代码中，要更新的是egressMAC，种子是刚才加密过的头数据。</p>
+<p>回到WriteMsg中，将返回的hash值从headbuf的第16字节开始写入。到这里头部构造完成，是根据前文帧的定义包含了头部数据密文及头部数据hash。然后通过conn的write发送出去。conn就是最初构造rlpx传入的网络连接。</p>
+<p>接下来开始处理帧主体内容，先是构造了StreamWriter，所有传入的数据都会被加密处理，它的writer是一个MultiWriter，包含了conn和egressMAC两个写对象，表示同一份数据会被两个对象同时写。接下来首先写入ptype也就是经rlp编码过msg.Code，之后写入msg的Payload就是帧内容。最后写入填充内容，保证数据是16的整数倍，填充的内容全为0。之后又进行了一次mac更新，依旧是更新egressMAC。种子是刚才持续写入数据后计算出的hash值。最后利用刚才网络通道将mac值发送出去。</p>
+<p>上面几步就完成了前文帧定义中的几部分数据的构造与发送。再回到doProtoHandshake中，由于发送时异步进行的，在发送同时进行了readProtocolHandshake操作<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">readProtocolHandshake</span><span class="params">(rw MsgReader, our *protoHandshake)</span> <span class="params">(*protoHandshake, error)</span></span> &#123;</span><br><span class="line">	msg, err := rw.ReadMsg()</span><br><span class="line">	<span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">		<span class="keyword">return</span> <span class="literal">nil</span>, err</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">if</span> msg.Size &gt; baseProtocolMaxMsgSize &#123;</span><br><span class="line">		<span class="keyword">return</span> <span class="literal">nil</span>, fmt.Errorf(<span class="string">"message too big"</span>)</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">if</span> msg.Code == discMsg &#123;</span><br><span class="line">		<span class="keyword">var</span> reason [<span class="number">1</span>]DiscReason</span><br><span class="line">		rlp.Decode(msg.Payload, &amp;reason)</span><br><span class="line">		<span class="keyword">return</span> <span class="literal">nil</span>, reason[<span class="number">0</span>]</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">if</span> msg.Code != handshakeMsg &#123;</span><br><span class="line">		<span class="keyword">return</span> <span class="literal">nil</span>, fmt.Errorf(<span class="string">"expected handshake, got %x"</span>, msg.Code)</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">var</span> hs protoHandshake</span><br><span class="line">	<span class="keyword">if</span> err := msg.Decode(&amp;hs); err != <span class="literal">nil</span> &#123;</span><br><span class="line">		<span class="keyword">return</span> <span class="literal">nil</span>, err</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">if</span> <span class="built_in">len</span>(hs.ID) != <span class="number">64</span> || !bitutil.TestBytes(hs.ID) &#123;</span><br><span class="line">		<span class="keyword">return</span> <span class="literal">nil</span>, DiscInvalidIdentity</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">return</span> &amp;hs, <span class="literal">nil</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>这是读取对方的握手包。首先调用ReadMsg读取信息，依旧用的是rlpxFrameRW的ReadMsg方法<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(rw *rlpxFrameRW)</span> <span class="title">ReadMsg</span><span class="params">()</span> <span class="params">(msg Msg, err error)</span></span> &#123;</span><br><span class="line">	headbuf := <span class="built_in">make</span>([]<span class="keyword">byte</span>, <span class="number">32</span>)</span><br><span class="line">	<span class="keyword">if</span> _, err := io.ReadFull(rw.conn, headbuf); err != <span class="literal">nil</span> &#123;</span><br><span class="line">		<span class="keyword">return</span> msg, err</span><br><span class="line">	&#125;</span><br><span class="line">	</span><br><span class="line">	shouldMAC := updateMAC(rw.ingressMAC, rw.macCipher, headbuf[:<span class="number">16</span>])</span><br><span class="line">	<span class="keyword">if</span> !hmac.Equal(shouldMAC, headbuf[<span class="number">16</span>:]) &#123;</span><br><span class="line">		<span class="keyword">return</span> msg, errors.New(<span class="string">"bad header MAC"</span>)</span><br><span class="line">	&#125;</span><br><span class="line">	rw.dec.XORKeyStream(headbuf[:<span class="number">16</span>], headbuf[:<span class="number">16</span>]) <span class="comment">// first half is now decrypted</span></span><br><span class="line">	fsize := readInt24(headbuf)</span><br><span class="line">	</span><br><span class="line">	<span class="keyword">var</span> rsize = fsize </span><br><span class="line">	<span class="keyword">if</span> padding := fsize % <span class="number">16</span>; padding &gt; <span class="number">0</span> &#123;</span><br><span class="line">		rsize += <span class="number">16</span> - padding</span><br><span class="line">	&#125;</span><br><span class="line">	framebuf := <span class="built_in">make</span>([]<span class="keyword">byte</span>, rsize)</span><br><span class="line">	<span class="keyword">if</span> _, err := io.ReadFull(rw.conn, framebuf); err != <span class="literal">nil</span> &#123;</span><br><span class="line">		<span class="keyword">return</span> msg, err</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	</span><br><span class="line">	rw.ingressMAC.Write(framebuf)</span><br><span class="line">	fmacseed := rw.ingressMAC.Sum(<span class="literal">nil</span>)</span><br><span class="line">	<span class="keyword">if</span> _, err := io.ReadFull(rw.conn, headbuf[:<span class="number">16</span>]); err != <span class="literal">nil</span> &#123;</span><br><span class="line">		<span class="keyword">return</span> msg, err</span><br><span class="line">	&#125;</span><br><span class="line">	shouldMAC = updateMAC(rw.ingressMAC, rw.macCipher, fmacseed)</span><br><span class="line">	<span class="keyword">if</span> !hmac.Equal(shouldMAC, headbuf[:<span class="number">16</span>]) &#123;</span><br><span class="line">		<span class="keyword">return</span> msg, errors.New(<span class="string">"bad frame MAC"</span>)</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	rw.dec.XORKeyStream(framebuf, framebuf)</span><br><span class="line"></span><br><span class="line">	content := bytes.NewReader(framebuf[:fsize])</span><br><span class="line">	<span class="keyword">if</span> err := rlp.Decode(content, &amp;msg.Code); err != <span class="literal">nil</span> &#123;</span><br><span class="line">		<span class="keyword">return</span> msg, err</span><br><span class="line">	&#125;</span><br><span class="line">	msg.Size = <span class="keyword">uint32</span>(content.Len())</span><br><span class="line">	msg.Payload = content</span><br><span class="line"></span><br><span class="line">	<span class="keyword">if</span> rw.snappy &#123;</span><br><span class="line">		payload, err := ioutil.ReadAll(msg.Payload)</span><br><span class="line">		<span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">			<span class="keyword">return</span> msg, err</span><br><span class="line">		&#125;</span><br><span class="line">		size, err := snappy.DecodedLen(payload)</span><br><span class="line">		<span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">			<span class="keyword">return</span> msg, err</span><br><span class="line">		&#125;</span><br><span class="line">		<span class="keyword">if</span> size &gt; <span class="keyword">int</span>(maxUint24) &#123;</span><br><span class="line">			<span class="keyword">return</span> msg, errPlainMessageTooLarge</span><br><span class="line">		&#125;</span><br><span class="line">		payload, err = snappy.Decode(<span class="literal">nil</span>, payload)</span><br><span class="line">		<span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">			<span class="keyword">return</span> msg, err</span><br><span class="line">		&#125;</span><br><span class="line">		msg.Size, msg.Payload = <span class="keyword">uint32</span>(size), bytes.NewReader(payload)</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">return</span> msg, <span class="literal">nil</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>第一步先从流中读取32字节，就是头部数据，根据刚才发送数据的分析，包括16字节的加密信息和16字节的mac。读取后根据以前16字节信息为种子更新ingressMAC验证数据时候有误，无误的话对前16字节解密，同时读取前3字节信息，还原出长度信息。由于填充的存在还要计算出发送方填充了多少数据，计算出实际长度。下面就从流中读取帧主体信息。同样也将信息写入ingressMAC，并计算出hash值后作为种子更新一次ingressMAC，与数据流的最后16字节也就是帧mac进行对比看数据是否被篡改。确认无误后解密数据。在去除填充数据后，先解码出code信息，然后填充msg其他字段，另外如果压缩可用的话，还要进行解压操作。最后返回message对象。</p>
+<p>读取出正确的msg后，回到readProtocolHandshake中，下面就是根据不同的code执行不同的逻辑。这里进区分了为discMsg，不为handshakeMsg以及其他（就是code是handshakeMsg）的情况。我们先看是handshakeMsg的情况，就是刚才我们分析的发送代码发送的code。第一步当然是解码消息，获得protoHandshake对象<br>，进行简单的检查后返回。这一步是获得了对象p2p所有协议的信息。</p>
+<p>在回到doProtoHandshake中，读取到信息后，如果没有错误，则等待Send的完成，如果发送也没有错误，则配置一下snappy，条件就是对方的版本大于5，如果成立以后的信息都会进行压缩。最后返回对方的握手信息，逻辑又回到p2p的server中。这样协议握手也完成了。</p>
+<p>在rlpx中也提供了ReadMsg和WriteMsg方法，不过具体实现也是直接调用rlpxFrameRW的读写，前面已经分析过了这里不再重复。</p>
+<blockquote>
+<p>题图来自unsplash：<a href="https://unsplash.com/photos/ZIlG-_lwXbg" target="_blank" rel="noopener">https://unsplash.com/photos/ZIlG-_lwXbg</a></p>
+</blockquote>
+
+      
+    </div>
+
+    
+
+    
+    
+    
+
+    
+
+    
+      
+    
+    
+      <div>
+        <div style="padding: 10px 0; margin: 20px auto; width: 90%; text-align: center;">
+  <div>谢谢你请我吃糖</div>
+  <button id="rewardButton" disable="enable" onclick="var qr = document.getElementById('QR'); if (qr.style.display === 'none') {qr.style.display='block';} else {qr.style.display='none'}">
+    <span>打赏</span>
+  </button>
+  <div id="QR" style="display: none;">
+
+    
+      <div id="wechat" style="display: inline-block">
+        <img id="wechat_qr" src="/assets/img/wechatpay.jpg" alt="AmorFati 微信支付">
+        <p>微信支付</p>
+      </div>
+    
+
+    
+      <div id="alipay" style="display: inline-block">
+        <img id="alipay_qr" src="/assets/img/alipay.jpg" alt="AmorFati 支付宝">
+        <p>支付宝</p>
+      </div>
+    
+
+    
+
+  </div>
+</div>
+
+      </div>
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/go/" rel="tag"># go</a>
+          
+            <a href="/tags/区块链/" rel="tag"># 区块链</a>
+          
+            <a href="/tags/以太坊/" rel="tag"># 以太坊</a>
+          
+            <a href="/tags/go-ethereum/" rel="tag"># go-ethereum</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2019/04/15/go-ethereum中p2p-discover源码学习/" rel="next" title="go-ethereum中p2p-discover源码学习">
+                <i class="fa fa-chevron-left"></i> go-ethereum中p2p-discover源码学习
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+  </div>
+
+
+          </div>
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image" src="/assets/img/icon.jpg" alt="AmorFati">
+            
+              <p class="site-author-name" itemprop="name">AmorFati</p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          
+            <nav class="site-state motion-element">
+              
+                <div class="site-state-item site-state-posts">
+                
+                  <a href="/archives/">
+                
+                    <span class="site-state-item-count">28</span>
+                    <span class="site-state-item-name">日志</span>
+                  </a>
+                </div>
+              
+
+              
+                
+                
+                <div class="site-state-item site-state-categories">
+                  <a href="/categories/index.html">
+                    
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">6</span>
+                    <span class="site-state-item-name">分类</span>
+                  </a>
+                </div>
+              
+
+              
+                
+                
+                <div class="site-state-item site-state-tags">
+                  <a href="/tags/index.html">
+                    
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">11</span>
+                    <span class="site-state-item-name">标签</span>
+                  </a>
+                </div>
+              
+            </nav>
+          
+
+          
+
+          
+            <div class="links-of-author motion-element">
+              
+                <span class="links-of-author-item">
+                  
+                  
+                    
+                  
+                  
+                    
+                  
+                  <a href="https://github.com/chenyaoyang" title="GitHub &rarr; https://github.com/chenyaoyang" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i>GitHub</a>
+                </span>
+              
+                <span class="links-of-author-item">
+                  
+                  
+                    
+                  
+                  
+                    
+                  
+                  <a href="mailto:chenyang4346@foxmail.com" title="E-Mail &rarr; mailto:chenyang4346@foxmail.com" rel="noopener" target="_blank"><i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+                </span>
+              
+                <span class="links-of-author-item">
+                  
+                  
+                    
+                  
+                  
+                    
+                  
+                  <a href="https://www.jianshu.com/u/52c1bec4559c" title="简书 &rarr; https://www.jianshu.com/u/52c1bec4559c" rel="noopener" target="_blank"><i class="fa fa-fw fa-globe"></i>简书</a>
+                </span>
+              
+            </div>
+          
+
+          
+
+          
+          
+
+          
+            
+          
+          
+
+        </div>
+      </div>
+
+      
+      <!--noindex-->
+        <div class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+            
+            
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#ECIES加密"><span class="nav-number">1.</span> <span class="nav-text">ECIES加密</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#握手协议"><span class="nav-number">2.</span> <span class="nav-text">握手协议</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#帧"><span class="nav-number">3.</span> <span class="nav-text">帧</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#MAC"><span class="nav-number">4.</span> <span class="nav-text">MAC</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#源码"><span class="nav-number">5.</span> <span class="nav-text">源码</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#doEncHandshake"><span class="nav-number">5.1.</span> <span class="nav-text">doEncHandshake</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#doProtoHandshake"><span class="nav-number">5.2.</span> <span class="nav-text">doProtoHandshake</span></a></li></ol></li></ol></div>
+            
+
+          </div>
+        </div>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; 2018 – <span itemprop="copyrightYear">2019</span>
+  <span class="with-love" id="animate">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">AmorFati</span>
+
+  
+
+  
+</div>
+
+
+  <div class="powered-by">由 <a href="https://hexo.io" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v3.8.0</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 – <a href="https://theme-next.org" class="theme-link" rel="noopener" target="_blank">NexT.Pisces</a> v6.6.0</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+    
+
+    
+  </div>
+
+  
+
+<script>
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+
+  
+
+
+  <script src="/js/src/utils.js?v=6.6.0"></script>
+
+  <script src="/js/src/motion.js?v=6.6.0"></script>
+
+
+
+  
+  
+
+
+  <script src="/js/src/affix.js?v=6.6.0"></script>
+
+  <script src="/js/src/schemes/pisces.js?v=6.6.0"></script>
+
+
+
+  
+  <script src="/js/src/scrollspy.js?v=6.6.0"></script>
+<script src="/js/src/post-details.js?v=6.6.0"></script>
+
+
+
+  
+
+
+  <script src="/js/src/bootstrap.js?v=6.6.0"></script>
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  <script>
+    // Popup Window;
+    var isfetched = false;
+    var isXml = true;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length === 0) {
+      search_path = "search.xml";
+    } else if (/json$/i.test(search_path)) {
+      isXml = false;
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    var onPopupClose = function (e) {
+      $('.popup').hide();
+      $('#local-search-input').val('');
+      $('.search-result-list').remove();
+      $('#no-result').remove();
+      $(".local-search-pop-overlay").remove();
+      $('body').css('overflow', '');
+    }
+
+    function proceedsearch() {
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay"></div>')
+        .css('overflow', 'hidden');
+      $('.search-popup-overlay').click(onPopupClose);
+      $('.popup').toggle();
+      var $localSearchInput = $('#local-search-input');
+      $localSearchInput.attr("autocapitalize", "none");
+      $localSearchInput.attr("autocorrect", "off");
+      $localSearchInput.focus();
+    }
+
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+      'use strict';
+
+      // start loading animation
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay">' +
+          '<div id="search-loading-icon">' +
+          '<i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>' +
+          '</div>' +
+          '</div>')
+        .css('overflow', 'hidden');
+      $("#search-loading-icon").css('margin', '20% auto 0 auto').css('text-align', 'center');
+
+      
+
+      $.ajax({
+        url: path,
+        dataType: isXml ? "xml" : "json",
+        async: true,
+        success: function(res) {
+          // get the contents from search data
+          isfetched = true;
+          $('.popup').detach().appendTo('.header-inner');
+          var datas = isXml ? $("entry", res).map(function() {
+            return {
+              title: $("title", this).text(),
+              content: $("content",this).text(),
+              url: $("url" , this).text()
+            };
+          }).get() : res;
+          var input = document.getElementById(search_id);
+          var resultContent = document.getElementById(content_id);
+          var inputEventFunction = function() {
+            var searchText = input.value.trim().toLowerCase();
+            var keywords = searchText.split(/[\s\-]+/);
+            if (keywords.length > 1) {
+              keywords.push(searchText);
+            }
+            var resultItems = [];
+            if (searchText.length > 0) {
+              // perform local searching
+              datas.forEach(function(data) {
+                var isMatch = false;
+                var hitCount = 0;
+                var searchTextCount = 0;
+                var title = data.title.trim();
+                var titleInLowerCase = title.toLowerCase();
+                var content = data.content.trim().replace(/<[^>]+>/g,"");
+                
+                var contentInLowerCase = content.toLowerCase();
+                var articleUrl = decodeURIComponent(data.url);
+                var indexOfTitle = [];
+                var indexOfContent = [];
+                // only match articles with not empty titles
+                if(title != '') {
+                  keywords.forEach(function(keyword) {
+                    function getIndexByWord(word, text, caseSensitive) {
+                      var wordLen = word.length;
+                      if (wordLen === 0) {
+                        return [];
+                      }
+                      var startPosition = 0, position = [], index = [];
+                      if (!caseSensitive) {
+                        text = text.toLowerCase();
+                        word = word.toLowerCase();
+                      }
+                      while ((position = text.indexOf(word, startPosition)) > -1) {
+                        index.push({position: position, word: word});
+                        startPosition = position + wordLen;
+                      }
+                      return index;
+                    }
+
+                    indexOfTitle = indexOfTitle.concat(getIndexByWord(keyword, titleInLowerCase, false));
+                    indexOfContent = indexOfContent.concat(getIndexByWord(keyword, contentInLowerCase, false));
+                  });
+                  if (indexOfTitle.length > 0 || indexOfContent.length > 0) {
+                    isMatch = true;
+                    hitCount = indexOfTitle.length + indexOfContent.length;
+                  }
+                }
+
+                // show search results
+
+                if (isMatch) {
+                  // sort index by position of keyword
+
+                  [indexOfTitle, indexOfContent].forEach(function (index) {
+                    index.sort(function (itemLeft, itemRight) {
+                      if (itemRight.position !== itemLeft.position) {
+                        return itemRight.position - itemLeft.position;
+                      } else {
+                        return itemLeft.word.length - itemRight.word.length;
+                      }
+                    });
+                  });
+
+                  // merge hits into slices
+
+                  function mergeIntoSlice(text, start, end, index) {
+                    var item = index[index.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    var hits = [];
+                    var searchTextCountInSlice = 0;
+                    while (position + word.length <= end && index.length != 0) {
+                      if (word === searchText) {
+                        searchTextCountInSlice++;
+                      }
+                      hits.push({position: position, length: word.length});
+                      var wordEnd = position + word.length;
+
+                      // move to next position of hit
+
+                      index.pop();
+                      while (index.length != 0) {
+                        item = index[index.length - 1];
+                        position = item.position;
+                        word = item.word;
+                        if (wordEnd > position) {
+                          index.pop();
+                        } else {
+                          break;
+                        }
+                      }
+                    }
+                    searchTextCount += searchTextCountInSlice;
+                    return {
+                      hits: hits,
+                      start: start,
+                      end: end,
+                      searchTextCount: searchTextCountInSlice
+                    };
+                  }
+
+                  var slicesOfTitle = [];
+                  if (indexOfTitle.length != 0) {
+                    slicesOfTitle.push(mergeIntoSlice(title, 0, title.length, indexOfTitle));
+                  }
+
+                  var slicesOfContent = [];
+                  while (indexOfContent.length != 0) {
+                    var item = indexOfContent[indexOfContent.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    // cut out 100 characters
+                    var start = position - 20;
+                    var end = position + 80;
+                    if(start < 0){
+                      start = 0;
+                    }
+                    if (end < position + word.length) {
+                      end = position + word.length;
+                    }
+                    if(end > content.length){
+                      end = content.length;
+                    }
+                    slicesOfContent.push(mergeIntoSlice(content, start, end, indexOfContent));
+                  }
+
+                  // sort slices in content by search text's count and hits' count
+
+                  slicesOfContent.sort(function (sliceLeft, sliceRight) {
+                    if (sliceLeft.searchTextCount !== sliceRight.searchTextCount) {
+                      return sliceRight.searchTextCount - sliceLeft.searchTextCount;
+                    } else if (sliceLeft.hits.length !== sliceRight.hits.length) {
+                      return sliceRight.hits.length - sliceLeft.hits.length;
+                    } else {
+                      return sliceLeft.start - sliceRight.start;
+                    }
+                  });
+
+                  // select top N slices in content
+
+                  var upperBound = parseInt('1');
+                  if (upperBound >= 0) {
+                    slicesOfContent = slicesOfContent.slice(0, upperBound);
+                  }
+
+                  // highlight title and content
+
+                  function highlightKeyword(text, slice) {
+                    var result = '';
+                    var prevEnd = slice.start;
+                    slice.hits.forEach(function (hit) {
+                      result += text.substring(prevEnd, hit.position);
+                      var end = hit.position + hit.length;
+                      result += '<b class="search-keyword">' + text.substring(hit.position, end) + '</b>';
+                      prevEnd = end;
+                    });
+                    result += text.substring(prevEnd, slice.end);
+                    return result;
+                  }
+
+                  var resultItem = '';
+
+                  if (slicesOfTitle.length != 0) {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + highlightKeyword(title, slicesOfTitle[0]) + "</a>";
+                  } else {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + title + "</a>";
+                  }
+
+                  slicesOfContent.forEach(function (slice) {
+                    resultItem += "<a href='" + articleUrl + "'>" +
+                      "<p class=\"search-result\">" + highlightKeyword(content, slice) +
+                      "...</p>" + "</a>";
+                  });
+
+                  resultItem += "</li>";
+                  resultItems.push({
+                    item: resultItem,
+                    searchTextCount: searchTextCount,
+                    hitCount: hitCount,
+                    id: resultItems.length
+                  });
+                }
+              })
+            };
+            if (keywords.length === 1 && keywords[0] === "") {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>'
+            } else if (resultItems.length === 0) {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>'
+            } else {
+              resultItems.sort(function (resultLeft, resultRight) {
+                if (resultLeft.searchTextCount !== resultRight.searchTextCount) {
+                  return resultRight.searchTextCount - resultLeft.searchTextCount;
+                } else if (resultLeft.hitCount !== resultRight.hitCount) {
+                  return resultRight.hitCount - resultLeft.hitCount;
+                } else {
+                  return resultRight.id - resultLeft.id;
+                }
+              });
+              var searchResultList = '<ul class=\"search-result-list\">';
+              resultItems.forEach(function (result) {
+                searchResultList += result.item;
+              })
+              searchResultList += "</ul>";
+              resultContent.innerHTML = searchResultList;
+            }
+          }
+
+          if ('auto' === 'auto') {
+            input.addEventListener('input', inputEventFunction);
+          } else {
+            $('.search-icon').click(inputEventFunction);
+            input.addEventListener('keypress', function (event) {
+              if (event.keyCode === 13) {
+                inputEventFunction();
+              }
+            });
+          }
+
+          // remove loading animation
+          $(".local-search-pop-overlay").remove();
+          $('body').css('overflow', '');
+
+          proceedsearch();
+        }
+      });
+    }
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched === false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+    });
+
+    $('.popup-btn-close').click(onPopupClose);
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+    $(document).on('keyup', function (event) {
+      var shouldDismissSearchPopup = event.which === 27 &&
+        $('.search-popup').is(':visible');
+      if (shouldDismissSearchPopup) {
+        onPopupClose();
+      }
+    });
+  </script>
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+  
+
+  
+
+
+  
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>
