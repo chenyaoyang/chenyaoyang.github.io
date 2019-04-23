@@ -1,0 +1,1406 @@
+<!DOCTYPE html>
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+<html class="theme-next pisces use-motion" lang="zh-CN">
+<head><meta name="generator" content="Hexo 3.8.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+    
+      
+    
+
+    
+  
+
+  
+
+  
+    
+      
+    
+
+    
+  
+
+  
+    
+      
+    
+
+    
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Monda:300,300italic,400,400italic,700,700italic|Roboto Slab:300,300italic,400,400italic,700,700italic|Dancing Script:300,300italic,400,400italic,700,700italic|Consolas:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css">
+
+<link href="/css/main.css?v=6.6.0" rel="stylesheet" type="text/css">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=6.6.0">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=6.6.0">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=6.6.0">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=6.6.0" color="#222">
+
+
+
+
+
+
+
+
+
+<script id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    version: '6.6.0',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: false,
+    fastclick: false,
+    lazyload: false,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+  
+
+
+
+
+  <meta name="keywords" content="go,区块链,以太坊,go-ethereum">
+<meta property="og:type" content="article">
+<meta property="og:title" content="go-ethereum中p2p源码学习">
+<meta property="og:url" content="http://yoursite.com/2019/04/23/go-ethereum中p2p源码学习/index.html">
+<meta property="og:site_name" content="AmorFati">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:image" content="https://upload-images.jianshu.io/upload_images/5111131-7fded3334dc53544.jpg?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240">
+<meta property="og:updated_time" content="2019-04-23T07:29:25.255Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="go-ethereum中p2p源码学习">
+<meta name="twitter:image" content="https://upload-images.jianshu.io/upload_images/5111131-7fded3334dc53544.jpg?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240">
+
+
+
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2019/04/23/go-ethereum中p2p源码学习/">
+
+
+
+<script id="page.configurations">
+  CONFIG.page = {
+    sidebar: "",
+  };
+</script>
+
+  <title>go-ethereum中p2p源码学习 | AmorFati</title>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  <noscript>
+  <style>
+    .use-motion .motion-element,
+    .use-motion .brand,
+    .use-motion .menu-item,
+    .sidebar-inner,
+    .use-motion .post-block,
+    .use-motion .pagination,
+    .use-motion .comments,
+    .use-motion .post-header,
+    .use-motion .post-body,
+    .use-motion .collection-title { opacity: initial; }
+
+    .use-motion .logo,
+    .use-motion .site-title,
+    .use-motion .site-subtitle {
+      opacity: initial;
+      top: initial;
+    }
+
+    .use-motion .logo-line-before i { left: initial; }
+    .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope="" itemtype="http://schema.org/WebPage" lang="zh-CN">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope="" itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">AmorFati</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+    
+      
+        <p class="site-subtitle">风吹过窗前的书，又翻过一页</p>
+      
+    
+    
+  </div>
+
+  <div class="site-nav-toggle">
+    <button aria-label="切换导航栏">
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  
+    <ul id="menu" class="menu">
+      
+        
+        
+        
+          
+          <li class="menu-item menu-item-home">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/" rel="section"><i class="menu-item-icon fa fa-fw fa-home"></i> <br>首页</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-about">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/about/" rel="section"><i class="menu-item-icon fa fa-fw fa-user"></i> <br>关于</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-tags">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/tags/" rel="section"><i class="menu-item-icon fa fa-fw fa-tags"></i> <br>标签</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-categories">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/categories/" rel="section"><i class="menu-item-icon fa fa-fw fa-th"></i> <br>分类</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-archives">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/archives/" rel="section"><i class="menu-item-icon fa fa-fw fa-archive"></i> <br>归档</a>
+
+  </li>
+
+      
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br>搜索</a>
+        </li>
+      
+    </ul>
+  
+
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup search-popup local-search-popup">
+  <div class="local-search-header clearfix">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+    <div class="local-search-input-wrapper">
+      <input autocomplete="off" placeholder="搜索..." spellcheck="false" type="text" id="local-search-input">
+    </div>
+  </div>
+  <div id="local-search-result"></div>
+</div>
+
+
+
+    </div>
+  
+</nav>
+
+
+
+  
+
+
+
+</div>
+    </header>
+
+    
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+            
+
+          
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  
+
+  <article class="post post-type-normal" itemscope="" itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/04/23/go-ethereum中p2p源码学习/">
+
+    <span hidden itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="AmorFati">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/assets/img/icon.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope="" itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="AmorFati">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">go-ethereum中p2p源码学习
+
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+
+            
+            
+            
+
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+
+              
+                
+              
+
+              <time title="创建时间：2019-04-23 15:18:56 / 修改时间：15:29:25" itemprop="dateCreated datePublished" datetime="2019-04-23T15:18:56+08:00">2019-04-23</time>
+            
+
+            
+              
+
+              
+            
+          </span>
+
+          
+            <span class="post-category">
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope="" itemtype="http://schema.org/Thing"><a href="/categories/go-ethereum源码学习/" itemprop="url" rel="index"><span itemprop="name">go-ethereum源码学习</span></a></span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p><img src="https://upload-images.jianshu.io/upload_images/5111131-7fded3334dc53544.jpg?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt=""><br><a id="more"></a><br>前一篇<a href="https://blog.grapefruit.tk/2019/04/15/go-ethereum%E4%B8%ADp2p-discover%E6%BA%90%E7%A0%81%E5%AD%A6%E4%B9%A0/" target="_blank" rel="noopener">笔记</a>学习了以太坊p2p网络的发现和维护机制，这篇笔记就来了解一下p2p服务</p>
+<h1 id="server-go"><a href="#server-go" class="headerlink" title="server.go"></a>server.go</h1><p>这是P2P服务的主逻辑代码所在处</p>
+<h2 id="Start"><a href="#Start" class="headerlink" title="Start"></a>Start</h2><p>服务的启动代码如下：<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(srv *Server)</span> <span class="title">Start</span><span class="params">()</span> <span class="params">(err error)</span></span> &#123;</span><br><span class="line">	srv.lock.Lock()</span><br><span class="line">	<span class="keyword">defer</span> srv.lock.Unlock()</span><br><span class="line">	<span class="keyword">if</span> srv.running &#123; <span class="comment">//判断是否启动，避免重复启动</span></span><br><span class="line">		<span class="keyword">return</span> errors.New(<span class="string">"server already running"</span>)</span><br><span class="line">	&#125;</span><br><span class="line">	srv.running = <span class="literal">true</span> </span><br><span class="line">	srv.log = srv.Config.Logger</span><br><span class="line">	<span class="keyword">if</span> srv.log == <span class="literal">nil</span> &#123;</span><br><span class="line">		srv.log = log.New()</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">if</span> srv.NoDial &amp;&amp; srv.ListenAddr == <span class="string">""</span> &#123; <span class="comment">//判断节点是否主动连接其他节点或者监听提起节点</span></span><br><span class="line">		srv.log.Warn(<span class="string">"P2P server will be useless, neither dialing nor listening"</span>)</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="comment">// static fields</span></span><br><span class="line">	<span class="keyword">if</span> srv.PrivateKey == <span class="literal">nil</span> &#123;</span><br><span class="line">		<span class="keyword">return</span> errors.New(<span class="string">"Server.PrivateKey must be set to a non-nil key"</span>)</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">if</span> srv.newTransport == <span class="literal">nil</span> &#123;</span><br><span class="line">		srv.newTransport = newRLPX</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">if</span> srv.Dialer == <span class="literal">nil</span> &#123;</span><br><span class="line">		srv.Dialer = TCPDialer&#123;&amp;net.Dialer&#123;Timeout: defaultDialTimeout&#125;&#125;</span><br><span class="line">	&#125;</span><br><span class="line">	srv.quit = <span class="built_in">make</span>(<span class="keyword">chan</span> <span class="keyword">struct</span>&#123;&#125;)</span><br><span class="line">	srv.addpeer = <span class="built_in">make</span>(<span class="keyword">chan</span> *conn)</span><br><span class="line">	srv.delpeer = <span class="built_in">make</span>(<span class="keyword">chan</span> peerDrop)</span><br><span class="line">	srv.posthandshake = <span class="built_in">make</span>(<span class="keyword">chan</span> *conn)</span><br><span class="line">	srv.addstatic = <span class="built_in">make</span>(<span class="keyword">chan</span> *enode.Node)</span><br><span class="line">	srv.removestatic = <span class="built_in">make</span>(<span class="keyword">chan</span> *enode.Node)</span><br><span class="line">	srv.addtrusted = <span class="built_in">make</span>(<span class="keyword">chan</span> *enode.Node)</span><br><span class="line">	srv.removetrusted = <span class="built_in">make</span>(<span class="keyword">chan</span> *enode.Node)</span><br><span class="line">	srv.peerOp = <span class="built_in">make</span>(<span class="keyword">chan</span> peerOpFunc)</span><br><span class="line">	srv.peerOpDone = <span class="built_in">make</span>(<span class="keyword">chan</span> <span class="keyword">struct</span>&#123;&#125;)</span><br><span class="line"></span><br><span class="line">	<span class="keyword">if</span> err := srv.setupLocalNode(); err != <span class="literal">nil</span> &#123;</span><br><span class="line">		<span class="keyword">return</span> err</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">if</span> srv.ListenAddr != <span class="string">""</span> &#123;</span><br><span class="line">		<span class="keyword">if</span> err := srv.setupListening(); err != <span class="literal">nil</span> &#123;</span><br><span class="line">			<span class="keyword">return</span> err</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">if</span> err := srv.setupDiscovery(); err != <span class="literal">nil</span> &#123;</span><br><span class="line">		<span class="keyword">return</span> err</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	dynPeers := srv.maxDialedConns()</span><br><span class="line">	dialer := newDialState(srv.localnode.ID(), srv.StaticNodes, srv.BootstrapNodes, srv.ntab, dynPeers, srv.NetRestrict)</span><br><span class="line">	srv.loopWG.Add(<span class="number">1</span>)</span><br><span class="line">	<span class="keyword">go</span> srv.run(dialer)</span><br><span class="line">	<span class="keyword">return</span> <span class="literal">nil</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>首先判断是否启动，避免多起启动实例，然后将服务已运行的标志位置true。然后初始化log实例，检查是否要主动连接其他节点，检查私钥是否为空。之后配置rlpx与dial类，稍后再介绍这两个东西。再往下初始化了一系列的channel留作同步用。接着调用了setupLocalNode实现如下</p>
+<h2 id="setupLocalNode"><a href="#setupLocalNode" class="headerlink" title="setupLocalNode"></a>setupLocalNode</h2><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(srv *Server)</span> <span class="title">setupLocalNode</span><span class="params">()</span> <span class="title">error</span></span> &#123;</span><br><span class="line">	pubkey := crypto.FromECDSAPub(&amp;srv.PrivateKey.PublicKey)</span><br><span class="line">	srv.ourHandshake = &amp;protoHandshake&#123;Version: baseProtocolVersion, Name: srv.Name, ID: pubkey[<span class="number">1</span>:]&#125;</span><br><span class="line">	<span class="keyword">for</span> _, p := <span class="keyword">range</span> srv.Protocols &#123;</span><br><span class="line">		srv.ourHandshake.Caps = <span class="built_in">append</span>(srv.ourHandshake.Caps, p.<span class="built_in">cap</span>())</span><br><span class="line">	&#125;</span><br><span class="line">	sort.Sort(capsByNameAndVersion(srv.ourHandshake.Caps))</span><br><span class="line"></span><br><span class="line">	db, err := enode.OpenDB(srv.Config.NodeDatabase)</span><br><span class="line">	<span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">		<span class="keyword">return</span> err</span><br><span class="line">	&#125;</span><br><span class="line">	srv.nodedb = db</span><br><span class="line">	srv.localnode = enode.NewLocalNode(db, srv.PrivateKey)</span><br><span class="line">	srv.localnode.SetFallbackIP(net.IP&#123;<span class="number">127</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">1</span>&#125;)</span><br><span class="line">	srv.localnode.Set(capsByNameAndVersion(srv.ourHandshake.Caps))</span><br><span class="line">	<span class="keyword">for</span> _, p := <span class="keyword">range</span> srv.Protocols &#123;</span><br><span class="line">		<span class="keyword">for</span> _, e := <span class="keyword">range</span> p.Attributes &#123;</span><br><span class="line">			srv.localnode.Set(e)</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">switch</span> srv.NAT.(<span class="keyword">type</span>) &#123;</span><br><span class="line">	<span class="keyword">case</span> <span class="literal">nil</span>:</span><br><span class="line">	<span class="keyword">case</span> nat.ExtIP:</span><br><span class="line">		ip, _ := srv.NAT.ExternalIP()</span><br><span class="line">		srv.localnode.SetStaticIP(ip)</span><br><span class="line">	<span class="keyword">default</span>:</span><br><span class="line">		srv.loopWG.Add(<span class="number">1</span>)</span><br><span class="line">		<span class="keyword">go</span> <span class="function"><span class="keyword">func</span><span class="params">()</span></span> &#123;</span><br><span class="line">			<span class="keyword">defer</span> srv.loopWG.Done()</span><br><span class="line">			<span class="keyword">if</span> ip, err := srv.NAT.ExternalIP(); err == <span class="literal">nil</span> &#123;</span><br><span class="line">				srv.localnode.SetStaticIP(ip)</span><br><span class="line">			&#125;</span><br><span class="line">		&#125;()</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">return</span> <span class="literal">nil</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>首先FromECDSAPub是将公钥以字节数组的形式表示（根据椭圆加密算法，我们知道公钥实际上是一对点坐标，这里我们将这对点用字节数组表示出来），之后构造了握手协议的实例，主要记录了版本号（5）；服务名以及ID（就是公钥）。之后遍历了服务的所有协议，将每个协议的cap添加到握手协议的caps中（cap实际上记录了该协议的版本号及名字）。下面先创建了数据库，并配置给服务。接着调用NewLocalNode创建本地节点，实际上就是实例化了一个LocalNode对象，存储了公钥私钥数据库对象等信息。接下来设置了fallbackIP，Set方法实际上是将对象存储在localnode的entries中，capsByNameAndVersion实现了Entry接口。然后遍历服务中所有协议的所有Attributes（实际上也是一个个Entry数组）存储起来。</p>
+<h2 id="setupListening"><a href="#setupListening" class="headerlink" title="setupListening"></a>setupListening</h2><p>配置完localnode后接着调用了setupListening<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(srv *Server)</span> <span class="title">setupListening</span><span class="params">()</span> <span class="title">error</span></span> &#123;</span><br><span class="line">	listener, err := net.Listen(<span class="string">"tcp"</span>, srv.ListenAddr)</span><br><span class="line">	<span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">		<span class="keyword">return</span> err</span><br><span class="line">	&#125;</span><br><span class="line">	laddr := listener.Addr().(*net.TCPAddr)</span><br><span class="line">	srv.ListenAddr = laddr.String()</span><br><span class="line">	srv.listener = listener</span><br><span class="line">	srv.localnode.Set(enr.TCP(laddr.Port))</span><br><span class="line"></span><br><span class="line">	srv.loopWG.Add(<span class="number">1</span>)</span><br><span class="line">	<span class="keyword">go</span> srv.listenLoop()</span><br><span class="line"></span><br><span class="line">	<span class="keyword">if</span> !laddr.IP.IsLoopback() &amp;&amp; srv.NAT != <span class="literal">nil</span> &#123;</span><br><span class="line">		srv.loopWG.Add(<span class="number">1</span>)</span><br><span class="line">		<span class="keyword">go</span> <span class="function"><span class="keyword">func</span><span class="params">()</span></span> &#123;</span><br><span class="line">			nat.Map(srv.NAT, srv.quit, <span class="string">"tcp"</span>, laddr.Port, laddr.Port, <span class="string">"ethereum p2p"</span>)</span><br><span class="line">			srv.loopWG.Done()</span><br><span class="line">		&#125;()</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">return</span> <span class="literal">nil</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>这里主要是监听某个tcp端口地址，启动了listenLoop<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(srv *Server)</span> <span class="title">listenLoop</span><span class="params">()</span></span> &#123;</span><br><span class="line">	<span class="keyword">defer</span> srv.loopWG.Done()</span><br><span class="line">	srv.log.Debug(<span class="string">"TCP listener up"</span>, <span class="string">"addr"</span>, srv.listener.Addr())</span><br><span class="line"></span><br><span class="line">	tokens := defaultMaxPendingPeers</span><br><span class="line">	<span class="keyword">if</span> srv.MaxPendingPeers &gt; <span class="number">0</span> &#123;</span><br><span class="line">		tokens = srv.MaxPendingPeers</span><br><span class="line">	&#125;</span><br><span class="line">	slots := <span class="built_in">make</span>(<span class="keyword">chan</span> <span class="keyword">struct</span>&#123;&#125;, tokens)</span><br><span class="line">	<span class="keyword">for</span> i := <span class="number">0</span>; i &lt; tokens; i++ &#123;</span><br><span class="line">		slots &lt;- <span class="keyword">struct</span>&#123;&#125;&#123;&#125;</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">for</span> &#123;</span><br><span class="line">		&lt;-slots</span><br><span class="line"></span><br><span class="line">		<span class="keyword">var</span> (</span><br><span class="line">			fd  net.Conn</span><br><span class="line">			err error</span><br><span class="line">		)</span><br><span class="line">		<span class="keyword">for</span> &#123;</span><br><span class="line">			fd, err = srv.listener.Accept()</span><br><span class="line">			<span class="keyword">if</span> netutil.IsTemporaryError(err) &#123;</span><br><span class="line">				srv.log.Debug(<span class="string">"Temporary read error"</span>, <span class="string">"err"</span>, err)</span><br><span class="line">				<span class="keyword">continue</span></span><br><span class="line">			&#125; <span class="keyword">else</span> <span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">				srv.log.Debug(<span class="string">"Read error"</span>, <span class="string">"err"</span>, err)</span><br><span class="line">				<span class="keyword">return</span></span><br><span class="line">			&#125;</span><br><span class="line">			<span class="keyword">break</span></span><br><span class="line">		&#125;</span><br><span class="line"></span><br><span class="line">		<span class="keyword">if</span> srv.NetRestrict != <span class="literal">nil</span> &#123;</span><br><span class="line">			<span class="keyword">if</span> tcp, ok := fd.RemoteAddr().(*net.TCPAddr); ok &amp;&amp; !srv.NetRestrict.Contains(tcp.IP) &#123;</span><br><span class="line">				srv.log.Debug(<span class="string">"Rejected conn (not whitelisted in NetRestrict)"</span>, <span class="string">"addr"</span>, fd.RemoteAddr())</span><br><span class="line">				fd.Close()</span><br><span class="line">				slots &lt;- <span class="keyword">struct</span>&#123;&#125;&#123;&#125;</span><br><span class="line">				<span class="keyword">continue</span></span><br><span class="line">			&#125;</span><br><span class="line">		&#125;</span><br><span class="line"></span><br><span class="line">		<span class="keyword">var</span> ip net.IP</span><br><span class="line">		<span class="keyword">if</span> tcp, ok := fd.RemoteAddr().(*net.TCPAddr); ok &#123;</span><br><span class="line">			ip = tcp.IP</span><br><span class="line">		&#125;</span><br><span class="line">		fd = newMeteredConn(fd, <span class="literal">true</span>, ip)</span><br><span class="line">		srv.log.Trace(<span class="string">"Accepted connection"</span>, <span class="string">"addr"</span>, fd.RemoteAddr())</span><br><span class="line">		<span class="keyword">go</span> <span class="function"><span class="keyword">func</span><span class="params">()</span></span> &#123;</span><br><span class="line">			srv.SetupConn(fd, inboundConn, <span class="literal">nil</span>)</span><br><span class="line">			slots &lt;- <span class="keyword">struct</span>&#123;&#125;&#123;&#125;</span><br><span class="line">		&#125;()</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>首先规定了最大的等待连接数量tokens，然后创建了一个容量与之一样大的channel，在于一个无限循环中中，利用channel机制，启动了tokens个无限循环。每个循环会接收一个连接请求，实际上虽然是无限循环，在获得一个请求后循环便结束了（之所以要用无限循环是要跳过其中的临时性错误）。然后检查白名单，不在名单内的IP都拒绝服务。对于可以服务的连接，单独启动一个goroutine去处理，然后主循环继续，如果连接数未达到最大，则继续等待连接到来。处理连接的方法是SetupConn：<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(srv *Server)</span> <span class="title">SetupConn</span><span class="params">(fd net.Conn, flags connFlag, dialDest *enode.Node)</span> <span class="title">error</span></span> &#123;</span><br><span class="line">	c := &amp;conn&#123;fd: fd, transport: srv.newTransport(fd), flags: flags, cont: <span class="built_in">make</span>(<span class="keyword">chan</span> error)&#125;</span><br><span class="line">	err := srv.setupConn(c, flags, dialDest)</span><br><span class="line">	<span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">		c.<span class="built_in">close</span>(err)</span><br><span class="line">		srv.log.Trace(<span class="string">"Setting up connection failed"</span>, <span class="string">"addr"</span>, fd.RemoteAddr(), <span class="string">"err"</span>, err)</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">return</span> err</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>SetupConn是执行一个握手协议，并尝试把连接创建成一个peer对象。可以看到只是先创建了conn对象，然后调用了setupConn：<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(srv *Server)</span> <span class="title">setupConn</span><span class="params">(c *conn, flags connFlag, dialDest *enode.Node)</span> <span class="title">error</span></span> &#123;</span><br><span class="line">	srv.lock.Lock()</span><br><span class="line">	running := srv.running</span><br><span class="line">	srv.lock.Unlock()</span><br><span class="line">	<span class="keyword">if</span> !running &#123;</span><br><span class="line">		<span class="keyword">return</span> errServerStopped</span><br><span class="line">	&#125;</span><br><span class="line">	</span><br><span class="line">	<span class="keyword">var</span> dialPubkey *ecdsa.PublicKey</span><br><span class="line">	<span class="keyword">if</span> dialDest != <span class="literal">nil</span> &#123;</span><br><span class="line">		dialPubkey = <span class="built_in">new</span>(ecdsa.PublicKey)</span><br><span class="line">		<span class="keyword">if</span> err := dialDest.Load((*enode.Secp256k1)(dialPubkey)); err != <span class="literal">nil</span> &#123;</span><br><span class="line">			<span class="keyword">return</span> errors.New(<span class="string">"dial destination doesn't have a secp256k1 public key"</span>)</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">	</span><br><span class="line">	remotePubkey, err := c.doEncHandshake(srv.PrivateKey, dialPubkey)</span><br><span class="line">	<span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">		srv.log.Trace(<span class="string">"Failed RLPx handshake"</span>, <span class="string">"addr"</span>, c.fd.RemoteAddr(), <span class="string">"conn"</span>, c.flags, <span class="string">"err"</span>, err)</span><br><span class="line">		<span class="keyword">return</span> err</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">if</span> dialDest != <span class="literal">nil</span> &#123;</span><br><span class="line">		<span class="comment">// For dialed connections, check that the remote public key matches.</span></span><br><span class="line">		<span class="keyword">if</span> dialPubkey.X.Cmp(remotePubkey.X) != <span class="number">0</span> || dialPubkey.Y.Cmp(remotePubkey.Y) != <span class="number">0</span> &#123;</span><br><span class="line">			<span class="keyword">return</span> DiscUnexpectedIdentity</span><br><span class="line">		&#125;</span><br><span class="line">		c.node = dialDest</span><br><span class="line">	&#125; <span class="keyword">else</span> &#123;</span><br><span class="line">		c.node = nodeFromConn(remotePubkey, c.fd)</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">if</span> conn, ok := c.fd.(*meteredConn); ok &#123;</span><br><span class="line">		conn.handshakeDone(c.node.ID())</span><br><span class="line">	&#125;</span><br><span class="line">	clog := srv.log.New(<span class="string">"id"</span>, c.node.ID(), <span class="string">"addr"</span>, c.fd.RemoteAddr(), <span class="string">"conn"</span>, c.flags)</span><br><span class="line">	err = srv.checkpoint(c, srv.posthandshake)</span><br><span class="line">	<span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">		clog.Trace(<span class="string">"Rejected peer before protocol handshake"</span>, <span class="string">"err"</span>, err)</span><br><span class="line">		<span class="keyword">return</span> err</span><br><span class="line">	&#125;</span><br><span class="line">	</span><br><span class="line">	phs, err := c.doProtoHandshake(srv.ourHandshake)</span><br><span class="line">	<span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">		clog.Trace(<span class="string">"Failed proto handshake"</span>, <span class="string">"err"</span>, err)</span><br><span class="line">		<span class="keyword">return</span> err</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">if</span> id := c.node.ID(); !bytes.Equal(crypto.Keccak256(phs.ID), id[:]) &#123;</span><br><span class="line">		clog.Trace(<span class="string">"Wrong devp2p handshake identity"</span>, <span class="string">"phsid"</span>, hex.EncodeToString(phs.ID))</span><br><span class="line">		<span class="keyword">return</span> DiscUnexpectedIdentity</span><br><span class="line">	&#125;</span><br><span class="line">	c.caps, c.name = phs.Caps, phs.Name</span><br><span class="line">	err = srv.checkpoint(c, srv.addpeer)</span><br><span class="line">	<span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">		clog.Trace(<span class="string">"Rejected peer"</span>, <span class="string">"err"</span>, err)</span><br><span class="line">		<span class="keyword">return</span> err</span><br><span class="line">	&#125;</span><br><span class="line">	</span><br><span class="line">	clog.Trace(<span class="string">"connection set up"</span>, <span class="string">"inbound"</span>, dialDest == <span class="literal">nil</span>)</span><br><span class="line">	<span class="keyword">return</span> <span class="literal">nil</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>首先确保服务正在运行，然后判断远端节点是否为nil（为nil其实是被动连接，不为nil其实是在dial中主动连接），来计算其公钥。当收到一个连接时，这里为nil不执行。然后调用doEncHandshake开始加密握手，这里实际上是调用的rlpx中的方法，稍后再讲。这里最后得到远端的公钥。对于收到一个连接，远端node开始为空，这里调用nodeFromConn创建一个，主要是记录公钥、ip地址及端口号。接着执行checkpoint方法：<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(srv *Server)</span> <span class="title">checkpoint</span><span class="params">(c *conn, stage <span class="keyword">chan</span>&lt;- *conn)</span> <span class="title">error</span></span> &#123;</span><br><span class="line">	<span class="keyword">select</span> &#123;</span><br><span class="line">	<span class="keyword">case</span> stage &lt;- c:</span><br><span class="line">	<span class="keyword">case</span> &lt;-srv.quit:</span><br><span class="line">		<span class="keyword">return</span> errServerStopped</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">select</span> &#123;</span><br><span class="line">	<span class="keyword">case</span> err := &lt;-c.cont:</span><br><span class="line">		<span class="keyword">return</span> err</span><br><span class="line">	<span class="keyword">case</span> &lt;-srv.quit:</span><br><span class="line">		<span class="keyword">return</span> errServerStopped</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>实际上就是给posthandshake赋值，然后触发后续逻辑，我们稍后再讲。紧接着又执行了协议握手，调用了doProtoHandshake方法，也是rlpx中方法，传入的参数是ourHandshake，也就是在配置localnode是初始化的，记录了版本号、服务名和自己公钥以及服务中所有协议的摘要。这个方法返回远端的协议信息，之后在conn对象中记录下来远端的服务名和服务中所有协议摘要。同样也通过checkpoint传递给addpeer用来触发后续逻辑。完成后就和远端建立的连接。</p>
+<h2 id="setupDiscovery"><a href="#setupDiscovery" class="headerlink" title="setupDiscovery"></a>setupDiscovery</h2><p>刚才我们在分析配置网络监听的代码时顺便看了收到连接时的逻辑。再回到Start中，下面又调用了setupDiscovery;<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(srv *Server)</span> <span class="title">setupDiscovery</span><span class="params">()</span> <span class="title">error</span></span> &#123;</span><br><span class="line">	<span class="keyword">if</span> srv.NoDiscovery &amp;&amp; !srv.DiscoveryV5 &#123;</span><br><span class="line">		<span class="keyword">return</span> <span class="literal">nil</span></span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	addr, err := net.ResolveUDPAddr(<span class="string">"udp"</span>, srv.ListenAddr)</span><br><span class="line">	<span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">		<span class="keyword">return</span> err</span><br><span class="line">	&#125;</span><br><span class="line">	conn, err := net.ListenUDP(<span class="string">"udp"</span>, addr)</span><br><span class="line">	<span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">		<span class="keyword">return</span> err</span><br><span class="line">	&#125;</span><br><span class="line">	realaddr := conn.LocalAddr().(*net.UDPAddr)</span><br><span class="line">	srv.log.Debug(<span class="string">"UDP listener up"</span>, <span class="string">"addr"</span>, realaddr)</span><br><span class="line">	<span class="keyword">if</span> srv.NAT != <span class="literal">nil</span> &#123;</span><br><span class="line">		<span class="keyword">if</span> !realaddr.IP.IsLoopback() &#123;</span><br><span class="line">			<span class="keyword">go</span> nat.Map(srv.NAT, srv.quit, <span class="string">"udp"</span>, realaddr.Port, realaddr.Port, <span class="string">"ethereum discovery"</span>)</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">	srv.localnode.SetFallbackUDP(realaddr.Port)</span><br><span class="line"></span><br><span class="line">	</span><br><span class="line">	<span class="keyword">var</span> unhandled <span class="keyword">chan</span> discover.ReadPacket</span><br><span class="line">	<span class="keyword">var</span> sconn *sharedUDPConn</span><br><span class="line">	<span class="keyword">if</span> !srv.NoDiscovery &#123;</span><br><span class="line">		<span class="keyword">if</span> srv.DiscoveryV5 &#123;</span><br><span class="line">			unhandled = <span class="built_in">make</span>(<span class="keyword">chan</span> discover.ReadPacket, <span class="number">100</span>)</span><br><span class="line">			sconn = &amp;sharedUDPConn&#123;conn, unhandled&#125;</span><br><span class="line">		&#125;</span><br><span class="line">		cfg := discover.Config&#123;</span><br><span class="line">			PrivateKey:  srv.PrivateKey,</span><br><span class="line">			NetRestrict: srv.NetRestrict,</span><br><span class="line">			Bootnodes:   srv.BootstrapNodes,</span><br><span class="line">			Unhandled:   unhandled,</span><br><span class="line">		&#125;</span><br><span class="line">		ntab, err := discover.ListenUDP(conn, srv.localnode, cfg)</span><br><span class="line">		<span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">			<span class="keyword">return</span> err</span><br><span class="line">		&#125;</span><br><span class="line">		srv.ntab = ntab</span><br><span class="line">	&#125;</span><br><span class="line">	</span><br><span class="line">	<span class="keyword">if</span> srv.DiscoveryV5 &#123;</span><br><span class="line">		<span class="keyword">var</span> ntab *discv5.Network</span><br><span class="line">		<span class="keyword">var</span> err error</span><br><span class="line">		<span class="keyword">if</span> sconn != <span class="literal">nil</span> &#123;</span><br><span class="line">			ntab, err = discv5.ListenUDP(srv.PrivateKey, sconn, <span class="string">""</span>, srv.NetRestrict)</span><br><span class="line">		&#125; <span class="keyword">else</span> &#123;</span><br><span class="line">			ntab, err = discv5.ListenUDP(srv.PrivateKey, conn, <span class="string">""</span>, srv.NetRestrict)</span><br><span class="line">		&#125;</span><br><span class="line">		<span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">			<span class="keyword">return</span> err</span><br><span class="line">		&#125;</span><br><span class="line">		<span class="keyword">if</span> err := ntab.SetFallbackNodes(srv.BootstrapNodesV5); err != <span class="literal">nil</span> &#123;</span><br><span class="line">			<span class="keyword">return</span> err</span><br><span class="line">		&#125;</span><br><span class="line">		srv.DiscV5 = ntab</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">return</span> <span class="literal">nil</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>这里主要就是监听udp连接，配置私钥、白名单、bootstrap节点等，然后调用discover的ListenUDP开始节点发现，后续逻辑详见<a href="https://blog.grapefruit.tk/2019/04/15/go-ethereum%E4%B8%ADp2p-discover%E6%BA%90%E7%A0%81%E5%AD%A6%E4%B9%A0/" target="_blank" rel="noopener">这里</a>。</p>
+<h2 id="run"><a href="#run" class="headerlink" title="run"></a>run</h2><p>稍微总结一下，start的逻辑主要是配置：配置localnode，处理tcp连接用于节点通信，处理udp连接用于节点发现。配置完毕后，调用newDialState创建了一个dialstate对象，然后运行run方法：<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(srv *Server)</span> <span class="title">run</span><span class="params">(dialstate dialer)</span></span> &#123;</span><br><span class="line">	srv.log.Info(<span class="string">"Started P2P networking"</span>, <span class="string">"self"</span>, srv.localnode.Node())</span><br><span class="line">	<span class="keyword">defer</span> srv.loopWG.Done()</span><br><span class="line">	<span class="keyword">defer</span> srv.nodedb.Close()</span><br><span class="line"></span><br><span class="line">	<span class="keyword">var</span> (</span><br><span class="line">		peers        = <span class="built_in">make</span>(<span class="keyword">map</span>[enode.ID]*Peer)</span><br><span class="line">		inboundCount = <span class="number">0</span></span><br><span class="line">		trusted      = <span class="built_in">make</span>(<span class="keyword">map</span>[enode.ID]<span class="keyword">bool</span>, <span class="built_in">len</span>(srv.TrustedNodes))</span><br><span class="line">		taskdone     = <span class="built_in">make</span>(<span class="keyword">chan</span> task, maxActiveDialTasks)</span><br><span class="line">		runningTasks []task</span><br><span class="line">		queuedTasks  []task <span class="comment">// tasks that can't run yet</span></span><br><span class="line">	)</span><br><span class="line">	</span><br><span class="line">	<span class="keyword">for</span> _, n := <span class="keyword">range</span> srv.TrustedNodes &#123;</span><br><span class="line">		trusted[n.ID()] = <span class="literal">true</span></span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	</span><br><span class="line">	delTask := <span class="function"><span class="keyword">func</span><span class="params">(t task)</span></span> &#123;</span><br><span class="line">		<span class="keyword">for</span> i := <span class="keyword">range</span> runningTasks &#123;</span><br><span class="line">			<span class="keyword">if</span> runningTasks[i] == t &#123;</span><br><span class="line">				runningTasks = <span class="built_in">append</span>(runningTasks[:i], runningTasks[i+<span class="number">1</span>:]...)</span><br><span class="line">				<span class="keyword">break</span></span><br><span class="line">			&#125;</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">	</span><br><span class="line">	startTasks := <span class="function"><span class="keyword">func</span><span class="params">(ts []task)</span> <span class="params">(rest []task)</span></span> &#123;</span><br><span class="line">		i := <span class="number">0</span></span><br><span class="line">		<span class="keyword">for</span> ; <span class="built_in">len</span>(runningTasks) &lt; maxActiveDialTasks &amp;&amp; i &lt; <span class="built_in">len</span>(ts); i++ &#123;</span><br><span class="line">			t := ts[i]</span><br><span class="line">			srv.log.Trace(<span class="string">"New dial task"</span>, <span class="string">"task"</span>, t)</span><br><span class="line">			<span class="keyword">go</span> <span class="function"><span class="keyword">func</span><span class="params">()</span></span> &#123; t.Do(srv); taskdone &lt;- t &#125;()</span><br><span class="line">			runningTasks = <span class="built_in">append</span>(runningTasks, t)</span><br><span class="line">		&#125;</span><br><span class="line">		<span class="keyword">return</span> ts[i:]</span><br><span class="line">	&#125;</span><br><span class="line">	scheduleTasks := <span class="function"><span class="keyword">func</span><span class="params">()</span></span> &#123;</span><br><span class="line">		queuedTasks = <span class="built_in">append</span>(queuedTasks[:<span class="number">0</span>], startTasks(queuedTasks)...)</span><br><span class="line">		<span class="keyword">if</span> <span class="built_in">len</span>(runningTasks) &lt; maxActiveDialTasks &#123;</span><br><span class="line">			nt := dialstate.newTasks(<span class="built_in">len</span>(runningTasks)+<span class="built_in">len</span>(queuedTasks), peers, time.Now())</span><br><span class="line">			queuedTasks = <span class="built_in">append</span>(queuedTasks, startTasks(nt)...)</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">running:</span><br><span class="line">	<span class="keyword">for</span> &#123;</span><br><span class="line">		scheduleTasks()</span><br><span class="line">		<span class="keyword">select</span>&#123;</span><br><span class="line">		    ...</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>run方法主要是处理一些连接的逻辑，首先定义了两个队列runningTasks与queuedTasks，保存正在运行和等待运行的任务。然后定义了三个处理任务的方法。delTask就是删除任务。startTasks就是将任务添加到runningTasks并执行do方法，对于暂时无法运行的任务则返回。scheduleTasks是用来启动任务，他会先尝试启动等待中的任务，然后用newTasks新建一个任务，添加到queuedTasks中。</p>
+<p>在接下来的一个无限循环开始，首先启动scheduleTasks，触发一些连接的建立和任务的启动，之后进入select开始阻塞，等待特定的逻辑被触发。</p>
+<h2 id="run-running"><a href="#run-running" class="headerlink" title="run:running"></a>run:running</h2><p>回顾刚才的代码流程，在执行完加密握手后，调用了checkpoint，将一个conn对象传给了srv.posthandshake，出发了run中如下逻辑：<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">case</span> c := &lt;-srv.posthandshake:</span><br><span class="line">			<span class="keyword">if</span> trusted[c.node.ID()] &#123;</span><br><span class="line">				c.flags |= trustedConn</span><br><span class="line">			&#125;</span><br><span class="line">			<span class="keyword">select</span> &#123;</span><br><span class="line">			<span class="keyword">case</span> c.cont &lt;- srv.encHandshakeChecks(peers, inboundCount, c):</span><br><span class="line">			<span class="keyword">case</span> &lt;-srv.quit:</span><br><span class="line">				<span class="keyword">break</span> running</span><br><span class="line">			&#125;</span><br></pre></td></tr></table></figure></p>
+<p>首先检测是否是可信节点，是的话修改flags的值。然后执行encHandshakeChecks方法：<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(srv *Server)</span> <span class="title">encHandshakeChecks</span><span class="params">(peers <span class="keyword">map</span>[enode.ID]*Peer, inboundCount <span class="keyword">int</span>, c *conn)</span> <span class="title">error</span></span> &#123;</span><br><span class="line">	<span class="keyword">switch</span> &#123;</span><br><span class="line">	<span class="keyword">case</span> !c.is(trustedConn|staticDialedConn) &amp;&amp; <span class="built_in">len</span>(peers) &gt;= srv.MaxPeers:</span><br><span class="line">		<span class="keyword">return</span> DiscTooManyPeers</span><br><span class="line">	<span class="keyword">case</span> !c.is(trustedConn) &amp;&amp; c.is(inboundConn) &amp;&amp; inboundCount &gt;= srv.maxInboundConns():</span><br><span class="line">		<span class="keyword">return</span> DiscTooManyPeers</span><br><span class="line">	<span class="keyword">case</span> peers[c.node.ID()] != <span class="literal">nil</span>:</span><br><span class="line">		<span class="keyword">return</span> DiscAlreadyConnected</span><br><span class="line">	<span class="keyword">case</span> c.node.ID() == srv.localnode.ID():</span><br><span class="line">		<span class="keyword">return</span> DiscSelf</span><br><span class="line">	<span class="keyword">default</span>:</span><br><span class="line">		<span class="keyword">return</span> <span class="literal">nil</span></span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>前两个case主要是通过检查conn的flags判断是节点的性质以及连接数，后两个检查是否是自己或者已连接。检查结果赋值给c.cont，这时回到checkpoint中，如果刚才检查无误setupConn流程继续，否则则抛出异常拒绝服务。</p>
+<p>再往下，在setupConn中执行完协议握手后，同样调用了checkpoint方法，这次是给srv.addpeer赋值来触发逻辑：<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">case</span> c := &lt;-srv.addpeer:</span><br><span class="line">	err := srv.protoHandshakeChecks(peers, inboundCount, c)</span><br><span class="line">	<span class="keyword">if</span> err == <span class="literal">nil</span> &#123;</span><br><span class="line">		p := newPeer(c, srv.Protocols)</span><br><span class="line">		<span class="keyword">if</span> srv.EnableMsgEvents &#123;</span><br><span class="line">			p.events = &amp;srv.peerFeed</span><br><span class="line">		&#125;</span><br><span class="line">		name := truncateName(c.name)</span><br><span class="line">		srv.log.Debug(<span class="string">"Adding p2p peer"</span>, <span class="string">"name"</span>, name, <span class="string">"addr"</span>, c.fd.RemoteAddr(), <span class="string">"peers"</span>, <span class="built_in">len</span>(peers)+<span class="number">1</span>)</span><br><span class="line">		<span class="keyword">go</span> srv.runPeer(p)</span><br><span class="line">		peers[c.node.ID()] = p</span><br><span class="line">		<span class="keyword">if</span> p.Inbound() &#123;</span><br><span class="line">			inboundCount++</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">select</span> &#123;</span><br><span class="line">	<span class="keyword">case</span> c.cont &lt;- err:</span><br><span class="line">	<span class="keyword">case</span> &lt;-srv.quit:</span><br><span class="line">		<span class="keyword">break</span> running</span><br><span class="line">	&#125;</span><br></pre></td></tr></table></figure></p>
+<p>同样先检查节点，这次调用的是protoHandshakeChecks：<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(srv *Server)</span> <span class="title">protoHandshakeChecks</span><span class="params">(peers <span class="keyword">map</span>[enode.ID]*Peer, inboundCount <span class="keyword">int</span>, c *conn)</span> <span class="title">error</span></span> &#123;</span><br><span class="line">	<span class="keyword">if</span> <span class="built_in">len</span>(srv.Protocols) &gt; <span class="number">0</span> &amp;&amp; countMatchingProtocols(srv.Protocols, c.caps) == <span class="number">0</span> &#123;</span><br><span class="line">		<span class="keyword">return</span> DiscUselessPeer</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">return</span> srv.encHandshakeChecks(peers, inboundCount, c)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>由于握手后，我们知道了对方能提供的协议详情，这里进行了匹配检查，如果双方没有能匹配到的协议，则返回DiscUselessPeer，之后和刚才加密握手一样调用encHandshakeChecks进行节点检查。最后如果都没有问题，调用newPeer创建一个新的Peer。这里表示握手通过，连接正式建立。之后进行了后续操作，如将刚才生成的peer记录下来，另外如果是一个接入的连接，则inboundCount自增。同时调用了runPeer方法<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(srv *Server)</span> <span class="title">runPeer</span><span class="params">(p *Peer)</span></span> &#123;</span><br><span class="line">	<span class="keyword">if</span> srv.newPeerHook != <span class="literal">nil</span> &#123;</span><br><span class="line">		srv.newPeerHook(p)</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	srv.peerFeed.Send(&amp;PeerEvent&#123;</span><br><span class="line">		Type: PeerEventTypeAdd,</span><br><span class="line">		Peer: p.ID(),</span><br><span class="line">	&#125;)</span><br><span class="line"></span><br><span class="line">	remoteRequested, err := p.run()</span><br><span class="line"></span><br><span class="line">	srv.peerFeed.Send(&amp;PeerEvent&#123;</span><br><span class="line">		Type:  PeerEventTypeDrop,</span><br><span class="line">		Peer:  p.ID(),</span><br><span class="line">		Error: err.Error(),</span><br><span class="line">	&#125;)</span><br><span class="line"></span><br><span class="line">	srv.delpeer &lt;- peerDrop&#123;p, err, remoteRequested&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>这里主要是先广播了peer的建立，然后调用peer的run方法，这里稍后再讲，知道peer连接断开，然后给delpeer赋值触发相应逻辑。由于runPeer是运行在一个单独goroutine中，所以不会阻塞server的run运行，我们回到run中，srv.addpeer对应的逻辑最后有个阻塞，会给c.cont赋值，这时回到setupConn，如果赋值为空表示没有错误，连接正常，则继续setupConn的逻辑。这样一次握手完成。再看peer断开时，srv.delpeer被赋值，触发如下逻辑：<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">case</span> pd := &lt;-srv.delpeer:</span><br><span class="line">	d := common.PrettyDuration(mclock.Now() - pd.created)</span><br><span class="line">	pd.log.Debug(<span class="string">"Removing p2p peer"</span>, <span class="string">"duration"</span>, d, <span class="string">"peers"</span>, <span class="built_in">len</span>(peers)<span class="number">-1</span>, <span class="string">"req"</span>, pd.requested, <span class="string">"err"</span>, pd.err)</span><br><span class="line">	<span class="built_in">delete</span>(peers, pd.ID())</span><br><span class="line">	<span class="keyword">if</span> pd.Inbound() &#123;</span><br><span class="line">		inboundCount--</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>主要的逻辑就是从peers删除对应的peer，然后如果是接入型peer，inboundCount再自减1。</p>
+<p>到这里server的主逻辑分析完毕，除了这些，服务还提供了一些方法供外部使用，首先看AddPeer：<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(srv *Server)</span> <span class="title">AddPeer</span><span class="params">(node *enode.Node)</span></span> &#123;</span><br><span class="line">	<span class="keyword">select</span> &#123;</span><br><span class="line">	<span class="keyword">case</span> srv.addstatic &lt;- node:</span><br><span class="line">	<span class="keyword">case</span> &lt;-srv.quit:</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>也是利用channel模式触发run中的逻辑<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">case</span> n := &lt;-srv.addstatic:</span><br><span class="line">	srv.log.Trace(<span class="string">"Adding static node"</span>, <span class="string">"node"</span>, n)</span><br><span class="line">	dialstate.addStatic(n)</span><br></pre></td></tr></table></figure></p>
+<p>很简单就是将要添加的节点dialstate的static这个map中，key就是节点的ID，值就是一个dialTask。</p>
+<p>除此之外还有RemovePeer、AddTrustedPeer、RemoveTrustedPeer等方法，都是利用向一个channel中赋值，来触发run中的逻辑这里不再详细叙述。</p>
+<h1 id="rlpx-go"><a href="#rlpx-go" class="headerlink" title="rlpx.go"></a>rlpx.go</h1><p>这是一个较独立的模块，所以拿出来分析了，详见此文：<a href="https://blog.grapefruit.tk/2019/04/21/go-ethereum%E4%B8%ADp2p-rlpx%E6%BA%90%E7%A0%81%E5%AD%A6%E4%B9%A0/" target="_blank" rel="noopener">go-ethereum中p2p-rlpx源码学习</a></p>
+<h1 id="dial-go"><a href="#dial-go" class="headerlink" title="dial.go"></a>dial.go</h1><p>dial在p2p中也负责链接的建立，在p2pserver中第一次出现是在start方法内构造了一个TCPDialer对象赋值给Dialer：<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">	<span class="keyword">if</span> srv.Dialer == <span class="literal">nil</span> &#123;</span><br><span class="line">		srv.Dialer = TCPDialer&#123;&amp;net.Dialer&#123;Timeout: defaultDialTimeout&#125;&#125;</span><br><span class="line">	&#125;</span><br><span class="line">	</span><br><span class="line"><span class="keyword">type</span> TCPDialer <span class="keyword">struct</span> &#123;</span><br><span class="line">	*net.Dialer</span><br><span class="line">&#125;	</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(t TCPDialer)</span> <span class="title">Dial</span><span class="params">(dest *enode.Node)</span> <span class="params">(net.Conn, error)</span></span> &#123;</span><br><span class="line">	addr := &amp;net.TCPAddr&#123;IP: dest.IP(), Port: dest.TCP()&#125;</span><br><span class="line">	<span class="keyword">return</span> t.Dialer.Dial(<span class="string">"tcp"</span>, addr.String())</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>TCPDialer实际上对Dialer进行了封装，然后提供了Dial用于和指定Node建立tcp链接。除此之外还有一个重要的结构体dialstate，它在p2pserver中的start方法最后进行了实例化，并作为参数传递给了run方法，初始化方法如下：<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">newDialState</span><span class="params">(self enode.ID, static []*enode.Node, bootnodes []*enode.Node, ntab discoverTable, maxdyn <span class="keyword">int</span>, netrestrict *netutil.Netlist)</span> *<span class="title">dialstate</span></span> &#123;</span><br><span class="line">	s := &amp;dialstate&#123;</span><br><span class="line">		maxDynDials: maxdyn,</span><br><span class="line">		ntab:        ntab,</span><br><span class="line">		self:        self,</span><br><span class="line">		netrestrict: netrestrict,</span><br><span class="line">		static:      <span class="built_in">make</span>(<span class="keyword">map</span>[enode.ID]*dialTask),</span><br><span class="line">		dialing:     <span class="built_in">make</span>(<span class="keyword">map</span>[enode.ID]connFlag),</span><br><span class="line">		bootnodes:   <span class="built_in">make</span>([]*enode.Node, <span class="built_in">len</span>(bootnodes)),</span><br><span class="line">		randomNodes: <span class="built_in">make</span>([]*enode.Node, maxdyn/<span class="number">2</span>),</span><br><span class="line">		hist:        <span class="built_in">new</span>(dialHistory),</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="built_in">copy</span>(s.bootnodes, bootnodes)</span><br><span class="line">	<span class="keyword">for</span> _, n := <span class="keyword">range</span> static &#123;</span><br><span class="line">		s.addStatic(n)</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">return</span> s</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>maxDynDials就是server的maxDialedConns，计算如下：<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(srv *Server)</span> <span class="title">maxDialedConns</span><span class="params">()</span> <span class="title">int</span></span> &#123;</span><br><span class="line">	<span class="keyword">if</span> srv.NoDiscovery || srv.NoDial &#123;</span><br><span class="line">		<span class="keyword">return</span> <span class="number">0</span></span><br><span class="line">	&#125;</span><br><span class="line">	r := srv.DialRatio</span><br><span class="line">	<span class="keyword">if</span> r == <span class="number">0</span> &#123;</span><br><span class="line">		r = defaultDialRatio</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">return</span> srv.MaxPeers / r</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>他在节点从不进行发现或进行连接时等于0，否则根据MaxPeers和DialRatio计算。ntab就是discover的table，代表节点发现协议。其他的赋值了信赖节点和boot节点。实例化之后，在run方法中调用了它的下面几个方法：</p>
+<h2 id="newTasks"><a href="#newTasks" class="headerlink" title="newTasks"></a>newTasks</h2><p>这是在定义scheduleTasks时调用的<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(s *dialstate)</span> <span class="title">newTasks</span><span class="params">(nRunning <span class="keyword">int</span>, peers <span class="keyword">map</span>[enode.ID]*Peer, now time.Time)</span> []<span class="title">task</span></span> &#123;</span><br><span class="line">	<span class="keyword">if</span> s.start.IsZero() &#123;</span><br><span class="line">		s.start = now</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">var</span> newtasks []task</span><br><span class="line">	addDial := <span class="function"><span class="keyword">func</span><span class="params">(flag connFlag, n *enode.Node)</span> <span class="title">bool</span></span> &#123;</span><br><span class="line">		<span class="keyword">if</span> err := s.checkDial(n, peers); err != <span class="literal">nil</span> &#123;</span><br><span class="line">			log.Trace(<span class="string">"Skipping dial candidate"</span>, <span class="string">"id"</span>, n.ID(), <span class="string">"addr"</span>, &amp;net.TCPAddr&#123;IP: n.IP(), Port: n.TCP()&#125;, <span class="string">"err"</span>, err)</span><br><span class="line">			<span class="keyword">return</span> <span class="literal">false</span></span><br><span class="line">		&#125;</span><br><span class="line">		s.dialing[n.ID()] = flag</span><br><span class="line">		newtasks = <span class="built_in">append</span>(newtasks, &amp;dialTask&#123;flags: flag, dest: n&#125;)</span><br><span class="line">		<span class="keyword">return</span> <span class="literal">true</span></span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	needDynDials := s.maxDynDials</span><br><span class="line">	<span class="keyword">for</span> _, p := <span class="keyword">range</span> peers &#123;</span><br><span class="line">		<span class="keyword">if</span> p.rw.is(dynDialedConn) &#123;</span><br><span class="line">			needDynDials--</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">for</span> _, flag := <span class="keyword">range</span> s.dialing &#123;</span><br><span class="line">		<span class="keyword">if</span> flag&amp;dynDialedConn != <span class="number">0</span> &#123;</span><br><span class="line">			needDynDials--</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	s.hist.expire(now)</span><br><span class="line"></span><br><span class="line">	<span class="keyword">for</span> id, t := <span class="keyword">range</span> s.static &#123;</span><br><span class="line">		err := s.checkDial(t.dest, peers)</span><br><span class="line">		<span class="keyword">switch</span> err &#123;</span><br><span class="line">		<span class="keyword">case</span> errNotWhitelisted, errSelf:</span><br><span class="line">			log.Warn(<span class="string">"Removing static dial candidate"</span>, <span class="string">"id"</span>, t.dest.ID, <span class="string">"addr"</span>, &amp;net.TCPAddr&#123;IP: t.dest.IP(), Port: t.dest.TCP()&#125;, <span class="string">"err"</span>, err)</span><br><span class="line">			<span class="built_in">delete</span>(s.static, t.dest.ID())</span><br><span class="line">		<span class="keyword">case</span> <span class="literal">nil</span>:</span><br><span class="line">			s.dialing[id] = t.flags</span><br><span class="line">			newtasks = <span class="built_in">append</span>(newtasks, t)</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">if</span> <span class="built_in">len</span>(peers) == <span class="number">0</span> &amp;&amp; <span class="built_in">len</span>(s.bootnodes) &gt; <span class="number">0</span> &amp;&amp; needDynDials &gt; <span class="number">0</span> &amp;&amp; now.Sub(s.start) &gt; fallbackInterval &#123;</span><br><span class="line">		bootnode := s.bootnodes[<span class="number">0</span>]</span><br><span class="line">		s.bootnodes = <span class="built_in">append</span>(s.bootnodes[:<span class="number">0</span>], s.bootnodes[<span class="number">1</span>:]...)</span><br><span class="line">		s.bootnodes = <span class="built_in">append</span>(s.bootnodes, bootnode)</span><br><span class="line"></span><br><span class="line">		<span class="keyword">if</span> addDial(dynDialedConn, bootnode) &#123;</span><br><span class="line">			needDynDials--</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	randomCandidates := needDynDials / <span class="number">2</span></span><br><span class="line">	<span class="keyword">if</span> randomCandidates &gt; <span class="number">0</span> &#123;</span><br><span class="line">		n := s.ntab.ReadRandomNodes(s.randomNodes)</span><br><span class="line">		<span class="keyword">for</span> i := <span class="number">0</span>; i &lt; randomCandidates &amp;&amp; i &lt; n; i++ &#123;</span><br><span class="line">			<span class="keyword">if</span> addDial(dynDialedConn, s.randomNodes[i]) &#123;</span><br><span class="line">				needDynDials--</span><br><span class="line">			&#125;</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	i := <span class="number">0</span></span><br><span class="line">	<span class="keyword">for</span> ; i &lt; <span class="built_in">len</span>(s.lookupBuf) &amp;&amp; needDynDials &gt; <span class="number">0</span>; i++ &#123;</span><br><span class="line">		<span class="keyword">if</span> addDial(dynDialedConn, s.lookupBuf[i]) &#123;</span><br><span class="line">			needDynDials--</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">	s.lookupBuf = s.lookupBuf[:<span class="built_in">copy</span>(s.lookupBuf, s.lookupBuf[i:])]</span><br><span class="line">	<span class="keyword">if</span> <span class="built_in">len</span>(s.lookupBuf) &lt; needDynDials &amp;&amp; !s.lookupRunning &#123;</span><br><span class="line">		s.lookupRunning = <span class="literal">true</span></span><br><span class="line">		newtasks = <span class="built_in">append</span>(newtasks, &amp;discoverTask&#123;&#125;)</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">if</span> nRunning == <span class="number">0</span> &amp;&amp; <span class="built_in">len</span>(newtasks) == <span class="number">0</span> &amp;&amp; s.hist.Len() &gt; <span class="number">0</span> &#123;</span><br><span class="line">		t := &amp;waitExpireTask&#123;s.hist.min().exp.Sub(now)&#125;</span><br><span class="line">		newtasks = <span class="built_in">append</span>(newtasks, t)</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">return</span> newtasks</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>他所返回的是一组task对象，task有一个Do方法。开头第一个检查时间的是为了初始化开始时间。然后定义了addDial方法，主要将节点包装成dialTask添加到newtasks中。不过首先对节点进行了检查，主要是检查是否已连接或者正在连接或者非信任节点等。之后计算了需要建立动态连接的数量。</p>
+<p>然后遍历所有静态节点，检查每个节点，没有问题的将其暂存到newtasks中。接下来如果已连接数为0，并且已经过了fallbackInterval时间，则寻找一个bootnode进行连接。接下来在randomNodes中添加需要建立动态连接的数量的一半的节点。后面如果还未达到需要建立动态连接的数量要求，则从lookupBuf中挑选。如果数量还不够创建discoverTask添加进去，用于节点发现。最后当什么都不做创建waitExpireTask返回。</p>
+<p>这个方法就是添加一系列要执行的任务。</p>
+<h2 id="Do"><a href="#Do" class="headerlink" title="Do"></a>Do</h2><p>之后回到p2pserver的run方法中，在startTasks方法内，会启动这一系列任务，通过Do方法，不同的任务有同的Do方法：</p>
+<h3 id="dialTask"><a href="#dialTask" class="headerlink" title="dialTask"></a>dialTask</h3><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(t *dialTask)</span> <span class="title">Do</span><span class="params">(srv *Server)</span></span> &#123;</span><br><span class="line">	<span class="keyword">if</span> t.dest.Incomplete() &#123;</span><br><span class="line">		<span class="keyword">if</span> !t.resolve(srv) &#123;</span><br><span class="line">			<span class="keyword">return</span></span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">	err := t.dial(srv, t.dest)</span><br><span class="line">	<span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">		log.Trace(<span class="string">"Dial error"</span>, <span class="string">"task"</span>, t, <span class="string">"err"</span>, err)</span><br><span class="line">		<span class="comment">// Try resolving the ID of static nodes if dialing failed.</span></span><br><span class="line">		<span class="keyword">if</span> _, ok := err.(*dialError); ok &amp;&amp; t.flags&amp;staticDialedConn != <span class="number">0</span> &#123;</span><br><span class="line">			<span class="keyword">if</span> t.resolve(srv) &#123;</span><br><span class="line">				t.dial(srv, t.dest)</span><br><span class="line">			&#125;</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>Incomplete方法是检查节点是否有IP地址，如果没有则调用resolve方法：<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(t *dialTask)</span> <span class="title">resolve</span><span class="params">(srv *Server)</span> <span class="title">bool</span></span> &#123;</span><br><span class="line">	<span class="keyword">if</span> srv.ntab == <span class="literal">nil</span> &#123;</span><br><span class="line">		log.Debug(<span class="string">"Can't resolve node"</span>, <span class="string">"id"</span>, t.dest.ID, <span class="string">"err"</span>, <span class="string">"discovery is disabled"</span>)</span><br><span class="line">		<span class="keyword">return</span> <span class="literal">false</span></span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">if</span> t.resolveDelay == <span class="number">0</span> &#123;</span><br><span class="line">		t.resolveDelay = initialResolveDelay</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">if</span> time.Since(t.lastResolved) &lt; t.resolveDelay &#123;</span><br><span class="line">		<span class="keyword">return</span> <span class="literal">false</span></span><br><span class="line">	&#125;</span><br><span class="line">	resolved := srv.ntab.Resolve(t.dest)</span><br><span class="line">	t.lastResolved = time.Now()</span><br><span class="line">	<span class="keyword">if</span> resolved == <span class="literal">nil</span> &#123;</span><br><span class="line">		t.resolveDelay *= <span class="number">2</span></span><br><span class="line">		<span class="keyword">if</span> t.resolveDelay &gt; maxResolveDelay &#123;</span><br><span class="line">			t.resolveDelay = maxResolveDelay</span><br><span class="line">		&#125;</span><br><span class="line">		log.Debug(<span class="string">"Resolving node failed"</span>, <span class="string">"id"</span>, t.dest.ID, <span class="string">"newdelay"</span>, t.resolveDelay)</span><br><span class="line">		<span class="keyword">return</span> <span class="literal">false</span></span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	t.resolveDelay = initialResolveDelay</span><br><span class="line">	t.dest = resolved</span><br><span class="line">	log.Debug(<span class="string">"Resolved node"</span>, <span class="string">"id"</span>, t.dest.ID, <span class="string">"addr"</span>, &amp;net.TCPAddr&#123;IP: t.dest.IP(), Port: t.dest.TCP()&#125;)</span><br><span class="line">	<span class="keyword">return</span> <span class="literal">true</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>这个方法是进程查询的，规定最小查询间隔是60秒。调用的是table中的Resolve，具体代码就不贴了，实际上就是先查找k桶，找到目标节点返回或摘到离他较近的节点调用lookup进行查找，所以就是节点查找的过程。如果查不到节点，则将最小查询间隔翻倍。如果查到的话，则更新节点。回到Do中，如果IP地址被补全，则调用dial进行连接，<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(t *dialTask)</span> <span class="title">dial</span><span class="params">(srv *Server, dest *enode.Node)</span> <span class="title">error</span></span> &#123;</span><br><span class="line">	fd, err := srv.Dialer.Dial(dest)</span><br><span class="line">	<span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">		<span class="keyword">return</span> &amp;dialError&#123;err&#125;</span><br><span class="line">	&#125;</span><br><span class="line">	mfd := newMeteredConn(fd, <span class="literal">false</span>, dest.IP())</span><br><span class="line">	<span class="keyword">return</span> srv.SetupConn(mfd, t.flags, dest)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>Dialer实际上就是前文的TCPDialer，建立tcp连接后，调用了SetupConn，之后的逻辑前文以及分析过了。</p>
+<h3 id="discoverTask"><a href="#discoverTask" class="headerlink" title="discoverTask"></a>discoverTask</h3><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(t *discoverTask)</span> <span class="title">Do</span><span class="params">(srv *Server)</span></span> &#123;</span><br><span class="line">	next := srv.lastLookup.Add(lookupInterval)</span><br><span class="line">	<span class="keyword">if</span> now := time.Now(); now.Before(next) &#123;</span><br><span class="line">		time.Sleep(next.Sub(now))</span><br><span class="line">	&#125;</span><br><span class="line">	srv.lastLookup = time.Now()</span><br><span class="line">	t.results = srv.ntab.LookupRandom()</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>首先也是判断是否在最小间隔内，若是则等待，否则执行disocer的LookupRandom方法进行随机查找</p>
+<h3 id="waitExpireTask"><a href="#waitExpireTask" class="headerlink" title="waitExpireTask"></a>waitExpireTask</h3><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(t waitExpireTask)</span> <span class="title">Do</span><span class="params">(*Server)</span></span> &#123;</span><br><span class="line">	time.Sleep(t.Duration)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>就是一个定时方法</p>
+<h2 id="addStatic-removeStatic"><a href="#addStatic-removeStatic" class="headerlink" title="addStatic removeStatic"></a>addStatic removeStatic</h2><p>这两个方法是提供给p2pserver的run方法中使用的，就是添加或移除节点。</p>
+<h2 id="dial总结"><a href="#dial总结" class="headerlink" title="dial总结"></a>dial总结</h2><p>结合p2pserver分析，可知首先封装了一个TCP连接对象给server。然后初始化dialstate进行连接的建立。首先在run的大循环中第一次调用scheduleTasks，此时queuedTasks和queuedTasks都为空，此时添加的任务就是那些静态节点或桶中节点包装的dialTask，以及还有可能的discoverTask和最后的waitExpireTask。然后启动这些任务。对于dialTask，主动和相关节点建立联系；对于discoverTask，执行节点发现逻辑；对于waitExpireTask进行定时方法。</p>
+<h1 id="peer-go"><a href="#peer-go" class="headerlink" title="peer.go"></a>peer.go</h1><h2 id="newPeer"><a href="#newPeer" class="headerlink" title="newPeer"></a>newPeer</h2><p>前面介绍了链路建立的准备工作，到这里peer代表一个已经建立好的连接。在p2p服务中，最早出现peer的地方是在节点主动发出或收到一个连接请求，并进行协议握手后，双方检查协议匹配性，检查通过后利用newPeer方法建立了一个peer对象，表示一条稳定的连接：<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">newPeer</span><span class="params">(conn *conn, protocols []Protocol)</span> *<span class="title">Peer</span></span> &#123;</span><br><span class="line">	protomap := matchProtocols(protocols, conn.caps, conn)</span><br><span class="line">	p := &amp;Peer&#123;</span><br><span class="line">		rw:       conn,</span><br><span class="line">		running:  protomap,</span><br><span class="line">		created:  mclock.Now(),</span><br><span class="line">		disc:     <span class="built_in">make</span>(<span class="keyword">chan</span> DiscReason),</span><br><span class="line">		protoErr: <span class="built_in">make</span>(<span class="keyword">chan</span> error, <span class="built_in">len</span>(protomap)+<span class="number">1</span>), <span class="comment">// protocols + pingLoop</span></span><br><span class="line">		closed:   <span class="built_in">make</span>(<span class="keyword">chan</span> <span class="keyword">struct</span>&#123;&#125;),</span><br><span class="line">		log:      log.New(<span class="string">"id"</span>, conn.node.ID(), <span class="string">"conn"</span>, conn.flags),</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">return</span> p</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>matchProtocols表示双方都能提供的协议，参数中protocols表示自己能提供的协议，conn.caps表示对方能提供的协议，来看具体实现：<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">matchProtocols</span><span class="params">(protocols []Protocol, caps []Cap, rw MsgReadWriter)</span> <span class="title">map</span>[<span class="title">string</span>]*<span class="title">protoRW</span></span> &#123;</span><br><span class="line">	sort.Sort(capsByNameAndVersion(caps))</span><br><span class="line">	offset := baseProtocolLength</span><br><span class="line">	result := <span class="built_in">make</span>(<span class="keyword">map</span>[<span class="keyword">string</span>]*protoRW)</span><br><span class="line"></span><br><span class="line">outer:</span><br><span class="line">	<span class="keyword">for</span> _, <span class="built_in">cap</span> := <span class="keyword">range</span> caps &#123;</span><br><span class="line">		<span class="keyword">for</span> _, proto := <span class="keyword">range</span> protocols &#123;</span><br><span class="line">			<span class="keyword">if</span> proto.Name == <span class="built_in">cap</span>.Name &amp;&amp; proto.Version == <span class="built_in">cap</span>.Version &#123;</span><br><span class="line">				<span class="comment">// If an old protocol version matched, revert it</span></span><br><span class="line">				<span class="keyword">if</span> old := result[<span class="built_in">cap</span>.Name]; old != <span class="literal">nil</span> &#123;</span><br><span class="line">					offset -= old.Length</span><br><span class="line">				&#125;</span><br><span class="line">				<span class="comment">// Assign the new match</span></span><br><span class="line">				result[<span class="built_in">cap</span>.Name] = &amp;protoRW&#123;Protocol: proto, offset: offset, in: <span class="built_in">make</span>(<span class="keyword">chan</span> Msg), w: rw&#125;</span><br><span class="line">				offset += proto.Length</span><br><span class="line"></span><br><span class="line">				<span class="keyword">continue</span> outer</span><br><span class="line">			&#125;</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">return</span> result</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>基本就是遍历自己和对方的协议集合，将所有名字和版本号一样的协议封装成protoRW对象并按名字存入result中，最后返回二者都能提供的协议集合。</p>
+<h2 id="run-1"><a href="#run-1" class="headerlink" title="run"></a>run</h2><p>回到newPeer中，构建了一个Peer对象并返回。紧接着启动了一个goroutine去调用runPeer，在runPeer中执行了peer的run方法：<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(p *Peer)</span> <span class="title">run</span><span class="params">()</span> <span class="params">(remoteRequested <span class="keyword">bool</span>, err error)</span></span> &#123;</span><br><span class="line">	<span class="keyword">var</span> (</span><br><span class="line">		writeStart = <span class="built_in">make</span>(<span class="keyword">chan</span> <span class="keyword">struct</span>&#123;&#125;, <span class="number">1</span>)</span><br><span class="line">		writeErr   = <span class="built_in">make</span>(<span class="keyword">chan</span> error, <span class="number">1</span>)</span><br><span class="line">		readErr    = <span class="built_in">make</span>(<span class="keyword">chan</span> error, <span class="number">1</span>)</span><br><span class="line">		reason     DiscReason <span class="comment">// sent to the peer</span></span><br><span class="line">	)</span><br><span class="line">	p.wg.Add(<span class="number">2</span>)</span><br><span class="line">	<span class="keyword">go</span> p.readLoop(readErr)</span><br><span class="line">	<span class="keyword">go</span> p.pingLoop()</span><br><span class="line"></span><br><span class="line">	writeStart &lt;- <span class="keyword">struct</span>&#123;&#125;&#123;&#125;</span><br><span class="line">	p.startProtocols(writeStart, writeErr)</span><br><span class="line"></span><br><span class="line">loop:</span><br><span class="line">	<span class="keyword">for</span> &#123;</span><br><span class="line">		<span class="keyword">select</span> &#123;</span><br><span class="line">		<span class="keyword">case</span> err = &lt;-writeErr:</span><br><span class="line">			<span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">				reason = DiscNetworkError</span><br><span class="line">				<span class="keyword">break</span> loop</span><br><span class="line">			&#125;</span><br><span class="line">			writeStart &lt;- <span class="keyword">struct</span>&#123;&#125;&#123;&#125;</span><br><span class="line">		<span class="keyword">case</span> err = &lt;-readErr:</span><br><span class="line">			<span class="keyword">if</span> r, ok := err.(DiscReason); ok &#123;</span><br><span class="line">				remoteRequested = <span class="literal">true</span></span><br><span class="line">				reason = r</span><br><span class="line">			&#125; <span class="keyword">else</span> &#123;</span><br><span class="line">				reason = DiscNetworkError</span><br><span class="line">			&#125;</span><br><span class="line">			<span class="keyword">break</span> loop</span><br><span class="line">		<span class="keyword">case</span> err = &lt;-p.protoErr:</span><br><span class="line">			reason = discReasonForError(err)</span><br><span class="line">			<span class="keyword">break</span> loop</span><br><span class="line">		<span class="keyword">case</span> err = &lt;-p.disc:</span><br><span class="line">			reason = discReasonForError(err)</span><br><span class="line">			<span class="keyword">break</span> loop</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="built_in">close</span>(p.closed)</span><br><span class="line">	p.rw.<span class="built_in">close</span>(reason)</span><br><span class="line">	p.wg.Wait()</span><br><span class="line">	<span class="keyword">return</span> remoteRequested, err</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<h2 id="readLoop"><a href="#readLoop" class="headerlink" title="readLoop"></a>readLoop</h2><p>在run方法中，首先在一个独立goroutine中启动了readLoop方法：<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(p *Peer)</span> <span class="title">readLoop</span><span class="params">(errc <span class="keyword">chan</span>&lt;- error)</span></span> &#123;</span><br><span class="line">	<span class="keyword">defer</span> p.wg.Done()</span><br><span class="line">	<span class="keyword">for</span> &#123;</span><br><span class="line">		msg, err := p.rw.ReadMsg()</span><br><span class="line">		<span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">			errc &lt;- err</span><br><span class="line">			<span class="keyword">return</span></span><br><span class="line">		&#125;</span><br><span class="line">		msg.ReceivedAt = time.Now()</span><br><span class="line">		<span class="keyword">if</span> err = p.handle(msg); err != <span class="literal">nil</span> &#123;</span><br><span class="line">			errc &lt;- err</span><br><span class="line">			<span class="keyword">return</span></span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>这就是一个阻塞型的从流中读取信息的方法。rw是conn类型，conn是在开启一个tcp连接后，在SetupConn中将net.Conn包装后的对象。它的ReadMsg实际上就是rlpx的ReadMsg方法，前文已经分析过，返回的是一个Msg对象。之后在readLoop中给mag打上接受的时间戳，然后调用handle处理这个msg<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(p *Peer)</span> <span class="title">handle</span><span class="params">(msg Msg)</span> <span class="title">error</span></span> &#123;</span><br><span class="line">	<span class="keyword">switch</span> &#123;</span><br><span class="line">	<span class="keyword">case</span> msg.Code == pingMsg:</span><br><span class="line">		msg.Discard()</span><br><span class="line">		<span class="keyword">go</span> SendItems(p.rw, pongMsg)</span><br><span class="line">	<span class="keyword">case</span> msg.Code == discMsg:</span><br><span class="line">		<span class="keyword">var</span> reason [<span class="number">1</span>]DiscReason</span><br><span class="line">		rlp.Decode(msg.Payload, &amp;reason)</span><br><span class="line">		<span class="keyword">return</span> reason[<span class="number">0</span>]</span><br><span class="line">	<span class="keyword">case</span> msg.Code &lt; baseProtocolLength:</span><br><span class="line">		<span class="keyword">return</span> msg.Discard()</span><br><span class="line">	<span class="keyword">default</span>:</span><br><span class="line">		proto, err := p.getProto(msg.Code)</span><br><span class="line">		<span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">			<span class="keyword">return</span> fmt.Errorf(<span class="string">"msg code out of range: %v"</span>, msg.Code)</span><br><span class="line">		&#125;</span><br><span class="line">		<span class="keyword">select</span> &#123;</span><br><span class="line">		<span class="keyword">case</span> proto.in &lt;- msg:</span><br><span class="line">			<span class="keyword">return</span> <span class="literal">nil</span></span><br><span class="line">		<span class="keyword">case</span> &lt;-p.closed:</span><br><span class="line">			<span class="keyword">return</span> io.EOF</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">return</span> <span class="literal">nil</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>这里主要是根据msg.Code决定执行的逻辑。主要是判断是否是ping消息或的断开连接的消息。都不是的话判断code是否满足规范，满足的话根据code取具体的协议getProto：<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(p *Peer)</span> <span class="title">getProto</span><span class="params">(code <span class="keyword">uint64</span>)</span> <span class="params">(*protoRW, error)</span></span> &#123;</span><br><span class="line">	<span class="keyword">for</span> _, proto := <span class="keyword">range</span> p.running &#123;</span><br><span class="line">		<span class="keyword">if</span> code &gt;= proto.offset &amp;&amp; code &lt; proto.offset+proto.Length &#123;</span><br><span class="line">			<span class="keyword">return</span> proto, <span class="literal">nil</span></span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">return</span> <span class="literal">nil</span>, newPeerError(errInvalidMsgCode, <span class="string">"%d"</span>, code)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>这里根据code查找具体协议，匹配的方式是根据协议的offset和length，看是否在[offset,offset+length)区间内，然后返回具体协议。找到后将msg赋值给proto.in触发相应逻辑。到这里handle执行完毕，readLoop的一个循环结束，开始下一个循环等待数据到来，这样一次完整的数据读取完成。还有一点需要注意的是handle多次出现了Discard方法：<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(msg Msg)</span> <span class="title">Discard</span><span class="params">()</span> <span class="title">error</span></span> &#123;</span><br><span class="line">	_, err := io.Copy(ioutil.Discard, msg.Payload)</span><br><span class="line">	<span class="keyword">return</span> err</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">var</span> Discard io.Writer = devNull(<span class="number">0</span>)</span><br></pre></td></tr></table></figure></p>
+<p>由于msg的payload携带的是一个Reader对象，当消息抛弃是也要把read的内容读完，所以这里使用Discard这个虚拟的写对象，这个不执行什么实际操作，但是不会报错，可以安全的丢弃数据。</p>
+<h2 id="pingLoop"><a href="#pingLoop" class="headerlink" title="pingLoop"></a>pingLoop</h2><p>再回到run方法中，和readLoop同时启动的还有pingLoop<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(p *Peer)</span> <span class="title">pingLoop</span><span class="params">()</span></span> &#123;</span><br><span class="line">	ping := time.NewTimer(pingInterval)</span><br><span class="line">	<span class="keyword">defer</span> p.wg.Done()</span><br><span class="line">	<span class="keyword">defer</span> ping.Stop()</span><br><span class="line">	<span class="keyword">for</span> &#123;</span><br><span class="line">		<span class="keyword">select</span> &#123;</span><br><span class="line">		<span class="keyword">case</span> &lt;-ping.C:</span><br><span class="line">			<span class="keyword">if</span> err := SendItems(p.rw, pingMsg); err != <span class="literal">nil</span> &#123;</span><br><span class="line">				p.protoErr &lt;- err</span><br><span class="line">				<span class="keyword">return</span></span><br><span class="line">			&#125;</span><br><span class="line">			ping.Reset(pingInterval)</span><br><span class="line">		<span class="keyword">case</span> &lt;-p.closed:</span><br><span class="line">			<span class="keyword">return</span></span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>这相当于是一个心跳包，即使双方没有数据传输，也要每隔一段时间内发送一个ping包看对方是否在线，这里时间间隔是15秒。15秒后执行SendItems方法<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">SendItems</span><span class="params">(w MsgWriter, msgcode <span class="keyword">uint64</span>, elems ...<span class="keyword">interface</span>&#123;&#125;)</span> <span class="title">error</span></span> &#123;</span><br><span class="line">	<span class="keyword">return</span> Send(w, msgcode, elems)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">Send</span><span class="params">(w MsgWriter, msgcode <span class="keyword">uint64</span>, data <span class="keyword">interface</span>&#123;&#125;)</span> <span class="title">error</span></span> &#123;</span><br><span class="line">	size, r, err := rlp.EncodeToReader(data)</span><br><span class="line">	<span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">		<span class="keyword">return</span> err</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">return</span> w.WriteMsg(Msg&#123;Code: msgcode, Size: <span class="keyword">uint32</span>(size), Payload: r&#125;)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>这里的ping包是一个空包，只有一个pingMsg，最后还用rlpx的WriteMsg发送一个封装好的msg对象。发送后对方接受的逻辑就在上文分析的handle方法，<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">case</span> msg.Code == pingMsg:</span><br><span class="line">	msg.Discard()</span><br><span class="line">	<span class="keyword">go</span> SendItems(p.rw, pongMsg)</span><br></pre></td></tr></table></figure></p>
+<p>可见显示抛弃消息，然后为了避免阻塞发送了pong包，和发送ping包一样。当我们接受到pong包时，由于pongMsg小于baseProtocolLength，所以直接被抛弃。</p>
+<h2 id="startProtocols"><a href="#startProtocols" class="headerlink" title="startProtocols"></a>startProtocols</h2><p>再回到run中，由于readLoop和pingLoop都是异步进行了，我们看主线程的逻辑，首先调用了startProtocols<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(p *Peer)</span> <span class="title">startProtocols</span><span class="params">(writeStart &lt;-<span class="keyword">chan</span> <span class="keyword">struct</span>&#123;&#125;, writeErr <span class="keyword">chan</span>&lt;- error)</span></span> &#123;</span><br><span class="line">	p.wg.Add(<span class="built_in">len</span>(p.running))</span><br><span class="line">	<span class="keyword">for</span> _, proto := <span class="keyword">range</span> p.running &#123;</span><br><span class="line">		proto := proto</span><br><span class="line">		proto.closed = p.closed</span><br><span class="line">		proto.wstart = writeStart</span><br><span class="line">		proto.werr = writeErr</span><br><span class="line">		<span class="keyword">var</span> rw MsgReadWriter = proto</span><br><span class="line">		<span class="keyword">if</span> p.events != <span class="literal">nil</span> &#123;</span><br><span class="line">			rw = newMsgEventer(rw, p.events, p.ID(), proto.Name)</span><br><span class="line">		&#125;</span><br><span class="line">		p.log.Trace(fmt.Sprintf(<span class="string">"Starting protocol %s/%d"</span>, proto.Name, proto.Version))</span><br><span class="line">		<span class="keyword">go</span> <span class="function"><span class="keyword">func</span><span class="params">()</span></span> &#123;</span><br><span class="line">			err := proto.Run(p, rw)</span><br><span class="line">			<span class="keyword">if</span> err == <span class="literal">nil</span> &#123;</span><br><span class="line">				p.log.Trace(fmt.Sprintf(<span class="string">"Protocol %s/%d returned"</span>, proto.Name, proto.Version))</span><br><span class="line">				err = errProtocolReturned</span><br><span class="line">			&#125; <span class="keyword">else</span> <span class="keyword">if</span> err != io.EOF &#123;</span><br><span class="line">				p.log.Trace(fmt.Sprintf(<span class="string">"Protocol %s/%d failed"</span>, proto.Name, proto.Version), <span class="string">"err"</span>, err)</span><br><span class="line">			&#125;</span><br><span class="line">			p.protoErr &lt;- err</span><br><span class="line">			p.wg.Done()</span><br><span class="line">		&#125;()</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>running就是在newPeer中挑选的匹配上的协议，这里遍历这些协议进行启动操作。由于这里遍历的是Protocol的封装类protoRW，所以先对其几个channel赋值，然后启动一个匿名方法，执行协议的Run方法。</p>
+<h2 id="run-loop"><a href="#run-loop" class="headerlink" title="run:loop"></a>run:loop</h2><p>在启动完所有协议后，开启了一个loop，也是一个无限循环，这个主要是处理各种错误的，如读写错误等，对于所有读写错误处理都是直接结束循环，后续触发peer的结束。</p>
+<blockquote>
+<p>题图来自unsplash：<a href="https://unsplash.com/photos/gooBgyq17i0" target="_blank" rel="noopener">https://unsplash.com/photos/gooBgyq17i0</a></p>
+</blockquote>
+
+      
+    </div>
+
+    
+
+    
+    
+    
+
+    
+
+    
+      
+    
+    
+      <div>
+        <div style="padding: 10px 0; margin: 20px auto; width: 90%; text-align: center;">
+  <div>谢谢你请我吃糖</div>
+  <button id="rewardButton" disable="enable" onclick="var qr = document.getElementById('QR'); if (qr.style.display === 'none') {qr.style.display='block';} else {qr.style.display='none'}">
+    <span>打赏</span>
+  </button>
+  <div id="QR" style="display: none;">
+
+    
+      <div id="wechat" style="display: inline-block">
+        <img id="wechat_qr" src="/assets/img/wechatpay.jpg" alt="AmorFati 微信支付">
+        <p>微信支付</p>
+      </div>
+    
+
+    
+      <div id="alipay" style="display: inline-block">
+        <img id="alipay_qr" src="/assets/img/alipay.jpg" alt="AmorFati 支付宝">
+        <p>支付宝</p>
+      </div>
+    
+
+    
+
+  </div>
+</div>
+
+      </div>
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/go/" rel="tag"># go</a>
+          
+            <a href="/tags/区块链/" rel="tag"># 区块链</a>
+          
+            <a href="/tags/以太坊/" rel="tag"># 以太坊</a>
+          
+            <a href="/tags/go-ethereum/" rel="tag"># go-ethereum</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2019/04/21/go-ethereum中p2p-rlpx源码学习/" rel="next" title="go-ethereum中p2p-rlpx源码学习">
+                <i class="fa fa-chevron-left"></i> go-ethereum中p2p-rlpx源码学习
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+  </div>
+
+
+          </div>
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image" src="/assets/img/icon.jpg" alt="AmorFati">
+            
+              <p class="site-author-name" itemprop="name">AmorFati</p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          
+            <nav class="site-state motion-element">
+              
+                <div class="site-state-item site-state-posts">
+                
+                  <a href="/archives/">
+                
+                    <span class="site-state-item-count">29</span>
+                    <span class="site-state-item-name">日志</span>
+                  </a>
+                </div>
+              
+
+              
+                
+                
+                <div class="site-state-item site-state-categories">
+                  <a href="/categories/index.html">
+                    
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">6</span>
+                    <span class="site-state-item-name">分类</span>
+                  </a>
+                </div>
+              
+
+              
+                
+                
+                <div class="site-state-item site-state-tags">
+                  <a href="/tags/index.html">
+                    
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">11</span>
+                    <span class="site-state-item-name">标签</span>
+                  </a>
+                </div>
+              
+            </nav>
+          
+
+          
+
+          
+            <div class="links-of-author motion-element">
+              
+                <span class="links-of-author-item">
+                  
+                  
+                    
+                  
+                  
+                    
+                  
+                  <a href="https://github.com/chenyaoyang" title="GitHub &rarr; https://github.com/chenyaoyang" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i>GitHub</a>
+                </span>
+              
+                <span class="links-of-author-item">
+                  
+                  
+                    
+                  
+                  
+                    
+                  
+                  <a href="mailto:chenyang4346@foxmail.com" title="E-Mail &rarr; mailto:chenyang4346@foxmail.com" rel="noopener" target="_blank"><i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+                </span>
+              
+                <span class="links-of-author-item">
+                  
+                  
+                    
+                  
+                  
+                    
+                  
+                  <a href="https://www.jianshu.com/u/52c1bec4559c" title="简书 &rarr; https://www.jianshu.com/u/52c1bec4559c" rel="noopener" target="_blank"><i class="fa fa-fw fa-globe"></i>简书</a>
+                </span>
+              
+            </div>
+          
+
+          
+
+          
+          
+
+          
+            
+          
+          
+
+        </div>
+      </div>
+
+      
+      <!--noindex-->
+        <div class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+            
+            
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#server-go"><span class="nav-number">1.</span> <span class="nav-text">server.go</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#Start"><span class="nav-number">1.1.</span> <span class="nav-text">Start</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#setupLocalNode"><span class="nav-number">1.2.</span> <span class="nav-text">setupLocalNode</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#setupListening"><span class="nav-number">1.3.</span> <span class="nav-text">setupListening</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#setupDiscovery"><span class="nav-number">1.4.</span> <span class="nav-text">setupDiscovery</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#run"><span class="nav-number">1.5.</span> <span class="nav-text">run</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#run-running"><span class="nav-number">1.6.</span> <span class="nav-text">run:running</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#rlpx-go"><span class="nav-number">2.</span> <span class="nav-text">rlpx.go</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#dial-go"><span class="nav-number">3.</span> <span class="nav-text">dial.go</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#newTasks"><span class="nav-number">3.1.</span> <span class="nav-text">newTasks</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Do"><span class="nav-number">3.2.</span> <span class="nav-text">Do</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#dialTask"><span class="nav-number">3.2.1.</span> <span class="nav-text">dialTask</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#discoverTask"><span class="nav-number">3.2.2.</span> <span class="nav-text">discoverTask</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#waitExpireTask"><span class="nav-number">3.2.3.</span> <span class="nav-text">waitExpireTask</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#addStatic-removeStatic"><span class="nav-number">3.3.</span> <span class="nav-text">addStatic removeStatic</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#dial总结"><span class="nav-number">3.4.</span> <span class="nav-text">dial总结</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#peer-go"><span class="nav-number">4.</span> <span class="nav-text">peer.go</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#newPeer"><span class="nav-number">4.1.</span> <span class="nav-text">newPeer</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#run-1"><span class="nav-number">4.2.</span> <span class="nav-text">run</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#readLoop"><span class="nav-number">4.3.</span> <span class="nav-text">readLoop</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#pingLoop"><span class="nav-number">4.4.</span> <span class="nav-text">pingLoop</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#startProtocols"><span class="nav-number">4.5.</span> <span class="nav-text">startProtocols</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#run-loop"><span class="nav-number">4.6.</span> <span class="nav-text">run:loop</span></a></li></ol></li></ol></div>
+            
+
+          </div>
+        </div>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; 2018 – <span itemprop="copyrightYear">2019</span>
+  <span class="with-love" id="animate">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">AmorFati</span>
+
+  
+
+  
+</div>
+
+
+  <div class="powered-by">由 <a href="https://hexo.io" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v3.8.0</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 – <a href="https://theme-next.org" class="theme-link" rel="noopener" target="_blank">NexT.Pisces</a> v6.6.0</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+    
+
+    
+  </div>
+
+  
+
+<script>
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+
+  
+
+
+  <script src="/js/src/utils.js?v=6.6.0"></script>
+
+  <script src="/js/src/motion.js?v=6.6.0"></script>
+
+
+
+  
+  
+
+
+  <script src="/js/src/affix.js?v=6.6.0"></script>
+
+  <script src="/js/src/schemes/pisces.js?v=6.6.0"></script>
+
+
+
+  
+  <script src="/js/src/scrollspy.js?v=6.6.0"></script>
+<script src="/js/src/post-details.js?v=6.6.0"></script>
+
+
+
+  
+
+
+  <script src="/js/src/bootstrap.js?v=6.6.0"></script>
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  <script>
+    // Popup Window;
+    var isfetched = false;
+    var isXml = true;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length === 0) {
+      search_path = "search.xml";
+    } else if (/json$/i.test(search_path)) {
+      isXml = false;
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    var onPopupClose = function (e) {
+      $('.popup').hide();
+      $('#local-search-input').val('');
+      $('.search-result-list').remove();
+      $('#no-result').remove();
+      $(".local-search-pop-overlay").remove();
+      $('body').css('overflow', '');
+    }
+
+    function proceedsearch() {
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay"></div>')
+        .css('overflow', 'hidden');
+      $('.search-popup-overlay').click(onPopupClose);
+      $('.popup').toggle();
+      var $localSearchInput = $('#local-search-input');
+      $localSearchInput.attr("autocapitalize", "none");
+      $localSearchInput.attr("autocorrect", "off");
+      $localSearchInput.focus();
+    }
+
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+      'use strict';
+
+      // start loading animation
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay">' +
+          '<div id="search-loading-icon">' +
+          '<i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>' +
+          '</div>' +
+          '</div>')
+        .css('overflow', 'hidden');
+      $("#search-loading-icon").css('margin', '20% auto 0 auto').css('text-align', 'center');
+
+      
+
+      $.ajax({
+        url: path,
+        dataType: isXml ? "xml" : "json",
+        async: true,
+        success: function(res) {
+          // get the contents from search data
+          isfetched = true;
+          $('.popup').detach().appendTo('.header-inner');
+          var datas = isXml ? $("entry", res).map(function() {
+            return {
+              title: $("title", this).text(),
+              content: $("content",this).text(),
+              url: $("url" , this).text()
+            };
+          }).get() : res;
+          var input = document.getElementById(search_id);
+          var resultContent = document.getElementById(content_id);
+          var inputEventFunction = function() {
+            var searchText = input.value.trim().toLowerCase();
+            var keywords = searchText.split(/[\s\-]+/);
+            if (keywords.length > 1) {
+              keywords.push(searchText);
+            }
+            var resultItems = [];
+            if (searchText.length > 0) {
+              // perform local searching
+              datas.forEach(function(data) {
+                var isMatch = false;
+                var hitCount = 0;
+                var searchTextCount = 0;
+                var title = data.title.trim();
+                var titleInLowerCase = title.toLowerCase();
+                var content = data.content.trim().replace(/<[^>]+>/g,"");
+                
+                var contentInLowerCase = content.toLowerCase();
+                var articleUrl = decodeURIComponent(data.url);
+                var indexOfTitle = [];
+                var indexOfContent = [];
+                // only match articles with not empty titles
+                if(title != '') {
+                  keywords.forEach(function(keyword) {
+                    function getIndexByWord(word, text, caseSensitive) {
+                      var wordLen = word.length;
+                      if (wordLen === 0) {
+                        return [];
+                      }
+                      var startPosition = 0, position = [], index = [];
+                      if (!caseSensitive) {
+                        text = text.toLowerCase();
+                        word = word.toLowerCase();
+                      }
+                      while ((position = text.indexOf(word, startPosition)) > -1) {
+                        index.push({position: position, word: word});
+                        startPosition = position + wordLen;
+                      }
+                      return index;
+                    }
+
+                    indexOfTitle = indexOfTitle.concat(getIndexByWord(keyword, titleInLowerCase, false));
+                    indexOfContent = indexOfContent.concat(getIndexByWord(keyword, contentInLowerCase, false));
+                  });
+                  if (indexOfTitle.length > 0 || indexOfContent.length > 0) {
+                    isMatch = true;
+                    hitCount = indexOfTitle.length + indexOfContent.length;
+                  }
+                }
+
+                // show search results
+
+                if (isMatch) {
+                  // sort index by position of keyword
+
+                  [indexOfTitle, indexOfContent].forEach(function (index) {
+                    index.sort(function (itemLeft, itemRight) {
+                      if (itemRight.position !== itemLeft.position) {
+                        return itemRight.position - itemLeft.position;
+                      } else {
+                        return itemLeft.word.length - itemRight.word.length;
+                      }
+                    });
+                  });
+
+                  // merge hits into slices
+
+                  function mergeIntoSlice(text, start, end, index) {
+                    var item = index[index.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    var hits = [];
+                    var searchTextCountInSlice = 0;
+                    while (position + word.length <= end && index.length != 0) {
+                      if (word === searchText) {
+                        searchTextCountInSlice++;
+                      }
+                      hits.push({position: position, length: word.length});
+                      var wordEnd = position + word.length;
+
+                      // move to next position of hit
+
+                      index.pop();
+                      while (index.length != 0) {
+                        item = index[index.length - 1];
+                        position = item.position;
+                        word = item.word;
+                        if (wordEnd > position) {
+                          index.pop();
+                        } else {
+                          break;
+                        }
+                      }
+                    }
+                    searchTextCount += searchTextCountInSlice;
+                    return {
+                      hits: hits,
+                      start: start,
+                      end: end,
+                      searchTextCount: searchTextCountInSlice
+                    };
+                  }
+
+                  var slicesOfTitle = [];
+                  if (indexOfTitle.length != 0) {
+                    slicesOfTitle.push(mergeIntoSlice(title, 0, title.length, indexOfTitle));
+                  }
+
+                  var slicesOfContent = [];
+                  while (indexOfContent.length != 0) {
+                    var item = indexOfContent[indexOfContent.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    // cut out 100 characters
+                    var start = position - 20;
+                    var end = position + 80;
+                    if(start < 0){
+                      start = 0;
+                    }
+                    if (end < position + word.length) {
+                      end = position + word.length;
+                    }
+                    if(end > content.length){
+                      end = content.length;
+                    }
+                    slicesOfContent.push(mergeIntoSlice(content, start, end, indexOfContent));
+                  }
+
+                  // sort slices in content by search text's count and hits' count
+
+                  slicesOfContent.sort(function (sliceLeft, sliceRight) {
+                    if (sliceLeft.searchTextCount !== sliceRight.searchTextCount) {
+                      return sliceRight.searchTextCount - sliceLeft.searchTextCount;
+                    } else if (sliceLeft.hits.length !== sliceRight.hits.length) {
+                      return sliceRight.hits.length - sliceLeft.hits.length;
+                    } else {
+                      return sliceLeft.start - sliceRight.start;
+                    }
+                  });
+
+                  // select top N slices in content
+
+                  var upperBound = parseInt('1');
+                  if (upperBound >= 0) {
+                    slicesOfContent = slicesOfContent.slice(0, upperBound);
+                  }
+
+                  // highlight title and content
+
+                  function highlightKeyword(text, slice) {
+                    var result = '';
+                    var prevEnd = slice.start;
+                    slice.hits.forEach(function (hit) {
+                      result += text.substring(prevEnd, hit.position);
+                      var end = hit.position + hit.length;
+                      result += '<b class="search-keyword">' + text.substring(hit.position, end) + '</b>';
+                      prevEnd = end;
+                    });
+                    result += text.substring(prevEnd, slice.end);
+                    return result;
+                  }
+
+                  var resultItem = '';
+
+                  if (slicesOfTitle.length != 0) {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + highlightKeyword(title, slicesOfTitle[0]) + "</a>";
+                  } else {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + title + "</a>";
+                  }
+
+                  slicesOfContent.forEach(function (slice) {
+                    resultItem += "<a href='" + articleUrl + "'>" +
+                      "<p class=\"search-result\">" + highlightKeyword(content, slice) +
+                      "...</p>" + "</a>";
+                  });
+
+                  resultItem += "</li>";
+                  resultItems.push({
+                    item: resultItem,
+                    searchTextCount: searchTextCount,
+                    hitCount: hitCount,
+                    id: resultItems.length
+                  });
+                }
+              })
+            };
+            if (keywords.length === 1 && keywords[0] === "") {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>'
+            } else if (resultItems.length === 0) {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>'
+            } else {
+              resultItems.sort(function (resultLeft, resultRight) {
+                if (resultLeft.searchTextCount !== resultRight.searchTextCount) {
+                  return resultRight.searchTextCount - resultLeft.searchTextCount;
+                } else if (resultLeft.hitCount !== resultRight.hitCount) {
+                  return resultRight.hitCount - resultLeft.hitCount;
+                } else {
+                  return resultRight.id - resultLeft.id;
+                }
+              });
+              var searchResultList = '<ul class=\"search-result-list\">';
+              resultItems.forEach(function (result) {
+                searchResultList += result.item;
+              })
+              searchResultList += "</ul>";
+              resultContent.innerHTML = searchResultList;
+            }
+          }
+
+          if ('auto' === 'auto') {
+            input.addEventListener('input', inputEventFunction);
+          } else {
+            $('.search-icon').click(inputEventFunction);
+            input.addEventListener('keypress', function (event) {
+              if (event.keyCode === 13) {
+                inputEventFunction();
+              }
+            });
+          }
+
+          // remove loading animation
+          $(".local-search-pop-overlay").remove();
+          $('body').css('overflow', '');
+
+          proceedsearch();
+        }
+      });
+    }
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched === false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+    });
+
+    $('.popup-btn-close').click(onPopupClose);
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+    $(document).on('keyup', function (event) {
+      var shouldDismissSearchPopup = event.which === 27 &&
+        $('.search-popup').is(':visible');
+      if (shouldDismissSearchPopup) {
+        onPopupClose();
+      }
+    });
+  </script>
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+  
+
+  
+
+
+  
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>
