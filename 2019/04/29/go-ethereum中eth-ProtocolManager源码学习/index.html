@@ -1,0 +1,1386 @@
+<!DOCTYPE html>
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+<html class="theme-next pisces use-motion" lang="zh-CN">
+<head><meta name="generator" content="Hexo 3.8.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+    
+      
+    
+
+    
+  
+
+  
+
+  
+    
+      
+    
+
+    
+  
+
+  
+    
+      
+    
+
+    
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Monda:300,300italic,400,400italic,700,700italic|Roboto Slab:300,300italic,400,400italic,700,700italic|Dancing Script:300,300italic,400,400italic,700,700italic|Consolas:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css">
+
+<link href="/css/main.css?v=6.6.0" rel="stylesheet" type="text/css">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=6.6.0">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=6.6.0">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=6.6.0">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=6.6.0" color="#222">
+
+
+
+
+
+
+
+
+
+<script id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    version: '6.6.0',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: false,
+    fastclick: false,
+    lazyload: false,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+  
+
+
+
+
+  <meta name="keywords" content="go,区块链,以太坊,go-ethereum">
+<meta property="og:type" content="article">
+<meta property="og:title" content="go-ethereum中eth-ProtocolManager源码学习">
+<meta property="og:url" content="http://yoursite.com/2019/04/29/go-ethereum中eth-ProtocolManager源码学习/index.html">
+<meta property="og:site_name" content="AmorFati">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:image" content="https://upload-images.jianshu.io/upload_images/5111131-ba2728fb58e0ab76.jpg?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240">
+<meta property="og:updated_time" content="2019-04-29T07:24:34.778Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="go-ethereum中eth-ProtocolManager源码学习">
+<meta name="twitter:image" content="https://upload-images.jianshu.io/upload_images/5111131-ba2728fb58e0ab76.jpg?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240">
+
+
+
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2019/04/29/go-ethereum中eth-ProtocolManager源码学习/">
+
+
+
+<script id="page.configurations">
+  CONFIG.page = {
+    sidebar: "",
+  };
+</script>
+
+  <title>go-ethereum中eth-ProtocolManager源码学习 | AmorFati</title>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  <noscript>
+  <style>
+    .use-motion .motion-element,
+    .use-motion .brand,
+    .use-motion .menu-item,
+    .sidebar-inner,
+    .use-motion .post-block,
+    .use-motion .pagination,
+    .use-motion .comments,
+    .use-motion .post-header,
+    .use-motion .post-body,
+    .use-motion .collection-title { opacity: initial; }
+
+    .use-motion .logo,
+    .use-motion .site-title,
+    .use-motion .site-subtitle {
+      opacity: initial;
+      top: initial;
+    }
+
+    .use-motion .logo-line-before i { left: initial; }
+    .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope="" itemtype="http://schema.org/WebPage" lang="zh-CN">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope="" itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">AmorFati</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+    
+      
+        <p class="site-subtitle">风吹过窗前的书，又翻过一页</p>
+      
+    
+    
+  </div>
+
+  <div class="site-nav-toggle">
+    <button aria-label="切换导航栏">
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  
+    <ul id="menu" class="menu">
+      
+        
+        
+        
+          
+          <li class="menu-item menu-item-home">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/" rel="section"><i class="menu-item-icon fa fa-fw fa-home"></i> <br>首页</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-about">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/about/" rel="section"><i class="menu-item-icon fa fa-fw fa-user"></i> <br>关于</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-tags">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/tags/" rel="section"><i class="menu-item-icon fa fa-fw fa-tags"></i> <br>标签</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-categories">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/categories/" rel="section"><i class="menu-item-icon fa fa-fw fa-th"></i> <br>分类</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-archives">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/archives/" rel="section"><i class="menu-item-icon fa fa-fw fa-archive"></i> <br>归档</a>
+
+  </li>
+
+      
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br>搜索</a>
+        </li>
+      
+    </ul>
+  
+
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup search-popup local-search-popup">
+  <div class="local-search-header clearfix">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+    <div class="local-search-input-wrapper">
+      <input autocomplete="off" placeholder="搜索..." spellcheck="false" type="text" id="local-search-input">
+    </div>
+  </div>
+  <div id="local-search-result"></div>
+</div>
+
+
+
+    </div>
+  
+</nav>
+
+
+
+  
+
+
+
+</div>
+    </header>
+
+    
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+            
+
+          
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  
+
+  <article class="post post-type-normal" itemscope="" itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/04/29/go-ethereum中eth-ProtocolManager源码学习/">
+
+    <span hidden itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="AmorFati">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/assets/img/icon.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope="" itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="AmorFati">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">go-ethereum中eth-ProtocolManager源码学习
+
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+
+            
+            
+            
+
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+
+              
+                
+              
+
+              <time title="创建时间：2019-04-29 15:14:58 / 修改时间：15:24:34" itemprop="dateCreated datePublished" datetime="2019-04-29T15:14:58+08:00">2019-04-29</time>
+            
+
+            
+              
+
+              
+            
+          </span>
+
+          
+            <span class="post-category">
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope="" itemtype="http://schema.org/Thing"><a href="/categories/go-ethereum源码学习/" itemprop="url" rel="index"><span itemprop="name">go-ethereum源码学习</span></a></span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p><img src="https://upload-images.jianshu.io/upload_images/5111131-ba2728fb58e0ab76.jpg?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt=""><br><a id="more"></a></p>
+<h1 id="NewProtocolManager"><a href="#NewProtocolManager" class="headerlink" title="NewProtocolManager"></a>NewProtocolManager</h1><p>在eth的创建过程中初始化了一个protocolManager成员，从名称上看是协议管理者，实际上它是用来管理Ethereum的子协议的，也是上层消息的处理分发的类。由于和上一篇P2P有很大的联系，所以单独拿出来分析一下。<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// go-ethereum\eth\handler.go</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">NewProtocolManager</span><span class="params">(config *params.ChainConfig, mode downloader.SyncMode, networkID <span class="keyword">uint64</span>, mux *event.TypeMux, txpool txPool, engine consensus.Engine, blockchain *core.BlockChain, chaindb ethdb.Database, whitelist <span class="keyword">map</span>[<span class="keyword">uint64</span>]common.Hash)</span> <span class="params">(*ProtocolManager, error)</span></span> &#123;</span><br><span class="line">	manager := &amp;ProtocolManager&#123;</span><br><span class="line">		networkID:   networkID,</span><br><span class="line">		eventMux:    mux,</span><br><span class="line">		txpool:      txpool,</span><br><span class="line">		blockchain:  blockchain,</span><br><span class="line">		chainconfig: config,</span><br><span class="line">		peers:       newPeerSet(),</span><br><span class="line">		whitelist:   whitelist,</span><br><span class="line">		newPeerCh:   <span class="built_in">make</span>(<span class="keyword">chan</span> *peer),</span><br><span class="line">		noMorePeers: <span class="built_in">make</span>(<span class="keyword">chan</span> <span class="keyword">struct</span>&#123;&#125;),</span><br><span class="line">		txsyncCh:    <span class="built_in">make</span>(<span class="keyword">chan</span> *txsync),</span><br><span class="line">		quitSync:    <span class="built_in">make</span>(<span class="keyword">chan</span> <span class="keyword">struct</span>&#123;&#125;),</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">if</span> mode == downloader.FastSync &amp;&amp; blockchain.CurrentBlock().NumberU64() &gt; <span class="number">0</span> &#123;</span><br><span class="line">		log.Warn(<span class="string">"Blockchain not empty, fast sync disabled"</span>)</span><br><span class="line">		mode = downloader.FullSync</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">if</span> mode == downloader.FastSync &#123;</span><br><span class="line">		manager.fastSync = <span class="keyword">uint32</span>(<span class="number">1</span>)</span><br><span class="line">	&#125;</span><br><span class="line">	manager.SubProtocols = <span class="built_in">make</span>([]p2p.Protocol, <span class="number">0</span>, <span class="built_in">len</span>(ProtocolVersions))</span><br><span class="line">	<span class="keyword">for</span> i, version := <span class="keyword">range</span> ProtocolVersions &#123;</span><br><span class="line">		<span class="keyword">if</span> mode == downloader.FastSync &amp;&amp; version &lt; eth63 &#123;</span><br><span class="line">			<span class="keyword">continue</span></span><br><span class="line">		&#125;</span><br><span class="line">		version := version </span><br><span class="line">		manager.SubProtocols = <span class="built_in">append</span>(manager.SubProtocols, p2p.Protocol&#123;</span><br><span class="line">			Name:    ProtocolName,</span><br><span class="line">			Version: version,</span><br><span class="line">			Length:  ProtocolLengths[i],</span><br><span class="line">			Run: <span class="function"><span class="keyword">func</span><span class="params">(p *p2p.Peer, rw p2p.MsgReadWriter)</span> <span class="title">error</span></span> &#123;</span><br><span class="line">				peer := manager.newPeer(<span class="keyword">int</span>(version), p, rw)</span><br><span class="line">				<span class="keyword">select</span> &#123;</span><br><span class="line">				<span class="keyword">case</span> manager.newPeerCh &lt;- peer:</span><br><span class="line">					manager.wg.Add(<span class="number">1</span>)</span><br><span class="line">					<span class="keyword">defer</span> manager.wg.Done()</span><br><span class="line">					<span class="keyword">return</span> manager.handle(peer)</span><br><span class="line">				<span class="keyword">case</span> &lt;-manager.quitSync:</span><br><span class="line">					<span class="keyword">return</span> p2p.DiscQuitting</span><br><span class="line">				&#125;</span><br><span class="line">			&#125;,</span><br><span class="line">			NodeInfo: <span class="function"><span class="keyword">func</span><span class="params">()</span> <span class="title">interface</span></span>&#123;&#125; &#123;</span><br><span class="line">				<span class="keyword">return</span> manager.NodeInfo()</span><br><span class="line">			&#125;,</span><br><span class="line">			PeerInfo: <span class="function"><span class="keyword">func</span><span class="params">(id enode.ID)</span> <span class="title">interface</span></span>&#123;&#125; &#123;</span><br><span class="line">				<span class="keyword">if</span> p := manager.peers.Peer(fmt.Sprintf(<span class="string">"%x"</span>, id[:<span class="number">8</span>])); p != <span class="literal">nil</span> &#123;</span><br><span class="line">					<span class="keyword">return</span> p.Info()</span><br><span class="line">				&#125;</span><br><span class="line">				<span class="keyword">return</span> <span class="literal">nil</span></span><br><span class="line">			&#125;,</span><br><span class="line">		&#125;)</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">if</span> <span class="built_in">len</span>(manager.SubProtocols) == <span class="number">0</span> &#123;</span><br><span class="line">		<span class="keyword">return</span> <span class="literal">nil</span>, errIncompatibleConfig</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	manager.downloader = downloader.New(mode, chaindb, manager.eventMux, blockchain, <span class="literal">nil</span>, manager.removePeer)</span><br><span class="line"></span><br><span class="line">	validator := <span class="function"><span class="keyword">func</span><span class="params">(header *types.Header)</span> <span class="title">error</span></span> &#123;</span><br><span class="line">		<span class="keyword">return</span> engine.VerifyHeader(blockchain, header, <span class="literal">true</span>)</span><br><span class="line">	&#125;</span><br><span class="line">	heighter := <span class="function"><span class="keyword">func</span><span class="params">()</span> <span class="title">uint64</span></span> &#123;</span><br><span class="line">		<span class="keyword">return</span> blockchain.CurrentBlock().NumberU64()</span><br><span class="line">	&#125;</span><br><span class="line">	inserter := <span class="function"><span class="keyword">func</span><span class="params">(blocks types.Blocks)</span> <span class="params">(<span class="keyword">int</span>, error)</span></span> &#123;</span><br><span class="line">		<span class="keyword">if</span> atomic.LoadUint32(&amp;manager.fastSync) == <span class="number">1</span> &#123;</span><br><span class="line">			log.Warn(<span class="string">"Discarded bad propagated block"</span>, <span class="string">"number"</span>, blocks[<span class="number">0</span>].Number(), <span class="string">"hash"</span>, blocks[<span class="number">0</span>].Hash())</span><br><span class="line">			<span class="keyword">return</span> <span class="number">0</span>, <span class="literal">nil</span></span><br><span class="line">		&#125;</span><br><span class="line">		atomic.StoreUint32(&amp;manager.acceptTxs, <span class="number">1</span>) <span class="comment">// Mark initial sync done on any fetcher import</span></span><br><span class="line">		<span class="keyword">return</span> manager.blockchain.InsertChain(blocks)</span><br><span class="line">	&#125;</span><br><span class="line">	manager.fetcher = fetcher.New(blockchain.GetBlockByHash, validator, manager.BroadcastBlock, heighter, inserter, manager.removePeer)</span><br><span class="line"></span><br><span class="line">	<span class="keyword">return</span> manager, <span class="literal">nil</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>在初始化对象后，先判断了节点同步方法，如果是FastSync而当前节点又不是0，就改为FullSync，这也就是FastSync模式只在第一次有效的原因。然后配置了manager的同步方式。接下来我们可以看到他所管理的子协议实际上就是p2p协议，这里在pm初始化的同时就创建了一个p2p的Protocol数组SubProtocols。然后遍历ProtocolVersions，这个代表协议版本号。在我当前的版本中支持{eth63, eth62}，关于eth63、eth62及以太坊网络协议的更多说明见<a href="https://github.com/ethereum/devp2p/blob/master/caps/eth.md" target="_blank" rel="noopener">这里</a>。</p>
+<p>对于每个版本都向SubProtocols中添加一个Protocol对象，其名字就是eth，ProtocolLengths长度对于eth63而言是17，对于eth62是8；接下来定义一个Run方法，前文在分析p2p-peer时，对于每个peer都会启动所有协议，启动时会在一个独立的goroutine中运行run方法。在run方法中先用newPeer创建了一个peer（p2p-peer的封装）：<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(pm *ProtocolManager)</span> <span class="title">newPeer</span><span class="params">(pv <span class="keyword">int</span>, p *p2p.Peer, rw p2p.MsgReadWriter)</span> *<span class="title">peer</span></span> &#123;</span><br><span class="line">	<span class="keyword">return</span> newPeer(pv, p, newMeteredMsgWriter(rw))</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// go-ethereum\eth\peer.go</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">newPeer</span><span class="params">(version <span class="keyword">int</span>, p *p2p.Peer, rw p2p.MsgReadWriter)</span> *<span class="title">peer</span></span> &#123;</span><br><span class="line">	<span class="keyword">return</span> &amp;peer&#123;</span><br><span class="line">		Peer:        p,</span><br><span class="line">		rw:          rw,</span><br><span class="line">		version:     version,</span><br><span class="line">		id:          fmt.Sprintf(<span class="string">"%x"</span>, p.ID().Bytes()[:<span class="number">8</span>]),</span><br><span class="line">		knownTxs:    mapset.NewSet(),</span><br><span class="line">		knownBlocks: mapset.NewSet(),</span><br><span class="line">		queuedTxs:   <span class="built_in">make</span>(<span class="keyword">chan</span> []*types.Transaction, maxQueuedTxs),</span><br><span class="line">		queuedProps: <span class="built_in">make</span>(<span class="keyword">chan</span> *propEvent, maxQueuedProps),</span><br><span class="line">		queuedAnns:  <span class="built_in">make</span>(<span class="keyword">chan</span> *types.Block, maxQueuedAnns),</span><br><span class="line">		term:        <span class="built_in">make</span>(<span class="keyword">chan</span> <span class="keyword">struct</span>&#123;&#125;),</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<h1 id="handle"><a href="#handle" class="headerlink" title="handle"></a>handle</h1><p>接着给manager的newPeerCh赋值，执行handle方法,用来处理连接<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(pm *ProtocolManager)</span> <span class="title">handle</span><span class="params">(p *peer)</span> <span class="title">error</span></span> &#123;</span><br><span class="line">	<span class="keyword">if</span> pm.peers.Len() &gt;= pm.maxPeers &amp;&amp; !p.Peer.Info().Network.Trusted &#123;</span><br><span class="line">		<span class="keyword">return</span> p2p.DiscTooManyPeers</span><br><span class="line">	&#125;</span><br><span class="line">	p.Log().Debug(<span class="string">"Ethereum peer connected"</span>, <span class="string">"name"</span>, p.Name())</span><br><span class="line"></span><br><span class="line">	<span class="keyword">var</span> (</span><br><span class="line">		genesis = pm.blockchain.Genesis()</span><br><span class="line">		head    = pm.blockchain.CurrentHeader()</span><br><span class="line">		hash    = head.Hash()</span><br><span class="line">		number  = head.Number.Uint64()</span><br><span class="line">		td      = pm.blockchain.GetTd(hash, number)</span><br><span class="line">	)</span><br><span class="line">	<span class="keyword">if</span> err := p.Handshake(pm.networkID, td, hash, genesis.Hash()); err != <span class="literal">nil</span> &#123;</span><br><span class="line">		p.Log().Debug(<span class="string">"Ethereum handshake failed"</span>, <span class="string">"err"</span>, err)</span><br><span class="line">		<span class="keyword">return</span> err</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">if</span> rw, ok := p.rw.(*meteredMsgReadWriter); ok &#123;</span><br><span class="line">		rw.Init(p.version)</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">if</span> err := pm.peers.Register(p); err != <span class="literal">nil</span> &#123;</span><br><span class="line">		p.Log().Error(<span class="string">"Ethereum peer registration failed"</span>, <span class="string">"err"</span>, err)</span><br><span class="line">		<span class="keyword">return</span> err</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">defer</span> pm.removePeer(p.id)</span><br><span class="line"></span><br><span class="line">	<span class="keyword">if</span> err := pm.downloader.RegisterPeer(p.id, p.version, p); err != <span class="literal">nil</span> &#123;</span><br><span class="line">		<span class="keyword">return</span> err</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	pm.syncTransactions(p)</span><br><span class="line"></span><br><span class="line">	<span class="keyword">if</span> daoBlock := pm.chainconfig.DAOForkBlock; daoBlock != <span class="literal">nil</span> &#123;</span><br><span class="line">		<span class="keyword">if</span> err := p.RequestHeadersByNumber(daoBlock.Uint64(), <span class="number">1</span>, <span class="number">0</span>, <span class="literal">false</span>); err != <span class="literal">nil</span> &#123;</span><br><span class="line">			<span class="keyword">return</span> err</span><br><span class="line">		&#125;</span><br><span class="line"></span><br><span class="line">		p.forkDrop = time.AfterFunc(daoChallengeTimeout, <span class="function"><span class="keyword">func</span><span class="params">()</span></span> &#123;</span><br><span class="line">			p.Log().Debug(<span class="string">"Timed out DAO fork-check, dropping"</span>)</span><br><span class="line">			pm.removePeer(p.id)</span><br><span class="line">		&#125;)</span><br><span class="line"></span><br><span class="line">		<span class="keyword">defer</span> <span class="function"><span class="keyword">func</span><span class="params">()</span></span> &#123;</span><br><span class="line">			<span class="keyword">if</span> p.forkDrop != <span class="literal">nil</span> &#123;</span><br><span class="line">				p.forkDrop.Stop()</span><br><span class="line">				p.forkDrop = <span class="literal">nil</span></span><br><span class="line">			&#125;</span><br><span class="line">		&#125;()</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">for</span> number := <span class="keyword">range</span> pm.whitelist &#123;</span><br><span class="line">		<span class="keyword">if</span> err := p.RequestHeadersByNumber(number, <span class="number">1</span>, <span class="number">0</span>, <span class="literal">false</span>); err != <span class="literal">nil</span> &#123;</span><br><span class="line">			<span class="keyword">return</span> err</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">for</span> &#123;</span><br><span class="line">		<span class="keyword">if</span> err := pm.handleMsg(p); err != <span class="literal">nil</span> &#123;</span><br><span class="line">			p.Log().Debug(<span class="string">"Ethereum message handling failed"</span>, <span class="string">"err"</span>, err)</span><br><span class="line">			<span class="keyword">return</span> err</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<h2 id="Handshake"><a href="#Handshake" class="headerlink" title="Handshake"></a>Handshake</h2><p>首先检测是否超过最大peer数量或者不是信任节点，检测通过的话进行Ethereum握手。<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// go-ethereum\eth\peer.go</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(p *peer)</span> <span class="title">Handshake</span><span class="params">(network <span class="keyword">uint64</span>, td *big.Int, head common.Hash, genesis common.Hash)</span> <span class="title">error</span></span> &#123;</span><br><span class="line">	errc := <span class="built_in">make</span>(<span class="keyword">chan</span> error, <span class="number">2</span>)</span><br><span class="line">	<span class="keyword">var</span> status statusData </span><br><span class="line"></span><br><span class="line">	<span class="keyword">go</span> <span class="function"><span class="keyword">func</span><span class="params">()</span></span> &#123;</span><br><span class="line">		errc &lt;- p2p.Send(p.rw, StatusMsg, &amp;statusData&#123;</span><br><span class="line">			ProtocolVersion: <span class="keyword">uint32</span>(p.version),</span><br><span class="line">			NetworkId:       network,</span><br><span class="line">			TD:              td,</span><br><span class="line">			CurrentBlock:    head,</span><br><span class="line">			GenesisBlock:    genesis,</span><br><span class="line">		&#125;)</span><br><span class="line">	&#125;()</span><br><span class="line">	<span class="keyword">go</span> <span class="function"><span class="keyword">func</span><span class="params">()</span></span> &#123;</span><br><span class="line">		errc &lt;- p.readStatus(network, &amp;status, genesis)</span><br><span class="line">	&#125;()</span><br><span class="line">	timeout := time.NewTimer(handshakeTimeout)</span><br><span class="line">	<span class="keyword">defer</span> timeout.Stop()</span><br><span class="line">	<span class="keyword">for</span> i := <span class="number">0</span>; i &lt; <span class="number">2</span>; i++ &#123;</span><br><span class="line">		<span class="keyword">select</span> &#123;</span><br><span class="line">		<span class="keyword">case</span> err := &lt;-errc:</span><br><span class="line">			<span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">				<span class="keyword">return</span> err</span><br><span class="line">			&#125;</span><br><span class="line">		<span class="keyword">case</span> &lt;-timeout.C:</span><br><span class="line">			<span class="keyword">return</span> p2p.DiscReadTimeout</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">	p.td, p.head = status.TD, status.CurrentBlock</span><br><span class="line">	<span class="keyword">return</span> <span class="literal">nil</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>首先启动一个goroutine利用Send发送一条初始消息，这里的Send是p2p包中message.go的方法，但是send方法中又调用了参数中的MsgWriter，这里的MsgWriter是在p2p包内peer.go在启动协议时传入的，实际上是protoRW的WriteMsg，但最终实际执行者是rlpx。这里还有一点需要注意的是，在发送时将原来的code加了一个offset，因为eth的协议code是从0开始，如果不加offset，会在读取时被当做基本协议过滤掉（详见p2p的peer源码分析），这个offset最后会在读取时减去恢复出原始的code。</p>
+<p>发送的msg的code是StatusMsg，即0。发送的消息有协议版本，网络ID，总难度当前区块和创世区块。之后又启动一个goroutine去读取消息：<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(p *peer)</span> <span class="title">readStatus</span><span class="params">(network <span class="keyword">uint64</span>, status *statusData, genesis common.Hash)</span> <span class="params">(err error)</span></span> &#123;</span><br><span class="line">	msg, err := p.rw.ReadMsg()</span><br><span class="line">	<span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">		<span class="keyword">return</span> err</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">if</span> msg.Code != StatusMsg &#123;</span><br><span class="line">		<span class="keyword">return</span> errResp(ErrNoStatusMsg, <span class="string">"first msg has code %x (!= %x)"</span>, msg.Code, StatusMsg)</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">if</span> msg.Size &gt; ProtocolMaxMsgSize &#123;</span><br><span class="line">		<span class="keyword">return</span> errResp(ErrMsgTooLarge, <span class="string">"%v &gt; %v"</span>, msg.Size, ProtocolMaxMsgSize)</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="comment">// Decode the handshake and make sure everything matches</span></span><br><span class="line">	<span class="keyword">if</span> err := msg.Decode(&amp;status); err != <span class="literal">nil</span> &#123;</span><br><span class="line">		<span class="keyword">return</span> errResp(ErrDecode, <span class="string">"msg %v: %v"</span>, msg, err)</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">if</span> status.GenesisBlock != genesis &#123;</span><br><span class="line">		<span class="keyword">return</span> errResp(ErrGenesisBlockMismatch, <span class="string">"%x (!= %x)"</span>, status.GenesisBlock[:<span class="number">8</span>], genesis[:<span class="number">8</span>])</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">if</span> status.NetworkId != network &#123;</span><br><span class="line">		<span class="keyword">return</span> errResp(ErrNetworkIdMismatch, <span class="string">"%d (!= %d)"</span>, status.NetworkId, network)</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">if</span> <span class="keyword">int</span>(status.ProtocolVersion) != p.version &#123;</span><br><span class="line">		<span class="keyword">return</span> errResp(ErrProtocolVersionMismatch, <span class="string">"%d (!= %d)"</span>, status.ProtocolVersion, p.version)</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">return</span> <span class="literal">nil</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>首先调用ReadMsg，这个ReadMsg是p2p包内peer.go中protoRW的方法，回顾peer源码分析，对于一个peer当收到一条消息时，如果消息不是基本消息，会给protoRW的in字段赋值，而在ReadMsg会阻塞的从in字段读取msg并返回。回到readStatus中，首先判断code是否是StatusMsg，在判断size大小是否合格。之后调用msg的Decode方法解码，就是rlp解码，最后将数据写入statusData，之后对双方的创世区块、网络ID一届协议版本进行对比，判断是否匹配，不匹配的话返回具体错误。</p>
+<p>回到Handshake中，在启动收发数据的goroutine的同时，启动了一个定时器，时间是5s，来判断是否握手超时，在判断超时时也判断了收发是否报错。握手成功后记录对方的总难度和当前区块。有一点需要注意的是，Handshake的这两个收发goroutine是没有先后关系的，因为我们p2p的peer是在主动发送或收到一个请求后经过握手建立的，建立成功后双方各自实例化一个peer对象，然后启动协议，并执行协议的Run方法，这些步骤在双方是独立进行的。</p>
+<h2 id="Register-amp-broadcast"><a href="#Register-amp-broadcast" class="headerlink" title="Register &amp; broadcast"></a>Register &amp; broadcast</h2><p>再回到handle中，经过刚才的握手后，如果双方的区块链信息也匹配，则将这个peer注册到ProtocolManager的peers中，这个注册会在结束时被移除。注册方法如下：<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(ps *peerSet)</span> <span class="title">Register</span><span class="params">(p *peer)</span> <span class="title">error</span></span> &#123;</span><br><span class="line">	ps.lock.Lock()</span><br><span class="line">	<span class="keyword">defer</span> ps.lock.Unlock()</span><br><span class="line"></span><br><span class="line">	<span class="keyword">if</span> ps.closed &#123;</span><br><span class="line">		<span class="keyword">return</span> errClosed</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">if</span> _, ok := ps.peers[p.id]; ok &#123;</span><br><span class="line">		<span class="keyword">return</span> errAlreadyRegistered</span><br><span class="line">	&#125;</span><br><span class="line">	ps.peers[p.id] = p</span><br><span class="line">	<span class="keyword">go</span> p.broadcast()</span><br><span class="line"></span><br><span class="line">	<span class="keyword">return</span> <span class="literal">nil</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>主要实现就是将peer添加到pm的peers字段中用来集中管理，并启动了一个goroutine去调用broadcast：<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(p *peer)</span> <span class="title">broadcast</span><span class="params">()</span></span> &#123;</span><br><span class="line">	<span class="keyword">for</span> &#123;</span><br><span class="line">		<span class="keyword">select</span> &#123;</span><br><span class="line">		<span class="keyword">case</span> txs := &lt;-p.queuedTxs:</span><br><span class="line">			<span class="keyword">if</span> err := p.SendTransactions(txs); err != <span class="literal">nil</span> &#123;</span><br><span class="line">				<span class="keyword">return</span></span><br><span class="line">			&#125;</span><br><span class="line">			p.Log().Trace(<span class="string">"Broadcast transactions"</span>, <span class="string">"count"</span>, <span class="built_in">len</span>(txs))</span><br><span class="line"></span><br><span class="line">		<span class="keyword">case</span> prop := &lt;-p.queuedProps:</span><br><span class="line">			<span class="keyword">if</span> err := p.SendNewBlock(prop.block, prop.td); err != <span class="literal">nil</span> &#123;</span><br><span class="line">				<span class="keyword">return</span></span><br><span class="line">			&#125;</span><br><span class="line">			p.Log().Trace(<span class="string">"Propagated block"</span>, <span class="string">"number"</span>, prop.block.Number(), <span class="string">"hash"</span>, prop.block.Hash(), <span class="string">"td"</span>, prop.td)</span><br><span class="line"></span><br><span class="line">		<span class="keyword">case</span> block := &lt;-p.queuedAnns:</span><br><span class="line">			<span class="keyword">if</span> err := p.SendNewBlockHashes([]common.Hash&#123;block.Hash()&#125;, []<span class="keyword">uint64</span>&#123;block.NumberU64()&#125;); err != <span class="literal">nil</span> &#123;</span><br><span class="line">				<span class="keyword">return</span></span><br><span class="line">			&#125;</span><br><span class="line">			p.Log().Trace(<span class="string">"Announced block"</span>, <span class="string">"number"</span>, block.Number(), <span class="string">"hash"</span>, block.Hash())</span><br><span class="line"></span><br><span class="line">		<span class="keyword">case</span> &lt;-p.term:</span><br><span class="line">			<span class="keyword">return</span></span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>这也是一个无限循环，用于事件处理，具体逻辑稍后介绍。</p>
+<p>之后开始同步交易，将自己交易池中等待的交易发送给对方。然后又验证了DAO硬分叉，另外如果有白名单则也去请求，和前面验证DAO一样，都是通过编号去请求头。</p>
+<h1 id="handleMsg"><a href="#handleMsg" class="headerlink" title="handleMsg"></a>handleMsg</h1><p>最后来到主循环，调用handleMsg去处理消息：<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(pm *ProtocolManager)</span> <span class="title">handleMsg</span><span class="params">(p *peer)</span> <span class="title">error</span></span> &#123;</span><br><span class="line">	<span class="comment">// Read the next message from the remote peer, and ensure it's fully consumed</span></span><br><span class="line">	msg, err := p.rw.ReadMsg()</span><br><span class="line">	<span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">		<span class="keyword">return</span> err</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">if</span> msg.Size &gt; ProtocolMaxMsgSize &#123;</span><br><span class="line">		<span class="keyword">return</span> errResp(ErrMsgTooLarge, <span class="string">"%v &gt; %v"</span>, msg.Size, ProtocolMaxMsgSize)</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">defer</span> msg.Discard()</span><br><span class="line"></span><br><span class="line">	<span class="comment">// Handle the message depending on its contents</span></span><br><span class="line">	<span class="keyword">switch</span> &#123;</span><br><span class="line">	<span class="keyword">case</span> msg.Code == StatusMsg:</span><br><span class="line">		<span class="keyword">return</span> errResp(ErrExtraStatusMsg, <span class="string">"uncontrolled status message"</span>) </span><br><span class="line">	...        </span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">return</span> <span class="literal">nil</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<h2 id="GetBlockHeadersMsg"><a href="#GetBlockHeadersMsg" class="headerlink" title="GetBlockHeadersMsg"></a>GetBlockHeadersMsg</h2><p>这一部分代码非常多，由于是p2p通信的上层部分，所以要考虑的情况十分多。我们简单看几个，以刚才验证DAO分叉和请求白名单所用的RequestHeadersByNumber方法为例（其余的会在介绍后续流程时涉及到），首先发送如下请求：<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(p *peer)</span> <span class="title">RequestHeadersByNumber</span><span class="params">(origin <span class="keyword">uint64</span>, amount <span class="keyword">int</span>, skip <span class="keyword">int</span>, reverse <span class="keyword">bool</span>)</span> <span class="title">error</span></span> &#123;</span><br><span class="line">	p.Log().Debug(<span class="string">"Fetching batch of headers"</span>, <span class="string">"count"</span>, amount, <span class="string">"fromnum"</span>, origin, <span class="string">"skip"</span>, skip, <span class="string">"reverse"</span>, reverse)</span><br><span class="line">	<span class="keyword">return</span> p2p.Send(p.rw, GetBlockHeadersMsg, &amp;getBlockHeadersData&#123;Origin: hashOrNumber&#123;Number: origin&#125;, Amount: <span class="keyword">uint64</span>(amount), Skip: <span class="keyword">uint64</span>(skip), Reverse: reverse&#125;)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>同样是发送一个msg，其code是GetBlockHeadersMsg，在handleMsg中对于逻辑如下：<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">case</span> msg.Code == GetBlockHeadersMsg:</span><br><span class="line">	<span class="keyword">var</span> query getBlockHeadersData</span><br><span class="line">	<span class="keyword">if</span> err := msg.Decode(&amp;query); err != <span class="literal">nil</span> &#123;</span><br><span class="line">		<span class="keyword">return</span> errResp(ErrDecode, <span class="string">"%v: %v"</span>, msg, err)</span><br><span class="line">	&#125;</span><br><span class="line">	hashMode := query.Origin.Hash != (common.Hash&#123;&#125;)</span><br><span class="line">	first := <span class="literal">true</span></span><br><span class="line">	maxNonCanonical := <span class="keyword">uint64</span>(<span class="number">100</span>)</span><br><span class="line"></span><br><span class="line">	<span class="keyword">var</span> (</span><br><span class="line">		bytes   common.StorageSize</span><br><span class="line">		headers []*types.Header</span><br><span class="line">		unknown <span class="keyword">bool</span></span><br><span class="line">	)</span><br><span class="line">	<span class="keyword">for</span> !unknown &amp;&amp; <span class="built_in">len</span>(headers) &lt; <span class="keyword">int</span>(query.Amount) &amp;&amp; bytes &lt; softResponseLimit &amp;&amp; <span class="built_in">len</span>(headers) &lt; downloader.MaxHeaderFetch &#123;</span><br><span class="line">		<span class="keyword">var</span> origin *types.Header</span><br><span class="line">		<span class="keyword">if</span> hashMode &#123;</span><br><span class="line">			<span class="keyword">if</span> first &#123;</span><br><span class="line">				first = <span class="literal">false</span></span><br><span class="line">				origin = pm.blockchain.GetHeaderByHash(query.Origin.Hash)</span><br><span class="line">				<span class="keyword">if</span> origin != <span class="literal">nil</span> &#123;</span><br><span class="line">					query.Origin.Number = origin.Number.Uint64()</span><br><span class="line">				&#125;</span><br><span class="line">			&#125; <span class="keyword">else</span> &#123;</span><br><span class="line">				origin = pm.blockchain.GetHeader(query.Origin.Hash, query.Origin.Number)</span><br><span class="line">			&#125;</span><br><span class="line">		&#125; <span class="keyword">else</span> &#123;</span><br><span class="line">			origin = pm.blockchain.GetHeaderByNumber(query.Origin.Number)</span><br><span class="line">		&#125;</span><br><span class="line">		<span class="keyword">if</span> origin == <span class="literal">nil</span> &#123;</span><br><span class="line">			<span class="keyword">break</span></span><br><span class="line">		&#125;</span><br><span class="line">		headers = <span class="built_in">append</span>(headers, origin)</span><br><span class="line">		bytes += estHeaderRlpSize</span><br><span class="line"></span><br><span class="line">		<span class="keyword">switch</span> &#123;</span><br><span class="line">		<span class="keyword">case</span> hashMode &amp;&amp; query.Reverse:</span><br><span class="line">			ancestor := query.Skip + <span class="number">1</span></span><br><span class="line">			<span class="keyword">if</span> ancestor == <span class="number">0</span> &#123;</span><br><span class="line">				unknown = <span class="literal">true</span></span><br><span class="line">			&#125; <span class="keyword">else</span> &#123;</span><br><span class="line">				query.Origin.Hash, query.Origin.Number = pm.blockchain.GetAncestor(query.Origin.Hash, query.Origin.Number, ancestor, &amp;maxNonCanonical)</span><br><span class="line">				unknown = (query.Origin.Hash == common.Hash&#123;&#125;)</span><br><span class="line">			&#125;</span><br><span class="line">		<span class="keyword">case</span> hashMode &amp;&amp; !query.Reverse:</span><br><span class="line">			<span class="keyword">var</span> (</span><br><span class="line">				current = origin.Number.Uint64()</span><br><span class="line">				next    = current + query.Skip + <span class="number">1</span></span><br><span class="line">			)</span><br><span class="line">			<span class="keyword">if</span> next &lt;= current &#123;</span><br><span class="line">				infos, _ := json.MarshalIndent(p.Peer.Info(), <span class="string">""</span>, <span class="string">"  "</span>)</span><br><span class="line">				p.Log().Warn(<span class="string">"GetBlockHeaders skip overflow attack"</span>, <span class="string">"current"</span>, current, <span class="string">"skip"</span>, query.Skip, <span class="string">"next"</span>, next, <span class="string">"attacker"</span>, infos)</span><br><span class="line">				unknown = <span class="literal">true</span></span><br><span class="line">			&#125; <span class="keyword">else</span> &#123;</span><br><span class="line">				<span class="keyword">if</span> header := pm.blockchain.GetHeaderByNumber(next); header != <span class="literal">nil</span> &#123;</span><br><span class="line">					nextHash := header.Hash()</span><br><span class="line">					expOldHash, _ := pm.blockchain.GetAncestor(nextHash, next, query.Skip+<span class="number">1</span>, &amp;maxNonCanonical)</span><br><span class="line">					<span class="keyword">if</span> expOldHash == query.Origin.Hash &#123;</span><br><span class="line">						query.Origin.Hash, query.Origin.Number = nextHash, next</span><br><span class="line">					&#125; <span class="keyword">else</span> &#123;</span><br><span class="line">						unknown = <span class="literal">true</span></span><br><span class="line">					&#125;</span><br><span class="line">				&#125; <span class="keyword">else</span> &#123;</span><br><span class="line">					unknown = <span class="literal">true</span></span><br><span class="line">				&#125;</span><br><span class="line">			&#125;</span><br><span class="line">		<span class="keyword">case</span> query.Reverse:</span><br><span class="line">			<span class="keyword">if</span> query.Origin.Number &gt;= query.Skip+<span class="number">1</span> &#123;</span><br><span class="line">				query.Origin.Number -= query.Skip + <span class="number">1</span></span><br><span class="line">			&#125; <span class="keyword">else</span> &#123;</span><br><span class="line">				unknown = <span class="literal">true</span></span><br><span class="line">			&#125;</span><br><span class="line"></span><br><span class="line">		<span class="keyword">case</span> !query.Reverse:</span><br><span class="line">			query.Origin.Number += query.Skip + <span class="number">1</span></span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">return</span> p.SendBlockHeaders(headers)</span><br></pre></td></tr></table></figure></p>
+<p>第一步就是解码，得到请求消息getBlockHeadersData，其中包含要查询的某一个区块的编号或hash，查询数量，跳过的数量，是否反向查询等。然后判断查询用的是编号还是hash，之后再一个循环内，根据请求获取头数据，然后放到heads中，最后通过SendBlockHeaders发送数据：<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(p *peer)</span> <span class="title">SendBlockHeaders</span><span class="params">(headers []*types.Header)</span> <span class="title">error</span></span> &#123;</span><br><span class="line">	<span class="keyword">return</span> p2p.Send(p.rw, BlockHeadersMsg, headers)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<h2 id="BlockHeadersMsg"><a href="#BlockHeadersMsg" class="headerlink" title="BlockHeadersMsg"></a>BlockHeadersMsg</h2><p>可见code是BlockHeadersMsg，回到请求方，对应的逻辑如下：<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">case</span> msg.Code == BlockHeadersMsg:</span><br><span class="line">	<span class="keyword">var</span> headers []*types.Header</span><br><span class="line">	<span class="keyword">if</span> err := msg.Decode(&amp;headers); err != <span class="literal">nil</span> &#123;</span><br><span class="line">		<span class="keyword">return</span> errResp(ErrDecode, <span class="string">"msg %v: %v"</span>, msg, err)</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">if</span> <span class="built_in">len</span>(headers) == <span class="number">0</span> &amp;&amp; p.forkDrop != <span class="literal">nil</span> &#123;</span><br><span class="line">		<span class="comment">// Possibly an empty reply to the fork header checks, sanity check TDs</span></span><br><span class="line">		verifyDAO := <span class="literal">true</span></span><br><span class="line"></span><br><span class="line">		<span class="keyword">if</span> daoHeader := pm.blockchain.GetHeaderByNumber(pm.chainconfig.DAOForkBlock.Uint64()); daoHeader != <span class="literal">nil</span> &#123;</span><br><span class="line">			<span class="keyword">if</span> _, td := p.Head(); td.Cmp(pm.blockchain.GetTd(daoHeader.Hash(), daoHeader.Number.Uint64())) &gt;= <span class="number">0</span> &#123;</span><br><span class="line">				verifyDAO = <span class="literal">false</span></span><br><span class="line">			&#125;</span><br><span class="line">		&#125;</span><br><span class="line"></span><br><span class="line">		<span class="keyword">if</span> verifyDAO &#123;</span><br><span class="line">			p.Log().Debug(<span class="string">"Seems to be on the same side of the DAO fork"</span>)</span><br><span class="line">			p.forkDrop.Stop()</span><br><span class="line">			p.forkDrop = <span class="literal">nil</span></span><br><span class="line">			<span class="keyword">return</span> <span class="literal">nil</span></span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	filter := <span class="built_in">len</span>(headers) == <span class="number">1</span></span><br><span class="line">	<span class="keyword">if</span> filter &#123;</span><br><span class="line">		<span class="keyword">if</span> p.forkDrop != <span class="literal">nil</span> &amp;&amp; pm.chainconfig.DAOForkBlock.Cmp(headers[<span class="number">0</span>].Number) == <span class="number">0</span> &#123;</span><br><span class="line">			p.forkDrop.Stop()</span><br><span class="line">			p.forkDrop = <span class="literal">nil</span></span><br><span class="line"></span><br><span class="line">			<span class="keyword">if</span> err := misc.VerifyDAOHeaderExtraData(pm.chainconfig, headers[<span class="number">0</span>]); err != <span class="literal">nil</span> &#123;</span><br><span class="line">				p.Log().Debug(<span class="string">"Verified to be on the other side of the DAO fork, dropping"</span>)</span><br><span class="line">				<span class="keyword">return</span> err</span><br><span class="line">			&#125;</span><br><span class="line">			p.Log().Debug(<span class="string">"Verified to be on the same side of the DAO fork"</span>)</span><br><span class="line">			<span class="keyword">return</span> <span class="literal">nil</span></span><br><span class="line">		&#125;</span><br><span class="line"></span><br><span class="line">		<span class="keyword">if</span> want, ok := pm.whitelist[headers[<span class="number">0</span>].Number.Uint64()]; ok &#123;</span><br><span class="line">			<span class="keyword">if</span> hash := headers[<span class="number">0</span>].Hash(); want != hash &#123;</span><br><span class="line">				p.Log().Info(<span class="string">"Whitelist mismatch, dropping peer"</span>, <span class="string">"number"</span>, headers[<span class="number">0</span>].Number.Uint64(), <span class="string">"hash"</span>, hash, <span class="string">"want"</span>, want)</span><br><span class="line">				<span class="keyword">return</span> errors.New(<span class="string">"whitelist block mismatch"</span>)</span><br><span class="line">			&#125;</span><br><span class="line">			p.Log().Debug(<span class="string">"Whitelist block verified"</span>, <span class="string">"number"</span>, headers[<span class="number">0</span>].Number.Uint64(), <span class="string">"hash"</span>, want)</span><br><span class="line">		&#125;</span><br><span class="line">		headers = pm.fetcher.FilterHeaders(p.id, headers, time.Now())</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">if</span> <span class="built_in">len</span>(headers) &gt; <span class="number">0</span> || !filter &#123;</span><br><span class="line">		err := pm.downloader.DeliverHeaders(p.id, headers)</span><br><span class="line">		<span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">			log.Debug(<span class="string">"Failed to deliver headers"</span>, <span class="string">"err"</span>, err)</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br></pre></td></tr></table></figure></p>
+<p>到这里也是首先解析返回的数据，首先对于DAO分叉验证，如果收到的heads内容为空，则验证通过，最后如果验证通过则取消刚才请求时的定时器，否则那个定时器到期后会中断连接。接着当heads长度为1是，还是先验证DAO分叉，如果不必验证则是刚才请求的白名单区块，进行验证，主要是进行hash匹配。最后如果heads长度大于1则执行downloader的DeliverHeaders方法。</p>
+<p>到这里handle基本分析完了，回到NewProtocolManager中，刚才主要看了定义协议时的Run方法，除了定义Run还定义了NodeInfo和PeerInfo，这两个方法也是共p2p调用的。在添加完要管理的协议后，检查总共协议的数量，如果为0则退出。否则调用downloader.New创建一个Downloader。接着配置了validator方法用来验证头部；heighter方法用来获取区块链高度；inserter 方法用于插入区块，但是如果开启fastSync，则不会使用，最后生成一个fetcher，这是用来汇集各个peer的区块通知。</p>
+<h1 id="Start"><a href="#Start" class="headerlink" title="Start"></a>Start</h1><p>这样一个ProtocolManager就创建并初始化完毕，随后随着Ethereum的启动，也会调用ProtocolManager的start方法<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(pm *ProtocolManager)</span> <span class="title">Start</span><span class="params">(maxPeers <span class="keyword">int</span>)</span></span> &#123;</span><br><span class="line">	pm.maxPeers = maxPeers</span><br><span class="line"></span><br><span class="line">	pm.txsCh = <span class="built_in">make</span>(<span class="keyword">chan</span> core.NewTxsEvent, txChanSize)</span><br><span class="line">	pm.txsSub = pm.txpool.SubscribeNewTxsEvent(pm.txsCh)</span><br><span class="line">	<span class="keyword">go</span> pm.txBroadcastLoop()</span><br><span class="line"></span><br><span class="line">	pm.minedBlockSub = pm.eventMux.Subscribe(core.NewMinedBlockEvent&#123;&#125;)</span><br><span class="line">	<span class="keyword">go</span> pm.minedBroadcastLoop()</span><br><span class="line"></span><br><span class="line">	<span class="keyword">go</span> pm.syncer()</span><br><span class="line">	<span class="keyword">go</span> pm.txsyncLoop()</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<h2 id="txBroadcastLoop"><a href="#txBroadcastLoop" class="headerlink" title="txBroadcastLoop"></a>txBroadcastLoop</h2><p>主要是启动了几个goroutine，分别进行交易的广播，挖矿广播，网络同步和交易同步等。对于交易广播：<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(pm *ProtocolManager)</span> <span class="title">txBroadcastLoop</span><span class="params">()</span></span> &#123;</span><br><span class="line">	<span class="keyword">for</span> &#123;</span><br><span class="line">		<span class="keyword">select</span> &#123;</span><br><span class="line">		<span class="keyword">case</span> event := &lt;-pm.txsCh:</span><br><span class="line">			pm.BroadcastTxs(event.Txs)</span><br><span class="line"></span><br><span class="line">		<span class="keyword">case</span> &lt;-pm.txsSub.Err():</span><br><span class="line">			<span class="keyword">return</span></span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(pm *ProtocolManager)</span> <span class="title">BroadcastTxs</span><span class="params">(txs types.Transactions)</span></span> &#123;</span><br><span class="line">	<span class="keyword">var</span> txset = <span class="built_in">make</span>(<span class="keyword">map</span>[*peer]types.Transactions)</span><br><span class="line"></span><br><span class="line">	<span class="keyword">for</span> _, tx := <span class="keyword">range</span> txs &#123;</span><br><span class="line">		peers := pm.peers.PeersWithoutTx(tx.Hash())</span><br><span class="line">		<span class="keyword">for</span> _, peer := <span class="keyword">range</span> peers &#123;</span><br><span class="line">			txset[peer] = <span class="built_in">append</span>(txset[peer], tx)</span><br><span class="line">		&#125;</span><br><span class="line">		log.Trace(<span class="string">"Broadcast transaction"</span>, <span class="string">"hash"</span>, tx.Hash(), <span class="string">"recipients"</span>, <span class="built_in">len</span>(peers))</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">for</span> peer, txs := <span class="keyword">range</span> txset &#123;</span><br><span class="line">		peer.AsyncSendTransactions(txs)</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(ps *peerSet)</span> <span class="title">PeersWithoutTx</span><span class="params">(hash common.Hash)</span> []*<span class="title">peer</span></span> &#123;</span><br><span class="line">	ps.lock.RLock()</span><br><span class="line">	<span class="keyword">defer</span> ps.lock.RUnlock()</span><br><span class="line"></span><br><span class="line">	list := <span class="built_in">make</span>([]*peer, <span class="number">0</span>, <span class="built_in">len</span>(ps.peers))</span><br><span class="line">	<span class="keyword">for</span> _, p := <span class="keyword">range</span> ps.peers &#123;</span><br><span class="line">		<span class="keyword">if</span> !p.knownTxs.Contains(hash) &#123;</span><br><span class="line">			list = <span class="built_in">append</span>(list, p)</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">return</span> list</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>当收到合法的交易时，变调用BroadcastTxs方法，在BroadcastTxs中，先查询每个peer是否有这个交易（通过判断knownTxs字段，knownTxs的内容实在pm中收到TxMsg消息时添加的，所以存储着对于peer所有的tx信息），找出没有的peer放入txset中，然后调用AsyncSendTransactions发送<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(p *peer)</span> <span class="title">AsyncSendTransactions</span><span class="params">(txs []*types.Transaction)</span></span> &#123;</span><br><span class="line">	<span class="keyword">select</span> &#123;</span><br><span class="line">	<span class="keyword">case</span> p.queuedTxs &lt;- txs:</span><br><span class="line">		<span class="keyword">for</span> _, tx := <span class="keyword">range</span> txs &#123;</span><br><span class="line">			p.knownTxs.Add(tx.Hash())</span><br><span class="line">		&#125;</span><br><span class="line">	<span class="keyword">default</span>:</span><br><span class="line">		p.Log().Debug(<span class="string">"Dropping transaction propagation"</span>, <span class="string">"count"</span>, <span class="built_in">len</span>(txs))</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>这是一个异步发送方法，首先标记这个peer已有这些tx信息，由于是传值给queuedTxs，所以触发broadcast方法中对于的逻辑，<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">case</span> txs := &lt;-p.queuedTxs:</span><br><span class="line">	<span class="keyword">if</span> err := p.SendTransactions(txs); err != <span class="literal">nil</span> &#123;</span><br><span class="line">    	<span class="keyword">return</span></span><br><span class="line">	&#125;</span><br><span class="line">	p.Log().Trace(<span class="string">"Broadcast transactions"</span>, <span class="string">"count"</span>, <span class="built_in">len</span>(txs))</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(p *peer)</span> <span class="title">SendTransactions</span><span class="params">(txs types.Transactions)</span> <span class="title">error</span></span> &#123;</span><br><span class="line">	<span class="keyword">for</span> _, tx := <span class="keyword">range</span> txs &#123;</span><br><span class="line">		p.knownTxs.Add(tx.Hash())</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">return</span> p2p.Send(p.rw, TxMsg, txs)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>最后利用SendTransactions中的Send方法发送，发送的包是TxMsg，顺便看一下接受到该包时的逻辑，还是在handleMsg中：<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">case</span> msg.Code == TxMsg:</span><br><span class="line">	<span class="keyword">if</span> atomic.LoadUint32(&amp;pm.acceptTxs) == <span class="number">0</span> &#123;</span><br><span class="line">		<span class="keyword">break</span></span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">var</span> txs []*types.Transaction</span><br><span class="line">	<span class="keyword">if</span> err := msg.Decode(&amp;txs); err != <span class="literal">nil</span> &#123;</span><br><span class="line">		<span class="keyword">return</span> errResp(ErrDecode, <span class="string">"msg %v: %v"</span>, msg, err)</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">for</span> i, tx := <span class="keyword">range</span> txs &#123;</span><br><span class="line">		<span class="keyword">if</span> tx == <span class="literal">nil</span> &#123;</span><br><span class="line">			<span class="keyword">return</span> errResp(ErrDecode, <span class="string">"transaction %d is nil"</span>, i)</span><br><span class="line">		&#125;</span><br><span class="line">		p.MarkTransaction(tx.Hash())</span><br><span class="line">	&#125;</span><br><span class="line">	pm.txpool.AddRemotes(txs)</span><br></pre></td></tr></table></figure></p>
+<p>由于是pm主要是事件分发，所以主要就是先进行解码，然后标记对应的peer有相关tx，最后交给txpool处理。</p>
+<h2 id="minedBroadcastLoop"><a href="#minedBroadcastLoop" class="headerlink" title="minedBroadcastLoop"></a>minedBroadcastLoop</h2><p>start中调用的另外一个方法是minedBroadcastLoop<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(pm *ProtocolManager)</span> <span class="title">minedBroadcastLoop</span><span class="params">()</span></span> &#123;</span><br><span class="line">	<span class="keyword">for</span> obj := <span class="keyword">range</span> pm.minedBlockSub.Chan() &#123;</span><br><span class="line">		<span class="keyword">if</span> ev, ok := obj.Data.(core.NewMinedBlockEvent); ok &#123;</span><br><span class="line">			pm.BroadcastBlock(ev.Block, <span class="literal">true</span>)  <span class="comment">// First propagate block to peers</span></span><br><span class="line">			pm.BroadcastBlock(ev.Block, <span class="literal">false</span>) <span class="comment">// Only then announce to the rest</span></span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>这里当收到订阅事件时，调用BroadcastBlock用来广播区块：<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(pm *ProtocolManager)</span> <span class="title">BroadcastBlock</span><span class="params">(block *types.Block, propagate <span class="keyword">bool</span>)</span></span> &#123;</span><br><span class="line">	hash := block.Hash()</span><br><span class="line">	peers := pm.peers.PeersWithoutBlock(hash)</span><br><span class="line"></span><br><span class="line">	<span class="keyword">if</span> propagate &#123;</span><br><span class="line">		<span class="keyword">var</span> td *big.Int</span><br><span class="line">		<span class="keyword">if</span> parent := pm.blockchain.GetBlock(block.ParentHash(), block.NumberU64()<span class="number">-1</span>); parent != <span class="literal">nil</span> &#123;</span><br><span class="line">			td = <span class="built_in">new</span>(big.Int).Add(block.Difficulty(), pm.blockchain.GetTd(block.ParentHash(), block.NumberU64()<span class="number">-1</span>))</span><br><span class="line">		&#125; <span class="keyword">else</span> &#123;</span><br><span class="line">			log.Error(<span class="string">"Propagating dangling block"</span>, <span class="string">"number"</span>, block.Number(), <span class="string">"hash"</span>, hash)</span><br><span class="line">			<span class="keyword">return</span></span><br><span class="line">		&#125;</span><br><span class="line"></span><br><span class="line">		transferLen := <span class="keyword">int</span>(math.Sqrt(<span class="keyword">float64</span>(<span class="built_in">len</span>(peers))))</span><br><span class="line">		<span class="keyword">if</span> transferLen &lt; minBroadcastPeers &#123;</span><br><span class="line">			transferLen = minBroadcastPeers</span><br><span class="line">		&#125;</span><br><span class="line">		<span class="keyword">if</span> transferLen &gt; <span class="built_in">len</span>(peers) &#123;</span><br><span class="line">			transferLen = <span class="built_in">len</span>(peers)</span><br><span class="line">		&#125;</span><br><span class="line">		transfer := peers[:transferLen]</span><br><span class="line">		<span class="keyword">for</span> _, peer := <span class="keyword">range</span> transfer &#123;</span><br><span class="line">			peer.AsyncSendNewBlock(block, td)</span><br><span class="line">		&#125;</span><br><span class="line">		log.Trace(<span class="string">"Propagated block"</span>, <span class="string">"hash"</span>, hash, <span class="string">"recipients"</span>, <span class="built_in">len</span>(transfer), <span class="string">"duration"</span>, common.PrettyDuration(time.Since(block.ReceivedAt)))</span><br><span class="line">		<span class="keyword">return</span></span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">if</span> pm.blockchain.HasBlock(hash, block.NumberU64()) &#123;</span><br><span class="line">		<span class="keyword">for</span> _, peer := <span class="keyword">range</span> peers &#123;</span><br><span class="line">			peer.AsyncSendNewBlockHash(block)</span><br><span class="line">		&#125;</span><br><span class="line">		log.Trace(<span class="string">"Announced block"</span>, <span class="string">"hash"</span>, hash, <span class="string">"recipients"</span>, <span class="built_in">len</span>(peers), <span class="string">"duration"</span>, common.PrettyDuration(time.Since(block.ReceivedAt)))</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>这个方法根据其第二个参数的不同，有两种不同的执行逻辑。首先寻找没有改区块的peer，然后当propagate为true时，先计算含该区块的总难度，然后对部分peer发送区块信息及总难度，如果是false则，在自己拥有该区块的前提下给peers发送区块的hash，二者分别调用了AsyncSendNewBlock和peer.AsyncSendNewBlockHash(block)<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(p *peer)</span> <span class="title">AsyncSendNewBlock</span><span class="params">(block *types.Block, td *big.Int)</span></span> &#123;</span><br><span class="line">	<span class="keyword">select</span> &#123;</span><br><span class="line">	<span class="keyword">case</span> p.queuedProps &lt;- &amp;propEvent&#123;block: block, td: td&#125;:</span><br><span class="line">		p.knownBlocks.Add(block.Hash())</span><br><span class="line">	<span class="keyword">default</span>:</span><br><span class="line">		p.Log().Debug(<span class="string">"Dropping block propagation"</span>, <span class="string">"number"</span>, block.NumberU64(), <span class="string">"hash"</span>, block.Hash())</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(p *peer)</span> <span class="title">AsyncSendNewBlockHash</span><span class="params">(block *types.Block)</span></span> &#123;</span><br><span class="line">	<span class="keyword">select</span> &#123;</span><br><span class="line">	<span class="keyword">case</span> p.queuedAnns &lt;- block:</span><br><span class="line">		p.knownBlocks.Add(block.Hash())</span><br><span class="line">	<span class="keyword">default</span>:</span><br><span class="line">		p.Log().Debug(<span class="string">"Dropping block announcement"</span>, <span class="string">"number"</span>, block.NumberU64(), <span class="string">"hash"</span>, block.Hash())</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>AsyncSendNewBlock方法中给queuedProps赋值，然后标记该peer拥有该区块。赋值后触发broadcast中的逻辑：<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">case</span> prop := &lt;-p.queuedProps:</span><br><span class="line">	<span class="keyword">if</span> err := p.SendNewBlock(prop.block, prop.td); err != <span class="literal">nil</span> &#123;</span><br><span class="line">		<span class="keyword">return</span></span><br><span class="line">	&#125;</span><br><span class="line">	p.Log().Trace(<span class="string">"Propagated block"</span>, <span class="string">"number"</span>, prop.block.Number(), <span class="string">"hash"</span>, prop.block.Hash(), <span class="string">"td"</span>, prop.td)</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(p *peer)</span> <span class="title">SendNewBlock</span><span class="params">(block *types.Block, td *big.Int)</span> <span class="title">error</span></span> &#123;</span><br><span class="line">	p.knownBlocks.Add(block.Hash())</span><br><span class="line">	<span class="keyword">return</span> p2p.Send(p.rw, NewBlockMsg, []<span class="keyword">interface</span>&#123;&#125;&#123;block, td&#125;)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>最后调用SendNewBlock利用p2p发送区块信息和总难度，所发的msg是NewBlockMsg。</p>
+<p>对于AsyncSendNewBlockHash方法，先给queuedAnns赋值，然后标记该peer知道该区块，之后触发broadcast中的逻辑：<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">case</span> block := &lt;-p.queuedAnns:</span><br><span class="line">	<span class="keyword">if</span> err := p.SendNewBlockHashes([]common.Hash&#123;block.Hash()&#125;, []<span class="keyword">uint64</span>&#123;block.NumberU64()&#125;); err != <span class="literal">nil</span> &#123;</span><br><span class="line">		<span class="keyword">return</span></span><br><span class="line">	&#125;</span><br><span class="line">	p.Log().Trace(<span class="string">"Announced block"</span>, <span class="string">"number"</span>, block.Number(), <span class="string">"hash"</span>, block.Hash())</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(p *peer)</span> <span class="title">SendNewBlockHashes</span><span class="params">(hashes []common.Hash, numbers []<span class="keyword">uint64</span>)</span> <span class="title">error</span></span> &#123;</span><br><span class="line">	<span class="keyword">for</span> _, hash := <span class="keyword">range</span> hashes &#123;</span><br><span class="line">		p.knownBlocks.Add(hash)</span><br><span class="line">	&#125;</span><br><span class="line">	request := <span class="built_in">make</span>(newBlockHashesData, <span class="built_in">len</span>(hashes))</span><br><span class="line">	<span class="keyword">for</span> i := <span class="number">0</span>; i &lt; <span class="built_in">len</span>(hashes); i++ &#123;</span><br><span class="line">		request[i].Hash = hashes[i]</span><br><span class="line">		request[i].Number = numbers[i]</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">return</span> p2p.Send(p.rw, NewBlockHashesMsg, request)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>这里调用SendNewBlockHashes发送区块hash和编号，发送的msg是NewBlockHashesMsg。</p>
+<p>顺便也看一下接受的逻辑，对于NewBlockMsg，还HandleMsg中<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">case</span> msg.Code == NewBlockMsg:</span><br><span class="line">	<span class="keyword">var</span> request newBlockData</span><br><span class="line">	<span class="keyword">if</span> err := msg.Decode(&amp;request); err != <span class="literal">nil</span> &#123;</span><br><span class="line">		<span class="keyword">return</span> errResp(ErrDecode, <span class="string">"%v: %v"</span>, msg, err)</span><br><span class="line">	&#125;</span><br><span class="line">	request.Block.ReceivedAt = msg.ReceivedAt</span><br><span class="line">	request.Block.ReceivedFrom = p</span><br><span class="line"></span><br><span class="line">	p.MarkBlock(request.Block.Hash())</span><br><span class="line">	pm.fetcher.Enqueue(p.id, request.Block)</span><br><span class="line"></span><br><span class="line">	<span class="keyword">var</span> (</span><br><span class="line">		trueHead = request.Block.ParentHash()</span><br><span class="line">		trueTD   = <span class="built_in">new</span>(big.Int).Sub(request.TD, request.Block.Difficulty())</span><br><span class="line">	)</span><br><span class="line"></span><br><span class="line">	<span class="keyword">if</span> _, td := p.Head(); trueTD.Cmp(td) &gt; <span class="number">0</span> &#123;</span><br><span class="line">		p.SetHead(trueHead, trueTD)</span><br><span class="line"></span><br><span class="line">		currentBlock := pm.blockchain.CurrentBlock()</span><br><span class="line">		<span class="keyword">if</span> trueTD.Cmp(pm.blockchain.GetTd(currentBlock.Hash(), currentBlock.NumberU64())) &gt; <span class="number">0</span> &#123;</span><br><span class="line">			<span class="keyword">go</span> pm.synchronise(p)</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br></pre></td></tr></table></figure></p>
+<p>首先进行解码，然后取出收到的时间和发送对象，之后标记对应的peer拥有该区块，然后交给fetcher处理。接着计算出对方的总难度减去区块的难度是否大于0，然后更新对应peer的区块链头和总难度，接着计算双方总难度之差，如果对方大于自己，则去同步。</p>
+<p>对于另外一个消息NewBlockHashesMsg，逻辑如下：<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">case</span> msg.Code == NewBlockHashesMsg:</span><br><span class="line">	<span class="keyword">var</span> announces newBlockHashesData</span><br><span class="line">	<span class="keyword">if</span> err := msg.Decode(&amp;announces); err != <span class="literal">nil</span> &#123;</span><br><span class="line">		<span class="keyword">return</span> errResp(ErrDecode, <span class="string">"%v: %v"</span>, msg, err)</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">for</span> _, block := <span class="keyword">range</span> announces &#123;</span><br><span class="line">		p.MarkBlock(block.Hash)</span><br><span class="line">	&#125;</span><br><span class="line">	unknown := <span class="built_in">make</span>(newBlockHashesData, <span class="number">0</span>, <span class="built_in">len</span>(announces))</span><br><span class="line">	<span class="keyword">for</span> _, block := <span class="keyword">range</span> announces &#123;</span><br><span class="line">		<span class="keyword">if</span> !pm.blockchain.HasBlock(block.Hash, block.Number) &#123;</span><br><span class="line">			unknown = <span class="built_in">append</span>(unknown, block)</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">for</span> _, block := <span class="keyword">range</span> unknown &#123;</span><br><span class="line">		pm.fetcher.Notify(p.id, block.Hash, block.Number, time.Now(), p.RequestOneHeader, p.RequestBodies)</span><br><span class="line">	&#125;</span><br></pre></td></tr></table></figure></p>
+<p>这里也是先解码，然后标记对应的peer有响应的区块，然后统计自由不知道的区块最后交给fetcher处理。</p>
+<h2 id="syncer"><a href="#syncer" class="headerlink" title="syncer"></a>syncer</h2><p>start还启动了syncer方法：<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(pm *ProtocolManager)</span> <span class="title">syncer</span><span class="params">()</span></span> &#123;</span><br><span class="line">	pm.fetcher.Start()</span><br><span class="line">	<span class="keyword">defer</span> pm.fetcher.Stop()</span><br><span class="line">	<span class="keyword">defer</span> pm.downloader.Terminate()</span><br><span class="line"></span><br><span class="line">	forceSync := time.NewTicker(forceSyncCycle)</span><br><span class="line">	<span class="keyword">defer</span> forceSync.Stop()</span><br><span class="line"></span><br><span class="line">	<span class="keyword">for</span> &#123;</span><br><span class="line">		<span class="keyword">select</span> &#123;</span><br><span class="line">		<span class="keyword">case</span> &lt;-pm.newPeerCh:</span><br><span class="line">			<span class="keyword">if</span> pm.peers.Len() &lt; minDesiredPeerCount &#123;</span><br><span class="line">				<span class="keyword">break</span></span><br><span class="line">			&#125;</span><br><span class="line">			<span class="keyword">go</span> pm.synchronise(pm.peers.BestPeer())</span><br><span class="line"></span><br><span class="line">		<span class="keyword">case</span> &lt;-forceSync.C:</span><br><span class="line">			<span class="keyword">go</span> pm.synchronise(pm.peers.BestPeer())</span><br><span class="line"></span><br><span class="line">		<span class="keyword">case</span> &lt;-pm.noMorePeers:</span><br><span class="line">			<span class="keyword">return</span></span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>这里首先启动了fetcher，关于fetcher稍后介绍，然后启动了一个定时器每5秒执行一次逻辑。下面是一个阻塞型的事件触发逻辑，其中关于定时器的就是调用synchronise去同步。</p>
+<h2 id="txsyncLoop"><a href="#txsyncLoop" class="headerlink" title="txsyncLoop"></a>txsyncLoop</h2><p>start中最后还有一个txsyncLoop：<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(pm *ProtocolManager)</span> <span class="title">txsyncLoop</span><span class="params">()</span></span> &#123;</span><br><span class="line">	....</span><br><span class="line"></span><br><span class="line">	<span class="keyword">for</span> &#123;</span><br><span class="line">		<span class="keyword">select</span> &#123;</span><br><span class="line">		<span class="keyword">case</span> s := &lt;-pm.txsyncCh:</span><br><span class="line">			pending[s.p.ID()] = s</span><br><span class="line">			<span class="keyword">if</span> !sending &#123;</span><br><span class="line">				send(s)</span><br><span class="line">			&#125;</span><br><span class="line">		<span class="keyword">case</span> err := &lt;-done:</span><br><span class="line">			sending = <span class="literal">false</span></span><br><span class="line">			<span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">				pack.p.Log().Debug(<span class="string">"Transaction send failed"</span>, <span class="string">"err"</span>, err)</span><br><span class="line">				<span class="built_in">delete</span>(pending, pack.p.ID())</span><br><span class="line">			&#125;</span><br><span class="line">			<span class="keyword">if</span> s := pick(); s != <span class="literal">nil</span> &#123;</span><br><span class="line">				send(s)</span><br><span class="line">			&#125;</span><br><span class="line">		<span class="keyword">case</span> &lt;-pm.quitSync:</span><br><span class="line">			<span class="keyword">return</span></span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>这里主要是先定义了两个方法，然后启动了一个循环取处理事件，第一个事件在syncTransactions中发出，它在ProtocolManager的handle中调用，handle在会在每个peer建立后得到调用，所以也就是对新来的连接会执行syncTransactions方法：<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(pm *ProtocolManager)</span> <span class="title">syncTransactions</span><span class="params">(p *peer)</span></span> &#123;</span><br><span class="line">	<span class="keyword">var</span> txs types.Transactions</span><br><span class="line">	pending, _ := pm.txpool.Pending()</span><br><span class="line">	<span class="keyword">for</span> _, batch := <span class="keyword">range</span> pending &#123;</span><br><span class="line">		txs = <span class="built_in">append</span>(txs, batch...)</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">if</span> <span class="built_in">len</span>(txs) == <span class="number">0</span> &#123;</span><br><span class="line">		<span class="keyword">return</span></span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">select</span> &#123;</span><br><span class="line">	<span class="keyword">case</span> pm.txsyncCh &lt;- &amp;txsync&#123;p, txs&#125;:</span><br><span class="line">	<span class="keyword">case</span> &lt;-pm.quitSync:</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>在syncTransactions中，首先获取所有等待中的交易，然后打包传给txsyncCh触发txsyncLoop中的逻辑。主要是调用send方法，就是开始定义的：<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">send := <span class="function"><span class="keyword">func</span><span class="params">(s *txsync)</span></span> &#123;</span><br><span class="line">	size := common.StorageSize(<span class="number">0</span>)</span><br><span class="line">	pack.p = s.p</span><br><span class="line">	pack.txs = pack.txs[:<span class="number">0</span>]</span><br><span class="line">	<span class="keyword">for</span> i := <span class="number">0</span>; i &lt; <span class="built_in">len</span>(s.txs) &amp;&amp; size &lt; txsyncPackSize; i++ &#123;</span><br><span class="line">		pack.txs = <span class="built_in">append</span>(pack.txs, s.txs[i])</span><br><span class="line">		size += s.txs[i].Size()</span><br><span class="line">	&#125;</span><br><span class="line">	s.txs = s.txs[:<span class="built_in">copy</span>(s.txs, s.txs[<span class="built_in">len</span>(pack.txs):])]</span><br><span class="line">	<span class="keyword">if</span> <span class="built_in">len</span>(s.txs) == <span class="number">0</span> &#123;</span><br><span class="line">		<span class="built_in">delete</span>(pending, s.p.ID())</span><br><span class="line">	&#125;</span><br><span class="line">	s.p.Log().Trace(<span class="string">"Sending batch of transactions"</span>, <span class="string">"count"</span>, <span class="built_in">len</span>(pack.txs), <span class="string">"bytes"</span>, size)</span><br><span class="line">	sending = <span class="literal">true</span></span><br><span class="line">	<span class="keyword">go</span> <span class="function"><span class="keyword">func</span><span class="params">()</span></span> &#123; done &lt;- pack.p.SendTransactions(pack.txs) &#125;()</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>这里一次只发送一部分交易信息，要求发送的消息总大小不超过txsyncPackSize。之后如果全都发送的话，把该peer从pending中移除，表示没有消息要发送，然后更新剩余信息。之后启动一个goroutine发送信息，使用的是SendTransactions方法，前文介绍过，并将发送结果传给done，触发txsyncLoop中select另外一个逻辑，这里如果发送无错则先调用pick方法：<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">pick := <span class="function"><span class="keyword">func</span><span class="params">()</span> *<span class="title">txsync</span></span> &#123;</span><br><span class="line">	<span class="keyword">if</span> <span class="built_in">len</span>(pending) == <span class="number">0</span> &#123;</span><br><span class="line">		<span class="keyword">return</span> <span class="literal">nil</span></span><br><span class="line">	&#125;</span><br><span class="line">	n := rand.Intn(<span class="built_in">len</span>(pending)) + <span class="number">1</span></span><br><span class="line">	<span class="keyword">for</span> _, s := <span class="keyword">range</span> pending &#123;</span><br><span class="line">		<span class="keyword">if</span> n--; n == <span class="number">0</span> &#123;</span><br><span class="line">			<span class="keyword">return</span> s</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">return</span> <span class="literal">nil</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>这是从pending中随机选一个等待发送的peer（表示为一个txsync对象，里面含有一个peer和对应的tx），然后调用send方法。直到所有等待的都发送完了（先前一次没有发完的txsync也会在后续被随机选到再次发送），send–pick逻辑结束。</p>
+<blockquote>
+<p>题图来自unsplash：<a href="https://unsplash.com/photos/fR9U2S31Exs" target="_blank" rel="noopener">https://unsplash.com/photos/fR9U2S31Exs</a></p>
+</blockquote>
+
+      
+    </div>
+
+    
+
+    
+    
+    
+
+    
+
+    
+      
+    
+    
+      <div>
+        <div style="padding: 10px 0; margin: 20px auto; width: 90%; text-align: center;">
+  <div>谢谢你请我吃糖</div>
+  <button id="rewardButton" disable="enable" onclick="var qr = document.getElementById('QR'); if (qr.style.display === 'none') {qr.style.display='block';} else {qr.style.display='none'}">
+    <span>打赏</span>
+  </button>
+  <div id="QR" style="display: none;">
+
+    
+      <div id="wechat" style="display: inline-block">
+        <img id="wechat_qr" src="/assets/img/wechatpay.jpg" alt="AmorFati 微信支付">
+        <p>微信支付</p>
+      </div>
+    
+
+    
+      <div id="alipay" style="display: inline-block">
+        <img id="alipay_qr" src="/assets/img/alipay.jpg" alt="AmorFati 支付宝">
+        <p>支付宝</p>
+      </div>
+    
+
+    
+
+  </div>
+</div>
+
+      </div>
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/go/" rel="tag"># go</a>
+          
+            <a href="/tags/区块链/" rel="tag"># 区块链</a>
+          
+            <a href="/tags/以太坊/" rel="tag"># 以太坊</a>
+          
+            <a href="/tags/go-ethereum/" rel="tag"># go-ethereum</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2019/04/23/go-ethereum中p2p源码学习/" rel="next" title="go-ethereum中p2p源码学习">
+                <i class="fa fa-chevron-left"></i> go-ethereum中p2p源码学习
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+  </div>
+
+
+          </div>
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image" src="/assets/img/icon.jpg" alt="AmorFati">
+            
+              <p class="site-author-name" itemprop="name">AmorFati</p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          
+            <nav class="site-state motion-element">
+              
+                <div class="site-state-item site-state-posts">
+                
+                  <a href="/archives/">
+                
+                    <span class="site-state-item-count">30</span>
+                    <span class="site-state-item-name">日志</span>
+                  </a>
+                </div>
+              
+
+              
+                
+                
+                <div class="site-state-item site-state-categories">
+                  <a href="/categories/index.html">
+                    
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">6</span>
+                    <span class="site-state-item-name">分类</span>
+                  </a>
+                </div>
+              
+
+              
+                
+                
+                <div class="site-state-item site-state-tags">
+                  <a href="/tags/index.html">
+                    
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">11</span>
+                    <span class="site-state-item-name">标签</span>
+                  </a>
+                </div>
+              
+            </nav>
+          
+
+          
+
+          
+            <div class="links-of-author motion-element">
+              
+                <span class="links-of-author-item">
+                  
+                  
+                    
+                  
+                  
+                    
+                  
+                  <a href="https://github.com/chenyaoyang" title="GitHub &rarr; https://github.com/chenyaoyang" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i>GitHub</a>
+                </span>
+              
+                <span class="links-of-author-item">
+                  
+                  
+                    
+                  
+                  
+                    
+                  
+                  <a href="mailto:chenyang4346@foxmail.com" title="E-Mail &rarr; mailto:chenyang4346@foxmail.com" rel="noopener" target="_blank"><i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+                </span>
+              
+                <span class="links-of-author-item">
+                  
+                  
+                    
+                  
+                  
+                    
+                  
+                  <a href="https://www.jianshu.com/u/52c1bec4559c" title="简书 &rarr; https://www.jianshu.com/u/52c1bec4559c" rel="noopener" target="_blank"><i class="fa fa-fw fa-globe"></i>简书</a>
+                </span>
+              
+            </div>
+          
+
+          
+
+          
+          
+
+          
+            
+          
+          
+
+        </div>
+      </div>
+
+      
+      <!--noindex-->
+        <div class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+            
+            
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#NewProtocolManager"><span class="nav-number">1.</span> <span class="nav-text">NewProtocolManager</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#handle"><span class="nav-number">2.</span> <span class="nav-text">handle</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#Handshake"><span class="nav-number">2.1.</span> <span class="nav-text">Handshake</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Register-amp-broadcast"><span class="nav-number">2.2.</span> <span class="nav-text">Register &amp; broadcast</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#handleMsg"><span class="nav-number">3.</span> <span class="nav-text">handleMsg</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#GetBlockHeadersMsg"><span class="nav-number">3.1.</span> <span class="nav-text">GetBlockHeadersMsg</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#BlockHeadersMsg"><span class="nav-number">3.2.</span> <span class="nav-text">BlockHeadersMsg</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Start"><span class="nav-number">4.</span> <span class="nav-text">Start</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#txBroadcastLoop"><span class="nav-number">4.1.</span> <span class="nav-text">txBroadcastLoop</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#minedBroadcastLoop"><span class="nav-number">4.2.</span> <span class="nav-text">minedBroadcastLoop</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#syncer"><span class="nav-number">4.3.</span> <span class="nav-text">syncer</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#txsyncLoop"><span class="nav-number">4.4.</span> <span class="nav-text">txsyncLoop</span></a></li></ol></li></ol></div>
+            
+
+          </div>
+        </div>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; 2018 – <span itemprop="copyrightYear">2019</span>
+  <span class="with-love" id="animate">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">AmorFati</span>
+
+  
+
+  
+</div>
+
+
+  <div class="powered-by">由 <a href="https://hexo.io" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v3.8.0</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 – <a href="https://theme-next.org" class="theme-link" rel="noopener" target="_blank">NexT.Pisces</a> v6.6.0</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+    
+
+    
+  </div>
+
+  
+
+<script>
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+
+  
+
+
+  <script src="/js/src/utils.js?v=6.6.0"></script>
+
+  <script src="/js/src/motion.js?v=6.6.0"></script>
+
+
+
+  
+  
+
+
+  <script src="/js/src/affix.js?v=6.6.0"></script>
+
+  <script src="/js/src/schemes/pisces.js?v=6.6.0"></script>
+
+
+
+  
+  <script src="/js/src/scrollspy.js?v=6.6.0"></script>
+<script src="/js/src/post-details.js?v=6.6.0"></script>
+
+
+
+  
+
+
+  <script src="/js/src/bootstrap.js?v=6.6.0"></script>
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  <script>
+    // Popup Window;
+    var isfetched = false;
+    var isXml = true;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length === 0) {
+      search_path = "search.xml";
+    } else if (/json$/i.test(search_path)) {
+      isXml = false;
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    var onPopupClose = function (e) {
+      $('.popup').hide();
+      $('#local-search-input').val('');
+      $('.search-result-list').remove();
+      $('#no-result').remove();
+      $(".local-search-pop-overlay").remove();
+      $('body').css('overflow', '');
+    }
+
+    function proceedsearch() {
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay"></div>')
+        .css('overflow', 'hidden');
+      $('.search-popup-overlay').click(onPopupClose);
+      $('.popup').toggle();
+      var $localSearchInput = $('#local-search-input');
+      $localSearchInput.attr("autocapitalize", "none");
+      $localSearchInput.attr("autocorrect", "off");
+      $localSearchInput.focus();
+    }
+
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+      'use strict';
+
+      // start loading animation
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay">' +
+          '<div id="search-loading-icon">' +
+          '<i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>' +
+          '</div>' +
+          '</div>')
+        .css('overflow', 'hidden');
+      $("#search-loading-icon").css('margin', '20% auto 0 auto').css('text-align', 'center');
+
+      
+
+      $.ajax({
+        url: path,
+        dataType: isXml ? "xml" : "json",
+        async: true,
+        success: function(res) {
+          // get the contents from search data
+          isfetched = true;
+          $('.popup').detach().appendTo('.header-inner');
+          var datas = isXml ? $("entry", res).map(function() {
+            return {
+              title: $("title", this).text(),
+              content: $("content",this).text(),
+              url: $("url" , this).text()
+            };
+          }).get() : res;
+          var input = document.getElementById(search_id);
+          var resultContent = document.getElementById(content_id);
+          var inputEventFunction = function() {
+            var searchText = input.value.trim().toLowerCase();
+            var keywords = searchText.split(/[\s\-]+/);
+            if (keywords.length > 1) {
+              keywords.push(searchText);
+            }
+            var resultItems = [];
+            if (searchText.length > 0) {
+              // perform local searching
+              datas.forEach(function(data) {
+                var isMatch = false;
+                var hitCount = 0;
+                var searchTextCount = 0;
+                var title = data.title.trim();
+                var titleInLowerCase = title.toLowerCase();
+                var content = data.content.trim().replace(/<[^>]+>/g,"");
+                
+                var contentInLowerCase = content.toLowerCase();
+                var articleUrl = decodeURIComponent(data.url);
+                var indexOfTitle = [];
+                var indexOfContent = [];
+                // only match articles with not empty titles
+                if(title != '') {
+                  keywords.forEach(function(keyword) {
+                    function getIndexByWord(word, text, caseSensitive) {
+                      var wordLen = word.length;
+                      if (wordLen === 0) {
+                        return [];
+                      }
+                      var startPosition = 0, position = [], index = [];
+                      if (!caseSensitive) {
+                        text = text.toLowerCase();
+                        word = word.toLowerCase();
+                      }
+                      while ((position = text.indexOf(word, startPosition)) > -1) {
+                        index.push({position: position, word: word});
+                        startPosition = position + wordLen;
+                      }
+                      return index;
+                    }
+
+                    indexOfTitle = indexOfTitle.concat(getIndexByWord(keyword, titleInLowerCase, false));
+                    indexOfContent = indexOfContent.concat(getIndexByWord(keyword, contentInLowerCase, false));
+                  });
+                  if (indexOfTitle.length > 0 || indexOfContent.length > 0) {
+                    isMatch = true;
+                    hitCount = indexOfTitle.length + indexOfContent.length;
+                  }
+                }
+
+                // show search results
+
+                if (isMatch) {
+                  // sort index by position of keyword
+
+                  [indexOfTitle, indexOfContent].forEach(function (index) {
+                    index.sort(function (itemLeft, itemRight) {
+                      if (itemRight.position !== itemLeft.position) {
+                        return itemRight.position - itemLeft.position;
+                      } else {
+                        return itemLeft.word.length - itemRight.word.length;
+                      }
+                    });
+                  });
+
+                  // merge hits into slices
+
+                  function mergeIntoSlice(text, start, end, index) {
+                    var item = index[index.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    var hits = [];
+                    var searchTextCountInSlice = 0;
+                    while (position + word.length <= end && index.length != 0) {
+                      if (word === searchText) {
+                        searchTextCountInSlice++;
+                      }
+                      hits.push({position: position, length: word.length});
+                      var wordEnd = position + word.length;
+
+                      // move to next position of hit
+
+                      index.pop();
+                      while (index.length != 0) {
+                        item = index[index.length - 1];
+                        position = item.position;
+                        word = item.word;
+                        if (wordEnd > position) {
+                          index.pop();
+                        } else {
+                          break;
+                        }
+                      }
+                    }
+                    searchTextCount += searchTextCountInSlice;
+                    return {
+                      hits: hits,
+                      start: start,
+                      end: end,
+                      searchTextCount: searchTextCountInSlice
+                    };
+                  }
+
+                  var slicesOfTitle = [];
+                  if (indexOfTitle.length != 0) {
+                    slicesOfTitle.push(mergeIntoSlice(title, 0, title.length, indexOfTitle));
+                  }
+
+                  var slicesOfContent = [];
+                  while (indexOfContent.length != 0) {
+                    var item = indexOfContent[indexOfContent.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    // cut out 100 characters
+                    var start = position - 20;
+                    var end = position + 80;
+                    if(start < 0){
+                      start = 0;
+                    }
+                    if (end < position + word.length) {
+                      end = position + word.length;
+                    }
+                    if(end > content.length){
+                      end = content.length;
+                    }
+                    slicesOfContent.push(mergeIntoSlice(content, start, end, indexOfContent));
+                  }
+
+                  // sort slices in content by search text's count and hits' count
+
+                  slicesOfContent.sort(function (sliceLeft, sliceRight) {
+                    if (sliceLeft.searchTextCount !== sliceRight.searchTextCount) {
+                      return sliceRight.searchTextCount - sliceLeft.searchTextCount;
+                    } else if (sliceLeft.hits.length !== sliceRight.hits.length) {
+                      return sliceRight.hits.length - sliceLeft.hits.length;
+                    } else {
+                      return sliceLeft.start - sliceRight.start;
+                    }
+                  });
+
+                  // select top N slices in content
+
+                  var upperBound = parseInt('1');
+                  if (upperBound >= 0) {
+                    slicesOfContent = slicesOfContent.slice(0, upperBound);
+                  }
+
+                  // highlight title and content
+
+                  function highlightKeyword(text, slice) {
+                    var result = '';
+                    var prevEnd = slice.start;
+                    slice.hits.forEach(function (hit) {
+                      result += text.substring(prevEnd, hit.position);
+                      var end = hit.position + hit.length;
+                      result += '<b class="search-keyword">' + text.substring(hit.position, end) + '</b>';
+                      prevEnd = end;
+                    });
+                    result += text.substring(prevEnd, slice.end);
+                    return result;
+                  }
+
+                  var resultItem = '';
+
+                  if (slicesOfTitle.length != 0) {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + highlightKeyword(title, slicesOfTitle[0]) + "</a>";
+                  } else {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + title + "</a>";
+                  }
+
+                  slicesOfContent.forEach(function (slice) {
+                    resultItem += "<a href='" + articleUrl + "'>" +
+                      "<p class=\"search-result\">" + highlightKeyword(content, slice) +
+                      "...</p>" + "</a>";
+                  });
+
+                  resultItem += "</li>";
+                  resultItems.push({
+                    item: resultItem,
+                    searchTextCount: searchTextCount,
+                    hitCount: hitCount,
+                    id: resultItems.length
+                  });
+                }
+              })
+            };
+            if (keywords.length === 1 && keywords[0] === "") {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>'
+            } else if (resultItems.length === 0) {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>'
+            } else {
+              resultItems.sort(function (resultLeft, resultRight) {
+                if (resultLeft.searchTextCount !== resultRight.searchTextCount) {
+                  return resultRight.searchTextCount - resultLeft.searchTextCount;
+                } else if (resultLeft.hitCount !== resultRight.hitCount) {
+                  return resultRight.hitCount - resultLeft.hitCount;
+                } else {
+                  return resultRight.id - resultLeft.id;
+                }
+              });
+              var searchResultList = '<ul class=\"search-result-list\">';
+              resultItems.forEach(function (result) {
+                searchResultList += result.item;
+              })
+              searchResultList += "</ul>";
+              resultContent.innerHTML = searchResultList;
+            }
+          }
+
+          if ('auto' === 'auto') {
+            input.addEventListener('input', inputEventFunction);
+          } else {
+            $('.search-icon').click(inputEventFunction);
+            input.addEventListener('keypress', function (event) {
+              if (event.keyCode === 13) {
+                inputEventFunction();
+              }
+            });
+          }
+
+          // remove loading animation
+          $(".local-search-pop-overlay").remove();
+          $('body').css('overflow', '');
+
+          proceedsearch();
+        }
+      });
+    }
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched === false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+    });
+
+    $('.popup-btn-close').click(onPopupClose);
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+    $(document).on('keyup', function (event) {
+      var shouldDismissSearchPopup = event.which === 27 &&
+        $('.search-popup').is(':visible');
+      if (shouldDismissSearchPopup) {
+        onPopupClose();
+      }
+    });
+  </script>
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+  
+
+  
+
+
+  
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>
