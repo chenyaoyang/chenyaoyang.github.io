@@ -1,0 +1,1383 @@
+<!DOCTYPE html>
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+<html class="theme-next pisces use-motion" lang="zh-CN">
+<head><meta name="generator" content="Hexo 3.8.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+    
+      
+    
+
+    
+  
+
+  
+
+  
+    
+      
+    
+
+    
+  
+
+  
+    
+      
+    
+
+    
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Monda:300,300italic,400,400italic,700,700italic|Roboto Slab:300,300italic,400,400italic,700,700italic|Dancing Script:300,300italic,400,400italic,700,700italic|Consolas:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css">
+
+<link href="/css/main.css?v=6.6.0" rel="stylesheet" type="text/css">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=6.6.0">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=6.6.0">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=6.6.0">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=6.6.0" color="#222">
+
+
+
+
+
+
+
+
+
+<script id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    version: '6.6.0',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: false,
+    fastclick: false,
+    lazyload: false,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+  
+
+
+
+
+  <meta name="keywords" content="go,区块链,以太坊,go-ethereum">
+<meta property="og:type" content="article">
+<meta property="og:title" content="go-ethereum中eth-Fetcher源码学习">
+<meta property="og:url" content="http://yoursite.com/2019/05/10/go-ethereum中eth-Fetcher源码学习/index.html">
+<meta property="og:site_name" content="AmorFati">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:image" content="https://raw.githubusercontent.com/chenyaoyang/blog-pic/master/head/andrew-coelho-60428-unsplash.jpg">
+<meta property="og:updated_time" content="2019-05-10T05:38:13.189Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="go-ethereum中eth-Fetcher源码学习">
+<meta name="twitter:image" content="https://raw.githubusercontent.com/chenyaoyang/blog-pic/master/head/andrew-coelho-60428-unsplash.jpg">
+
+
+
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2019/05/10/go-ethereum中eth-Fetcher源码学习/">
+
+
+
+<script id="page.configurations">
+  CONFIG.page = {
+    sidebar: "",
+  };
+</script>
+
+  <title>go-ethereum中eth-Fetcher源码学习 | AmorFati</title>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  <noscript>
+  <style>
+    .use-motion .motion-element,
+    .use-motion .brand,
+    .use-motion .menu-item,
+    .sidebar-inner,
+    .use-motion .post-block,
+    .use-motion .pagination,
+    .use-motion .comments,
+    .use-motion .post-header,
+    .use-motion .post-body,
+    .use-motion .collection-title { opacity: initial; }
+
+    .use-motion .logo,
+    .use-motion .site-title,
+    .use-motion .site-subtitle {
+      opacity: initial;
+      top: initial;
+    }
+
+    .use-motion .logo-line-before i { left: initial; }
+    .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope="" itemtype="http://schema.org/WebPage" lang="zh-CN">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope="" itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">AmorFati</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+    
+      
+        <p class="site-subtitle">风吹过窗前的书，又翻过一页</p>
+      
+    
+    
+  </div>
+
+  <div class="site-nav-toggle">
+    <button aria-label="切换导航栏">
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  
+    <ul id="menu" class="menu">
+      
+        
+        
+        
+          
+          <li class="menu-item menu-item-home">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/" rel="section"><i class="menu-item-icon fa fa-fw fa-home"></i> <br>首页</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-about">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/about/" rel="section"><i class="menu-item-icon fa fa-fw fa-user"></i> <br>关于</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-tags">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/tags/" rel="section"><i class="menu-item-icon fa fa-fw fa-tags"></i> <br>标签</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-categories">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/categories/" rel="section"><i class="menu-item-icon fa fa-fw fa-th"></i> <br>分类</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-archives">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/archives/" rel="section"><i class="menu-item-icon fa fa-fw fa-archive"></i> <br>归档</a>
+
+  </li>
+
+      
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br>搜索</a>
+        </li>
+      
+    </ul>
+  
+
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup search-popup local-search-popup">
+  <div class="local-search-header clearfix">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+    <div class="local-search-input-wrapper">
+      <input autocomplete="off" placeholder="搜索..." spellcheck="false" type="text" id="local-search-input">
+    </div>
+  </div>
+  <div id="local-search-result"></div>
+</div>
+
+
+
+    </div>
+  
+</nav>
+
+
+
+  
+
+
+
+</div>
+    </header>
+
+    
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+            
+
+          
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  
+
+  <article class="post post-type-normal" itemscope="" itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/05/10/go-ethereum中eth-Fetcher源码学习/">
+
+    <span hidden itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="AmorFati">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/assets/img/icon.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope="" itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="AmorFati">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">go-ethereum中eth-Fetcher源码学习
+
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+
+            
+            
+            
+
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+
+              
+                
+              
+
+              <time title="创建时间：2019-05-10 13:35:03 / 修改时间：13:38:13" itemprop="dateCreated datePublished" datetime="2019-05-10T13:35:03+08:00">2019-05-10</time>
+            
+
+            
+              
+
+              
+            
+          </span>
+
+          
+            <span class="post-category">
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope="" itemtype="http://schema.org/Thing"><a href="/categories/go-ethereum源码学习/" itemprop="url" rel="index"><span itemprop="name">go-ethereum源码学习</span></a></span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p><img src="https://raw.githubusercontent.com/chenyaoyang/blog-pic/master/head/andrew-coelho-60428-unsplash.jpg" alt=""><br><a id="more"></a></p>
+<h1 id="数据结构"><a href="#数据结构" class="headerlink" title="数据结构"></a>数据结构</h1><p>fetcher负责收集来自各个对等点的块通知并进行处理。前面在介绍ProtocolManager时就出现过，我们先看数据结构<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">type</span> announce <span class="keyword">struct</span> &#123;</span><br><span class="line">	hash   common.Hash   <span class="comment">// Hash of the block being announced</span></span><br><span class="line">	number <span class="keyword">uint64</span>        <span class="comment">// Number of the block being announced (0 = unknown | old protocol)</span></span><br><span class="line">	header *types.Header <span class="comment">// Header of the block partially reassembled (new protocol)</span></span><br><span class="line">	time   time.Time     <span class="comment">// Timestamp of the announcement</span></span><br><span class="line"></span><br><span class="line">	origin <span class="keyword">string</span> <span class="comment">// Identifier of the peer originating the notification</span></span><br><span class="line"></span><br><span class="line">	fetchHeader headerRequesterFn <span class="comment">// Fetcher function to retrieve the header of an announced block</span></span><br><span class="line">	fetchBodies bodyRequesterFn   <span class="comment">// Fetcher function to retrieve the body of an announced block</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>announce是一个通知，表示网络中有新块出现。<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">type</span> inject <span class="keyword">struct</span> &#123;</span><br><span class="line">	origin <span class="keyword">string</span></span><br><span class="line">	block  *types.Block</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>inject表示要插入一个区块。<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">type</span> Fetcher <span class="keyword">struct</span> &#123;</span><br><span class="line">	<span class="comment">// Various event channels</span></span><br><span class="line">	notify <span class="keyword">chan</span> *announce</span><br><span class="line">	inject <span class="keyword">chan</span> *inject</span><br><span class="line"></span><br><span class="line">	headerFilter <span class="keyword">chan</span> <span class="keyword">chan</span> *headerFilterTask</span><br><span class="line">	bodyFilter   <span class="keyword">chan</span> <span class="keyword">chan</span> *bodyFilterTask</span><br><span class="line"></span><br><span class="line">	done <span class="keyword">chan</span> common.Hash</span><br><span class="line">	quit <span class="keyword">chan</span> <span class="keyword">struct</span>&#123;&#125;</span><br><span class="line"></span><br><span class="line">	<span class="comment">// Announce states</span></span><br><span class="line">	announces  <span class="keyword">map</span>[<span class="keyword">string</span>]<span class="keyword">int</span>              <span class="comment">// Per peer announce counts to prevent memory exhaustion</span></span><br><span class="line">	announced  <span class="keyword">map</span>[common.Hash][]*announce <span class="comment">// Announced blocks, scheduled for fetching</span></span><br><span class="line">	fetching   <span class="keyword">map</span>[common.Hash]*announce   <span class="comment">// Announced blocks, currently fetching</span></span><br><span class="line">	fetched    <span class="keyword">map</span>[common.Hash][]*announce <span class="comment">// Blocks with headers fetched, scheduled for body retrieval</span></span><br><span class="line">	completing <span class="keyword">map</span>[common.Hash]*announce   <span class="comment">// Blocks with headers, currently body-completing</span></span><br><span class="line"></span><br><span class="line">	<span class="comment">// Block cache</span></span><br><span class="line">	queue  *prque.Prque            <span class="comment">// Queue containing the import operations (block number sorted)</span></span><br><span class="line">	queues <span class="keyword">map</span>[<span class="keyword">string</span>]<span class="keyword">int</span>          <span class="comment">// Per peer block counts to prevent memory exhaustion</span></span><br><span class="line">	queued <span class="keyword">map</span>[common.Hash]*inject <span class="comment">// Set of already queued blocks (to dedupe imports)</span></span><br><span class="line"></span><br><span class="line">	<span class="comment">// Callbacks</span></span><br><span class="line">	getBlock       blockRetrievalFn   <span class="comment">// Retrieves a block from the local chain</span></span><br><span class="line">	verifyHeader   headerVerifierFn   <span class="comment">// Checks if a block's headers have a valid proof of work</span></span><br><span class="line">	broadcastBlock blockBroadcasterFn <span class="comment">// Broadcasts a block to connected peers</span></span><br><span class="line">	chainHeight    chainHeightFn      <span class="comment">// Retrieves the current chain's height</span></span><br><span class="line">	insertChain    chainInsertFn      <span class="comment">// Injects a batch of blocks into the chain</span></span><br><span class="line">	dropPeer       peerDropFn         <span class="comment">// Drops a peer for misbehaving</span></span><br><span class="line"></span><br><span class="line">	<span class="comment">// Testing hooks</span></span><br><span class="line">	announceChangeHook <span class="function"><span class="keyword">func</span><span class="params">(common.Hash, <span class="keyword">bool</span>)</span> // <span class="title">Method</span> <span class="title">to</span> <span class="title">call</span> <span class="title">upon</span> <span class="title">adding</span> <span class="title">or</span> <span class="title">deleting</span> <span class="title">a</span> <span class="title">hash</span> <span class="title">from</span> <span class="title">the</span> <span class="title">announce</span> <span class="title">list</span></span></span><br><span class="line"><span class="function">	<span class="title">queueChangeHook</span>    <span class="title">func</span><span class="params">(common.Hash, <span class="keyword">bool</span>)</span> // <span class="title">Method</span> <span class="title">to</span> <span class="title">call</span> <span class="title">upon</span> <span class="title">adding</span> <span class="title">or</span> <span class="title">deleting</span> <span class="title">a</span> <span class="title">block</span> <span class="title">from</span> <span class="title">the</span> <span class="title">import</span> <span class="title">queue</span></span></span><br><span class="line"><span class="function">	<span class="title">fetchingHook</span>       <span class="title">func</span><span class="params">([]common.Hash)</span>     // <span class="title">Method</span> <span class="title">to</span> <span class="title">call</span> <span class="title">upon</span> <span class="title">starting</span> <span class="title">a</span> <span class="title">block</span> <span class="params">(eth/61)</span> <span class="title">or</span> <span class="title">header</span> <span class="params">(eth/62)</span> <span class="title">fetch</span></span></span><br><span class="line"><span class="function">	<span class="title">completingHook</span>     <span class="title">func</span><span class="params">([]common.Hash)</span>     // <span class="title">Method</span> <span class="title">to</span> <span class="title">call</span> <span class="title">upon</span> <span class="title">starting</span> <span class="title">a</span> <span class="title">block</span> <span class="title">body</span> <span class="title">fetch</span> <span class="params">(eth/62)</span></span></span><br><span class="line"><span class="function">	<span class="title">importedHook</span>       <span class="title">func</span><span class="params">(*types.Block)</span>      // <span class="title">Method</span> <span class="title">to</span> <span class="title">call</span> <span class="title">upon</span> <span class="title">successful</span> <span class="title">block</span> <span class="title">import</span> <span class="params">(both eth/61 and eth/62)</span></span></span><br><span class="line"><span class="function">&#125;</span></span><br></pre></td></tr></table></figure></p>
+<h1 id="New"><a href="#New" class="headerlink" title="New"></a>New</h1><p>在创建ProtocolManager时使用了NewProtocolManager方法，在最后使用fetcher的new方法创建了一个fetcher：<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line">manager.fetcher = fetcher.New(blockchain.GetBlockByHash, validator, manager.BroadcastBlock, heighter, inserter, manager.removePeer)</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">New</span><span class="params">(getBlock blockRetrievalFn, verifyHeader headerVerifierFn, broadcastBlock blockBroadcasterFn, chainHeight chainHeightFn, insertChain chainInsertFn, dropPeer peerDropFn)</span> *<span class="title">Fetcher</span></span> &#123;</span><br><span class="line">	<span class="keyword">return</span> &amp;Fetcher&#123;</span><br><span class="line">		notify:         <span class="built_in">make</span>(<span class="keyword">chan</span> *announce),</span><br><span class="line">		inject:         <span class="built_in">make</span>(<span class="keyword">chan</span> *inject),</span><br><span class="line">		headerFilter:   <span class="built_in">make</span>(<span class="keyword">chan</span> <span class="keyword">chan</span> *headerFilterTask),</span><br><span class="line">		bodyFilter:     <span class="built_in">make</span>(<span class="keyword">chan</span> <span class="keyword">chan</span> *bodyFilterTask),</span><br><span class="line">		done:           <span class="built_in">make</span>(<span class="keyword">chan</span> common.Hash),</span><br><span class="line">		quit:           <span class="built_in">make</span>(<span class="keyword">chan</span> <span class="keyword">struct</span>&#123;&#125;),</span><br><span class="line">		announces:      <span class="built_in">make</span>(<span class="keyword">map</span>[<span class="keyword">string</span>]<span class="keyword">int</span>),</span><br><span class="line">		announced:      <span class="built_in">make</span>(<span class="keyword">map</span>[common.Hash][]*announce),</span><br><span class="line">		fetching:       <span class="built_in">make</span>(<span class="keyword">map</span>[common.Hash]*announce),</span><br><span class="line">		fetched:        <span class="built_in">make</span>(<span class="keyword">map</span>[common.Hash][]*announce),</span><br><span class="line">		completing:     <span class="built_in">make</span>(<span class="keyword">map</span>[common.Hash]*announce),</span><br><span class="line">		queue:          prque.New(<span class="literal">nil</span>),</span><br><span class="line">		queues:         <span class="built_in">make</span>(<span class="keyword">map</span>[<span class="keyword">string</span>]<span class="keyword">int</span>),</span><br><span class="line">		queued:         <span class="built_in">make</span>(<span class="keyword">map</span>[common.Hash]*inject),</span><br><span class="line">		getBlock:       getBlock,</span><br><span class="line">		verifyHeader:   verifyHeader,</span><br><span class="line">		broadcastBlock: broadcastBlock,</span><br><span class="line">		chainHeight:    chainHeight,</span><br><span class="line">		insertChain:    insertChain,</span><br><span class="line">		dropPeer:       dropPeer,</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>new方法并没有什么实际逻辑，只是创建了一个对象，只不过传入了几个方法：getBlock表示根据hash值获取对应区块，verifyHeader用来验证区块头，broadcastBlock表示给peer广播区块，chainHeight用来获取区块链高度，insertChain用来插入区块，dropPeer用来删除一个peer。</p>
+<p>上面几个方法中getBlock、chainHeight和insertChain都是BlockChain的方法，verifyHeader是共识引擎的方法，broadcastBlock和dropPeer都是ProtocolManager的方法。</p>
+<h1 id="Start-amp-loop"><a href="#Start-amp-loop" class="headerlink" title="Start &amp; loop"></a>Start &amp; loop</h1><p>在ProtocolManager调用Start方法启动后，会调用syncer方法，此时启动fetcher，使用的是Start方法：<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(f *Fetcher)</span> <span class="title">Start</span><span class="params">()</span></span> &#123;</span><br><span class="line">	<span class="keyword">go</span> f.loop()</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>可见只是启动了一个goroutine去执行loop<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(f *Fetcher)</span> <span class="title">loop</span><span class="params">()</span></span> &#123;</span><br><span class="line">	fetchTimer := time.NewTimer(<span class="number">0</span>)</span><br><span class="line">	completeTimer := time.NewTimer(<span class="number">0</span>)</span><br><span class="line"></span><br><span class="line">	<span class="keyword">for</span> &#123;</span><br><span class="line">		<span class="keyword">for</span> hash, announce := <span class="keyword">range</span> f.fetching &#123;</span><br><span class="line">			<span class="keyword">if</span> time.Since(announce.time) &gt; fetchTimeout &#123;</span><br><span class="line">				f.forgetHash(hash)</span><br><span class="line">			&#125;</span><br><span class="line">		&#125;</span><br><span class="line"></span><br><span class="line">		height := f.chainHeight()</span><br><span class="line">		<span class="keyword">for</span> !f.queue.Empty() &#123;</span><br><span class="line">			op := f.queue.PopItem().(*inject)</span><br><span class="line">			hash := op.block.Hash()</span><br><span class="line">			<span class="keyword">if</span> f.queueChangeHook != <span class="literal">nil</span> &#123;</span><br><span class="line">				f.queueChangeHook(hash, <span class="literal">false</span>)</span><br><span class="line">			&#125;</span><br><span class="line"></span><br><span class="line">			number := op.block.NumberU64()</span><br><span class="line">			<span class="keyword">if</span> number &gt; height+<span class="number">1</span> &#123;</span><br><span class="line">				f.queue.Push(op, -<span class="keyword">int64</span>(number))</span><br><span class="line">				<span class="keyword">if</span> f.queueChangeHook != <span class="literal">nil</span> &#123;</span><br><span class="line">					f.queueChangeHook(hash, <span class="literal">true</span>)</span><br><span class="line">				&#125;</span><br><span class="line">				<span class="keyword">break</span></span><br><span class="line">			&#125;</span><br><span class="line"></span><br><span class="line">			<span class="keyword">if</span> number+maxUncleDist &lt; height || f.getBlock(hash) != <span class="literal">nil</span> &#123;</span><br><span class="line">				f.forgetBlock(hash)</span><br><span class="line">				<span class="keyword">continue</span></span><br><span class="line">			&#125;</span><br><span class="line">			f.insert(op.origin, op.block)</span><br><span class="line">		&#125;</span><br><span class="line"></span><br><span class="line">		<span class="keyword">select</span> &#123;</span><br><span class="line">		    ....</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>既然是loop就还是一样的套路，里面有一个死循环，再嵌套一个select结构用来触发相应事件。在loop首先定义了两个定时器，不过此时定时时间都是0，也就是立即会触发。</p>
+<p>然后进入for循环，先遍历所有正在fetcher的announce，对于那些fetcher超过5秒的进行抛弃。然后获取了区块链高度，接着遍历了queue队列，这是一个优先级队列，优先级是其区块编号的负数，这样编号越小的区块优先级越高。每次从队列顶端取一个，这个是inject对象，如果他的编号大于当前区块高度加一，就先放回队列然后退出循环，否则如果区块过于旧，即比当前区块高度减7还小就抛弃，最后如果合适就插入。</p>
+<p>遍历完queue后进入select结构。其中一些case我们后面会陆续介绍。在loop中会通过四个map记录announce状态：announced表示等待fetch，fetching表示正在fetch；fetched表示fetch完头部等待fetch区块体；completing表示完全结束。</p>
+<h1 id="FilterHeaders"><a href="#FilterHeaders" class="headerlink" title="FilterHeaders"></a>FilterHeaders</h1><p>在pm中如果收到code为BlockHeadersMsg的消息时，这个消息是在请求方发送GetBlockHeadersMsg消息后收到响应的消息，表示接收到了区块头，这时会调用fetcher的FilterHeaders方法去处理<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(f *Fetcher)</span> <span class="title">FilterHeaders</span><span class="params">(peer <span class="keyword">string</span>, headers []*types.Header, time time.Time)</span> []*<span class="title">types</span>.<span class="title">Header</span></span> &#123;</span><br><span class="line">	log.Trace(<span class="string">"Filtering headers"</span>, <span class="string">"peer"</span>, peer, <span class="string">"headers"</span>, <span class="built_in">len</span>(headers))</span><br><span class="line"></span><br><span class="line">	filter := <span class="built_in">make</span>(<span class="keyword">chan</span> *headerFilterTask)</span><br><span class="line"></span><br><span class="line">	<span class="keyword">select</span> &#123;</span><br><span class="line">	<span class="keyword">case</span> f.headerFilter &lt;- filter:</span><br><span class="line">	<span class="keyword">case</span> &lt;-f.quit:</span><br><span class="line">		<span class="keyword">return</span> <span class="literal">nil</span></span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">select</span> &#123;</span><br><span class="line">	<span class="keyword">case</span> filter &lt;- &amp;headerFilterTask&#123;peer: peer, headers: headers, time: time&#125;:</span><br><span class="line">	<span class="keyword">case</span> &lt;-f.quit:</span><br><span class="line">		<span class="keyword">return</span> <span class="literal">nil</span></span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">select</span> &#123;</span><br><span class="line">	<span class="keyword">case</span> task := &lt;-filter:</span><br><span class="line">		<span class="keyword">return</span> task.headers</span><br><span class="line">	<span class="keyword">case</span> &lt;-f.quit:</span><br><span class="line">		<span class="keyword">return</span> <span class="literal">nil</span></span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>首先给headerFilter赋值，触发loop中对应逻辑<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">case</span> filter := &lt;-f.headerFilter:</span><br><span class="line">	<span class="keyword">var</span> task *headerFilterTask</span><br><span class="line">	<span class="keyword">select</span> &#123;</span><br><span class="line">	<span class="keyword">case</span> task = &lt;-filter:</span><br><span class="line">	<span class="keyword">case</span> &lt;-f.quit:</span><br><span class="line">		<span class="keyword">return</span></span><br><span class="line">	&#125;</span><br><span class="line">	headerFilterInMeter.Mark(<span class="keyword">int64</span>(<span class="built_in">len</span>(task.headers)))</span><br><span class="line"></span><br><span class="line">	unknown, incomplete, complete := []*types.Header&#123;&#125;, []*announce&#123;&#125;, []*types.Block&#123;&#125;</span><br><span class="line">	<span class="keyword">for</span> _, header := <span class="keyword">range</span> task.headers &#123;</span><br><span class="line">		hash := header.Hash()</span><br><span class="line"></span><br><span class="line">		<span class="keyword">if</span> announce := f.fetching[hash]; announce != <span class="literal">nil</span> &amp;&amp; announce.origin == task.peer &amp;&amp; f.fetched[hash] == <span class="literal">nil</span> &amp;&amp; f.completing[hash] == <span class="literal">nil</span> &amp;&amp; f.queued[hash] == <span class="literal">nil</span> &#123;</span><br><span class="line">			<span class="keyword">if</span> header.Number.Uint64() != announce.number &#123;</span><br><span class="line">				log.Trace(<span class="string">"Invalid block number fetched"</span>, <span class="string">"peer"</span>, announce.origin, <span class="string">"hash"</span>, header.Hash(), <span class="string">"announced"</span>, announce.number, <span class="string">"provided"</span>, header.Number)</span><br><span class="line">				f.dropPeer(announce.origin)</span><br><span class="line">				f.forgetHash(hash)</span><br><span class="line">				<span class="keyword">continue</span></span><br><span class="line">			&#125;</span><br><span class="line"></span><br><span class="line">			<span class="keyword">if</span> f.getBlock(hash) == <span class="literal">nil</span> &#123;</span><br><span class="line">				announce.header = header</span><br><span class="line">				announce.time = task.time</span><br><span class="line"></span><br><span class="line">				<span class="keyword">if</span> header.TxHash == types.DeriveSha(types.Transactions&#123;&#125;) &amp;&amp; header.UncleHash == types.CalcUncleHash([]*types.Header&#123;&#125;) &#123;</span><br><span class="line">					log.Trace(<span class="string">"Block empty, skipping body retrieval"</span>, <span class="string">"peer"</span>, announce.origin, <span class="string">"number"</span>, header.Number, <span class="string">"hash"</span>, header.Hash())</span><br><span class="line"></span><br><span class="line">					block := types.NewBlockWithHeader(header)</span><br><span class="line">					block.ReceivedAt = task.time</span><br><span class="line"></span><br><span class="line">					complete = <span class="built_in">append</span>(complete, block)</span><br><span class="line">					f.completing[hash] = announce</span><br><span class="line">					<span class="keyword">continue</span></span><br><span class="line">				&#125;</span><br><span class="line">				incomplete = <span class="built_in">append</span>(incomplete, announce)</span><br><span class="line">			&#125; <span class="keyword">else</span> &#123;</span><br><span class="line">				log.Trace(<span class="string">"Block already imported, discarding header"</span>, <span class="string">"peer"</span>, announce.origin, <span class="string">"number"</span>, header.Number, <span class="string">"hash"</span>, header.Hash())</span><br><span class="line">				f.forgetHash(hash)</span><br><span class="line">			&#125;</span><br><span class="line">		&#125; <span class="keyword">else</span> &#123;</span><br><span class="line">			unknown = <span class="built_in">append</span>(unknown, header)</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">	headerFilterOutMeter.Mark(<span class="keyword">int64</span>(<span class="built_in">len</span>(unknown)))</span><br><span class="line">	<span class="keyword">select</span> &#123;</span><br><span class="line">	<span class="keyword">case</span> filter &lt;- &amp;headerFilterTask&#123;headers: unknown, time: task.time&#125;:</span><br><span class="line">	<span class="keyword">case</span> &lt;-f.quit:</span><br><span class="line">		<span class="keyword">return</span></span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">for</span> _, announce := <span class="keyword">range</span> incomplete &#123;</span><br><span class="line">		hash := announce.header.Hash()</span><br><span class="line">		<span class="keyword">if</span> _, ok := f.completing[hash]; ok &#123;</span><br><span class="line">			<span class="keyword">continue</span></span><br><span class="line">		&#125;</span><br><span class="line">		f.fetched[hash] = <span class="built_in">append</span>(f.fetched[hash], announce)</span><br><span class="line">		<span class="keyword">if</span> <span class="built_in">len</span>(f.fetched) == <span class="number">1</span> &#123;</span><br><span class="line">			f.rescheduleComplete(completeTimer)</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">for</span> _, block := <span class="keyword">range</span> complete &#123;</span><br><span class="line">		<span class="keyword">if</span> announce := f.completing[block.Hash()]; announce != <span class="literal">nil</span> &#123;</span><br><span class="line">			f.enqueue(announce.origin, block)</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br></pre></td></tr></table></figure></p>
+<p>在对应case中，首先就是一个select结构，这里代码优点特殊，首先headerFilter这个channel里面存储的也是一个channel，回到FilterHeaders的第二个select中，给filter赋值headerFilterTask对象，其中包装了peerID，区块头和当前时间，再回到loop的case中，这里select阻塞得到释放，task得到赋值，是一个headerFilterTask对象。</p>
+<p>接着定义了三个数组：unknown, incomplete, complete，然后遍历刚才传过来的一些区块头。先进行了许多判断，主要是确定这个头正在在fetch，接着如果返回的高度和我们请求的区块高度不一样，则删除这个peer并删除这个hash，然后判断下一个head。接着如果一样的话，尝试从本地取区块，如果取不到，在接下来的一个判断中判断这个块是否为空，也就是没有交易且没有叔块，这时创建一个空的区块放入complete中，并将对应的announce放入completing表示fetch完成，若能从本地取到对应区块，则表示已经fetch过了，则抛弃这个hash。再往下，如果不满足最开始的判断，则将对于头放入unknown中。</p>
+<p>在遍历完所有head后，再构造一个headerFilterTask将unknown放入其中，然后将这个headerFilterTask赋值给filter，这时触发FilterHeaders的第三个select，在那里面将task的heads返回，也就是刚才放入unknown中的，随后交给Downloader处理。</p>
+<p>在loop的对应case中还有操作，首先遍历所有incomplete，这个里面的表示那些在fetch的，而且没有fetch完的，而且对应区块也不是空的announce，首先看其是否在completing中，也就是fetch完的，这时进行忽略，否则将announce放入fetched中对于hash的数组中。接着如果fetched只有一个等待fetch区块体的任务，则调用rescheduleComplete重置completeTimer定时器。</p>
+<p>接着遍历complete数组，如果对应区块的announce在completing中也就是以及fetch完成的，则调用enqueue方法插入区块，这个方法稍后介绍。</p>
+<h1 id="FilterBodies"><a href="#FilterBodies" class="headerlink" title="FilterBodies"></a>FilterBodies</h1><p>和上一个类似，这个方法是在请求一个区块体收到响应后进行了调用：<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(f *Fetcher)</span> <span class="title">FilterBodies</span><span class="params">(peer <span class="keyword">string</span>, transactions [][]*types.Transaction, uncles [][]*types.Header, time time.Time)</span> <span class="params">([][]*types.Transaction, [][]*types.Header)</span></span> &#123;</span><br><span class="line">	log.Trace(<span class="string">"Filtering bodies"</span>, <span class="string">"peer"</span>, peer, <span class="string">"txs"</span>, <span class="built_in">len</span>(transactions), <span class="string">"uncles"</span>, <span class="built_in">len</span>(uncles))</span><br><span class="line"></span><br><span class="line">	filter := <span class="built_in">make</span>(<span class="keyword">chan</span> *bodyFilterTask)</span><br><span class="line"></span><br><span class="line">	<span class="keyword">select</span> &#123;</span><br><span class="line">	<span class="keyword">case</span> f.bodyFilter &lt;- filter:</span><br><span class="line">	<span class="keyword">case</span> &lt;-f.quit:</span><br><span class="line">		<span class="keyword">return</span> <span class="literal">nil</span>, <span class="literal">nil</span></span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">select</span> &#123;</span><br><span class="line">	<span class="keyword">case</span> filter &lt;- &amp;bodyFilterTask&#123;peer: peer, transactions: transactions, uncles: uncles, time: time&#125;:</span><br><span class="line">	<span class="keyword">case</span> &lt;-f.quit:</span><br><span class="line">		<span class="keyword">return</span> <span class="literal">nil</span>, <span class="literal">nil</span></span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">select</span> &#123;</span><br><span class="line">	<span class="keyword">case</span> task := &lt;-filter:</span><br><span class="line">		<span class="keyword">return</span> task.transactions, task.uncles</span><br><span class="line">	<span class="keyword">case</span> &lt;-f.quit:</span><br><span class="line">		<span class="keyword">return</span> <span class="literal">nil</span>, <span class="literal">nil</span></span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">		<span class="keyword">case</span> filter := &lt;-f.bodyFilter:</span><br><span class="line">			<span class="keyword">var</span> task *bodyFilterTask</span><br><span class="line">			<span class="keyword">select</span> &#123;</span><br><span class="line">			<span class="keyword">case</span> task = &lt;-filter:</span><br><span class="line">			<span class="keyword">case</span> &lt;-f.quit:</span><br><span class="line">				<span class="keyword">return</span></span><br><span class="line">			&#125;</span><br><span class="line">			bodyFilterInMeter.Mark(<span class="keyword">int64</span>(<span class="built_in">len</span>(task.transactions)))</span><br><span class="line"></span><br><span class="line">			blocks := []*types.Block&#123;&#125;</span><br><span class="line">			<span class="keyword">for</span> i := <span class="number">0</span>; i &lt; <span class="built_in">len</span>(task.transactions) &amp;&amp; i &lt; <span class="built_in">len</span>(task.uncles); i++ &#123;</span><br><span class="line">				matched := <span class="literal">false</span></span><br><span class="line"></span><br><span class="line">				<span class="keyword">for</span> hash, announce := <span class="keyword">range</span> f.completing &#123;</span><br><span class="line">					<span class="keyword">if</span> f.queued[hash] == <span class="literal">nil</span> &#123;</span><br><span class="line">						txnHash := types.DeriveSha(types.Transactions(task.transactions[i]))</span><br><span class="line">						uncleHash := types.CalcUncleHash(task.uncles[i])</span><br><span class="line"></span><br><span class="line">						<span class="keyword">if</span> txnHash == announce.header.TxHash &amp;&amp; uncleHash == announce.header.UncleHash &amp;&amp; announce.origin == task.peer &#123;</span><br><span class="line">							matched = <span class="literal">true</span></span><br><span class="line"></span><br><span class="line">							<span class="keyword">if</span> f.getBlock(hash) == <span class="literal">nil</span> &#123;</span><br><span class="line">								block := types.NewBlockWithHeader(announce.header).WithBody(task.transactions[i], task.uncles[i])</span><br><span class="line">								block.ReceivedAt = task.time</span><br><span class="line"></span><br><span class="line">								blocks = <span class="built_in">append</span>(blocks, block)</span><br><span class="line">							&#125; <span class="keyword">else</span> &#123;</span><br><span class="line">								f.forgetHash(hash)</span><br><span class="line">							&#125;</span><br><span class="line">						&#125;</span><br><span class="line">					&#125;</span><br><span class="line">				&#125;</span><br><span class="line">				<span class="keyword">if</span> matched &#123;</span><br><span class="line">					task.transactions = <span class="built_in">append</span>(task.transactions[:i], task.transactions[i+<span class="number">1</span>:]...)</span><br><span class="line">					task.uncles = <span class="built_in">append</span>(task.uncles[:i], task.uncles[i+<span class="number">1</span>:]...)</span><br><span class="line">					i--</span><br><span class="line">					<span class="keyword">continue</span></span><br><span class="line">				&#125;</span><br><span class="line">			&#125;</span><br><span class="line"></span><br><span class="line">			bodyFilterOutMeter.Mark(<span class="keyword">int64</span>(<span class="built_in">len</span>(task.transactions)))</span><br><span class="line">			<span class="keyword">select</span> &#123;</span><br><span class="line">			<span class="keyword">case</span> filter &lt;- task:</span><br><span class="line">			<span class="keyword">case</span> &lt;-f.quit:</span><br><span class="line">				<span class="keyword">return</span></span><br><span class="line">			&#125;</span><br><span class="line">			<span class="keyword">for</span> _, block := <span class="keyword">range</span> blocks &#123;</span><br><span class="line">				<span class="keyword">if</span> announce := f.completing[block.Hash()]; announce != <span class="literal">nil</span> &#123;</span><br><span class="line">					f.enqueue(announce.origin, block)</span><br><span class="line">				&#125;</span><br><span class="line">			&#125;</span><br><span class="line">		&#125;</span><br></pre></td></tr></table></figure></p>
+<p>逻辑和上面的类似，这次是过滤body，主要是滤掉那些已经fetch完成的，剩余的返回交给Downloader处理，这里不再详述。</p>
+<h1 id="Notify"><a href="#Notify" class="headerlink" title="Notify"></a>Notify</h1><p>Notify方法是在pm收到NewBlockHashesMsg消息时得到调用，NewBlockHashesMsg是自己向其他peer发送新区快消息时用的code。接收方收到这个code表示有新的区块，在检测自己是否有相应区块后，将每个未知区块fetcher处理<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(f *Fetcher)</span> <span class="title">Notify</span><span class="params">(peer <span class="keyword">string</span>, hash common.Hash, number <span class="keyword">uint64</span>, time time.Time,</span></span></span><br><span class="line"><span class="function"><span class="params">	headerFetcher headerRequesterFn, bodyFetcher bodyRequesterFn)</span> <span class="title">error</span></span> &#123;</span><br><span class="line">	block := &amp;announce&#123;</span><br><span class="line">		hash:        hash,</span><br><span class="line">		number:      number,</span><br><span class="line">		time:        time,</span><br><span class="line">		origin:      peer,</span><br><span class="line">		fetchHeader: headerFetcher,</span><br><span class="line">		fetchBodies: bodyFetcher,</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">select</span> &#123;</span><br><span class="line">	<span class="keyword">case</span> f.notify &lt;- block:</span><br><span class="line">		<span class="keyword">return</span> <span class="literal">nil</span></span><br><span class="line">	<span class="keyword">case</span> &lt;-f.quit:</span><br><span class="line">		<span class="keyword">return</span> errTerminated</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>这里主要是构建了一个announce对象，表示有新区块的通知，然后传递给notify触发loop的逻辑：<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">case</span> notification := &lt;-f.notify:</span><br><span class="line">	propAnnounceInMeter.Mark(<span class="number">1</span>)</span><br><span class="line"></span><br><span class="line">	count := f.announces[notification.origin] + <span class="number">1</span></span><br><span class="line">	<span class="keyword">if</span> count &gt; hashLimit &#123;</span><br><span class="line">		log.Debug(<span class="string">"Peer exceeded outstanding announces"</span>, <span class="string">"peer"</span>, notification.origin, <span class="string">"limit"</span>, hashLimit)</span><br><span class="line">		propAnnounceDOSMeter.Mark(<span class="number">1</span>)</span><br><span class="line">		<span class="keyword">break</span></span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">if</span> notification.number &gt; <span class="number">0</span> &#123;</span><br><span class="line">		<span class="keyword">if</span> dist := <span class="keyword">int64</span>(notification.number) - <span class="keyword">int64</span>(f.chainHeight()); dist &lt; -maxUncleDist || dist &gt; maxQueueDist &#123;</span><br><span class="line">			log.Debug(<span class="string">"Peer discarded announcement"</span>, <span class="string">"peer"</span>, notification.origin, <span class="string">"number"</span>, notification.number, <span class="string">"hash"</span>, notification.hash, <span class="string">"distance"</span>, dist)</span><br><span class="line">			propAnnounceDropMeter.Mark(<span class="number">1</span>)</span><br><span class="line">			<span class="keyword">break</span></span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">if</span> _, ok := f.fetching[notification.hash]; ok &#123;</span><br><span class="line">		<span class="keyword">break</span></span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">if</span> _, ok := f.completing[notification.hash]; ok &#123;</span><br><span class="line">		<span class="keyword">break</span></span><br><span class="line">	&#125;</span><br><span class="line">	f.announces[notification.origin] = count</span><br><span class="line">	f.announced[notification.hash] = <span class="built_in">append</span>(f.announced[notification.hash], notification)</span><br><span class="line">	<span class="keyword">if</span> f.announceChangeHook != <span class="literal">nil</span> &amp;&amp; <span class="built_in">len</span>(f.announced[notification.hash]) == <span class="number">1</span> &#123;</span><br><span class="line">		f.announceChangeHook(notification.hash, <span class="literal">true</span>)</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">if</span> <span class="built_in">len</span>(f.announced) == <span class="number">1</span> &#123;</span><br><span class="line">		f.rescheduleFetch(fetchTimer)</span><br><span class="line">	&#125;</span><br></pre></td></tr></table></figure></p>
+<p>首先将来源的announce数量加1，然后判断是否超出最大数量，在检查区块高度是否太低或太高，也就是区块太旧或太新。然后检查该announce是否正在fetch或者已经完成。若都不是，则将其添加到announced中等待fetch，另外若添加完announced长度为1则立即重置fetchTimer进行fetch。</p>
+<h1 id="Enqueue"><a href="#Enqueue" class="headerlink" title="Enqueue"></a>Enqueue</h1><p>Enqueue方法是在pm收到NewBlockMsg消息后执行，NewBlockMsg也是自己向其他佩尔发送新的区块信息时的code，Enqueue实现如下：<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(f *Fetcher)</span> <span class="title">Enqueue</span><span class="params">(peer <span class="keyword">string</span>, block *types.Block)</span> <span class="title">error</span></span> &#123;</span><br><span class="line">	op := &amp;inject&#123;</span><br><span class="line">		origin: peer,</span><br><span class="line">		block:  block,</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">select</span> &#123;</span><br><span class="line">	<span class="keyword">case</span> f.inject &lt;- op:</span><br><span class="line">		<span class="keyword">return</span> <span class="literal">nil</span></span><br><span class="line">	<span class="keyword">case</span> &lt;-f.quit:</span><br><span class="line">		<span class="keyword">return</span> errTerminated</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>构建了一个inject对象，然后赋值给inject触发loop的逻辑：<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">case</span> op := &lt;-f.inject:</span><br><span class="line">	propBroadcastInMeter.Mark(<span class="number">1</span>)</span><br><span class="line">	f.enqueue(op.origin, op.block)</span><br></pre></td></tr></table></figure></p>
+<p>enqueue逻辑如下：<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(f *Fetcher)</span> <span class="title">enqueue</span><span class="params">(peer <span class="keyword">string</span>, block *types.Block)</span></span> &#123;</span><br><span class="line">	hash := block.Hash()</span><br><span class="line"></span><br><span class="line">	count := f.queues[peer] + <span class="number">1</span></span><br><span class="line">	<span class="keyword">if</span> count &gt; blockLimit &#123;</span><br><span class="line">		log.Debug(<span class="string">"Discarded propagated block, exceeded allowance"</span>, <span class="string">"peer"</span>, peer, <span class="string">"number"</span>, block.Number(), <span class="string">"hash"</span>, hash, <span class="string">"limit"</span>, blockLimit)</span><br><span class="line">		propBroadcastDOSMeter.Mark(<span class="number">1</span>)</span><br><span class="line">		f.forgetHash(hash)</span><br><span class="line">		<span class="keyword">return</span></span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">if</span> dist := <span class="keyword">int64</span>(block.NumberU64()) - <span class="keyword">int64</span>(f.chainHeight()); dist &lt; -maxUncleDist || dist &gt; maxQueueDist &#123;</span><br><span class="line">		log.Debug(<span class="string">"Discarded propagated block, too far away"</span>, <span class="string">"peer"</span>, peer, <span class="string">"number"</span>, block.Number(), <span class="string">"hash"</span>, hash, <span class="string">"distance"</span>, dist)</span><br><span class="line">		propBroadcastDropMeter.Mark(<span class="number">1</span>)</span><br><span class="line">		f.forgetHash(hash)</span><br><span class="line">		<span class="keyword">return</span></span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">if</span> _, ok := f.queued[hash]; !ok &#123;</span><br><span class="line">		op := &amp;inject&#123;</span><br><span class="line">			origin: peer,</span><br><span class="line">			block:  block,</span><br><span class="line">		&#125;</span><br><span class="line">		f.queues[peer] = count</span><br><span class="line">		f.queued[hash] = op</span><br><span class="line">		f.queue.Push(op, -<span class="keyword">int64</span>(block.NumberU64()))</span><br><span class="line">		<span class="keyword">if</span> f.queueChangeHook != <span class="literal">nil</span> &#123;</span><br><span class="line">			f.queueChangeHook(op.block.Hash(), <span class="literal">true</span>)</span><br><span class="line">		&#125;</span><br><span class="line">		log.Debug(<span class="string">"Queued propagated block"</span>, <span class="string">"peer"</span>, peer, <span class="string">"number"</span>, block.Number(), <span class="string">"hash"</span>, hash, <span class="string">"queued"</span>, f.queue.Size())</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>和Notify逻辑类似，也是给来源加一，再判断是否超出最大值，然后判断区块是否太旧或太新。对于符合条件的，判断是否添加到queued中，若没有，则重新创建一个inject对象添加到queued和queue中。</p>
+<h1 id="fetchTimer"><a href="#fetchTimer" class="headerlink" title="fetchTimer"></a>fetchTimer</h1><p>前面的种种方法基本上都是对到来的announce进行分类，而在开头的两个定时器则真正担负了驱动作用，先看fetchTimer，由于开始设置的时间为0，所以立即触发：<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">case</span> &lt;-fetchTimer.C:</span><br><span class="line">	request := <span class="built_in">make</span>(<span class="keyword">map</span>[<span class="keyword">string</span>][]common.Hash)</span><br><span class="line"></span><br><span class="line">	<span class="keyword">for</span> hash, announces := <span class="keyword">range</span> f.announced &#123;</span><br><span class="line">		<span class="keyword">if</span> time.Since(announces[<span class="number">0</span>].time) &gt; arriveTimeout-gatherSlack &#123;</span><br><span class="line">			announce := announces[rand.Intn(<span class="built_in">len</span>(announces))]</span><br><span class="line">			f.forgetHash(hash)</span><br><span class="line"></span><br><span class="line">			<span class="keyword">if</span> f.getBlock(hash) == <span class="literal">nil</span> &#123;</span><br><span class="line">				request[announce.origin] = <span class="built_in">append</span>(request[announce.origin], hash)</span><br><span class="line">				f.fetching[hash] = announce</span><br><span class="line">			&#125;</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">for</span> peer, hashes := <span class="keyword">range</span> request &#123;</span><br><span class="line">		log.Trace(<span class="string">"Fetching scheduled headers"</span>, <span class="string">"peer"</span>, peer, <span class="string">"list"</span>, hashes)</span><br><span class="line"></span><br><span class="line">		fetchHeader, hashes := f.fetching[hashes[<span class="number">0</span>]].fetchHeader, hashes</span><br><span class="line">		<span class="keyword">go</span> <span class="function"><span class="keyword">func</span><span class="params">()</span></span> &#123;</span><br><span class="line">			<span class="keyword">if</span> f.fetchingHook != <span class="literal">nil</span> &#123;</span><br><span class="line">				f.fetchingHook(hashes)</span><br><span class="line">			&#125;</span><br><span class="line">			<span class="keyword">for</span> _, hash := <span class="keyword">range</span> hashes &#123;</span><br><span class="line">				headerFetchMeter.Mark(<span class="number">1</span>)</span><br><span class="line">				fetchHeader(hash) <span class="comment">// Suboptimal, but protocol doesn't allow batch header retrievals</span></span><br><span class="line">			&#125;</span><br><span class="line">		&#125;()</span><br><span class="line">	&#125;</span><br><span class="line">	f.rescheduleFetch(fetchTimer)</span><br></pre></td></tr></table></figure></p>
+<p>首先遍历announced，announced存储了对于同一个区块来自不同peer的announce，它的第一个announce则是最早的哪一个，如果400毫秒，则随机取一个announce，然后删除该hash，如果这个hash还未fetch到，则将其添加到fetching中，并在request中记录，request记录了同一个来源的多个hash。随后遍历所有request，获得每个来源的fetchHeader方法，这个方法在调用Notify方法构建一个announce时被传入，是peer的一个方法，只要是发送一个GetBlockHeadersMsg消息去获取区块头，之后在每次循环后启动一个goroutine去变量该来源的所有hash然后请求。最后重置fetchTimer。</p>
+<p>发送GetBlockHeadersMsg后，如果顺利会收到BlockHeadersMsg消息，这时也就触发FilterHeaders，这是回到前面分析的逻辑，将所有head分三类，unknown的交给download处理，incomplete的存放到fetched中等待fetch区块体，complete的且fetch完成的交给enqueue处理。</p>
+<h1 id="completeTimer"><a href="#completeTimer" class="headerlink" title="completeTimer"></a>completeTimer</h1><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">case</span> &lt;-completeTimer.C:</span><br><span class="line">	request := <span class="built_in">make</span>(<span class="keyword">map</span>[<span class="keyword">string</span>][]common.Hash)</span><br><span class="line"></span><br><span class="line">	<span class="keyword">for</span> hash, announces := <span class="keyword">range</span> f.fetched &#123;</span><br><span class="line">		announce := announces[rand.Intn(<span class="built_in">len</span>(announces))]</span><br><span class="line">		f.forgetHash(hash)</span><br><span class="line"></span><br><span class="line">		<span class="keyword">if</span> f.getBlock(hash) == <span class="literal">nil</span> &#123;</span><br><span class="line">			request[announce.origin] = <span class="built_in">append</span>(request[announce.origin], hash)</span><br><span class="line">			f.completing[hash] = announce</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">for</span> peer, hashes := <span class="keyword">range</span> request &#123;</span><br><span class="line">		log.Trace(<span class="string">"Fetching scheduled bodies"</span>, <span class="string">"peer"</span>, peer, <span class="string">"list"</span>, hashes)</span><br><span class="line"></span><br><span class="line">		<span class="keyword">if</span> f.completingHook != <span class="literal">nil</span> &#123;</span><br><span class="line">			f.completingHook(hashes)</span><br><span class="line">		&#125;</span><br><span class="line">		bodyFetchMeter.Mark(<span class="keyword">int64</span>(<span class="built_in">len</span>(hashes)))</span><br><span class="line">		<span class="keyword">go</span> f.completing[hashes[<span class="number">0</span>]].fetchBodies(hashes)</span><br><span class="line">	&#125;</span><br><span class="line">	f.rescheduleComplete(completeTimer)</span><br></pre></td></tr></table></figure>
+<p>completeTimer的逻辑和fetchTimer类似，只不过前一个是fetch区块头，这个是fetch区块体。首先是从fetched中取一组announce，他们都对应一个区块。然后从中随机取一个announce，若果本地没有该区块则添加到reuqest，这个同意也是存储一个来源的多个announce，然后变量request，调用announce的fetchBodies方法去请求一个来源的多个区块，fetchBodies也是在创建announce时传入的，他会发送GetBlockBodiesMsg消息，同样如果顺利的话会收到BlockBodiesMsg消息，触发FilterBodies方法，又回到前面的逻辑。</p>
+<h1 id="insert"><a href="#insert" class="headerlink" title="insert"></a>insert</h1><p>之前许多方法中我们都调用了enqueue方法，这里将一个个inject对象放入queue队列里，然后在loop的每个循环开始，处理queue队列里的东西，对于符合规定的，调用insert方法：<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(f *Fetcher)</span> <span class="title">insert</span><span class="params">(peer <span class="keyword">string</span>, block *types.Block)</span></span> &#123;</span><br><span class="line">	hash := block.Hash()</span><br><span class="line"></span><br><span class="line">	log.Debug(<span class="string">"Importing propagated block"</span>, <span class="string">"peer"</span>, peer, <span class="string">"number"</span>, block.Number(), <span class="string">"hash"</span>, hash)</span><br><span class="line">	<span class="keyword">go</span> <span class="function"><span class="keyword">func</span><span class="params">()</span></span> &#123;</span><br><span class="line">		<span class="keyword">defer</span> <span class="function"><span class="keyword">func</span><span class="params">()</span></span> &#123; f.done &lt;- hash &#125;()</span><br><span class="line"></span><br><span class="line">		parent := f.getBlock(block.ParentHash())</span><br><span class="line">		<span class="keyword">if</span> parent == <span class="literal">nil</span> &#123;</span><br><span class="line">			log.Debug(<span class="string">"Unknown parent of propagated block"</span>, <span class="string">"peer"</span>, peer, <span class="string">"number"</span>, block.Number(), <span class="string">"hash"</span>, hash, <span class="string">"parent"</span>, block.ParentHash())</span><br><span class="line">			<span class="keyword">return</span></span><br><span class="line">		&#125;</span><br><span class="line"></span><br><span class="line">		<span class="keyword">switch</span> err := f.verifyHeader(block.Header()); err &#123;</span><br><span class="line">		<span class="keyword">case</span> <span class="literal">nil</span>:</span><br><span class="line">			propBroadcastOutTimer.UpdateSince(block.ReceivedAt)</span><br><span class="line">			<span class="keyword">go</span> f.broadcastBlock(block, <span class="literal">true</span>)</span><br><span class="line"></span><br><span class="line">		<span class="keyword">case</span> consensus.ErrFutureBlock:</span><br><span class="line"></span><br><span class="line">		<span class="keyword">default</span>:</span><br><span class="line">			log.Debug(<span class="string">"Propagated block verification failed"</span>, <span class="string">"peer"</span>, peer, <span class="string">"number"</span>, block.Number(), <span class="string">"hash"</span>, hash, <span class="string">"err"</span>, err)</span><br><span class="line">			f.dropPeer(peer)</span><br><span class="line">			<span class="keyword">return</span></span><br><span class="line">		&#125;</span><br><span class="line">		<span class="keyword">if</span> _, err := f.insertChain(types.Blocks&#123;block&#125;); err != <span class="literal">nil</span> &#123;</span><br><span class="line">			log.Debug(<span class="string">"Propagated block import failed"</span>, <span class="string">"peer"</span>, peer, <span class="string">"number"</span>, block.Number(), <span class="string">"hash"</span>, hash, <span class="string">"err"</span>, err)</span><br><span class="line">			<span class="keyword">return</span></span><br><span class="line">		&#125;</span><br><span class="line">		propAnnounceOutTimer.UpdateSince(block.ReceivedAt)</span><br><span class="line">		<span class="keyword">go</span> f.broadcastBlock(block, <span class="literal">false</span>)</span><br><span class="line"></span><br><span class="line">		<span class="keyword">if</span> f.importedHook != <span class="literal">nil</span> &#123;</span><br><span class="line">			f.importedHook(block)</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;()</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>直接启动了一个goroutine，先获取要插入区块的父块，如果不存在停止插入，然后验证区块头，出错的话而且不是consensus.ErrFutureBlock错误的话，抛弃来源的peer，没有错的话启动一个goroutine调用broadcastBlock方法。之后调用insertchain方法插入一个区块，如果插入成功再次调用broadcastBlock方法，这里第二个参数为true，关于broadcastBlock在ProtocolManager分析中有介绍。另外insertChain方法是blockchain的方法，后面会涉及到。</p>
+<h1 id="rescheduleFetch"><a href="#rescheduleFetch" class="headerlink" title="rescheduleFetch"></a>rescheduleFetch</h1><p>前面也多次涉及到了这个方法，在定时器触发时最后会用到，在notify添加完一个announce后如果announced长度为一，表示之前announced都已处理过，这是要重新启动定时器。<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(f *Fetcher)</span> <span class="title">rescheduleFetch</span><span class="params">(fetch *time.Timer)</span></span> &#123;</span><br><span class="line">	<span class="keyword">if</span> <span class="built_in">len</span>(f.announced) == <span class="number">0</span> &#123;</span><br><span class="line">		<span class="keyword">return</span></span><br><span class="line">	&#125;</span><br><span class="line">	<span class="comment">// Otherwise find the earliest expiring announcement</span></span><br><span class="line">	earliest := time.Now()</span><br><span class="line">	<span class="keyword">for</span> _, announces := <span class="keyword">range</span> f.announced &#123;</span><br><span class="line">		<span class="keyword">if</span> earliest.After(announces[<span class="number">0</span>].time) &#123;</span><br><span class="line">			earliest = announces[<span class="number">0</span>].time</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">	fetch.Reset(arriveTimeout - time.Since(earliest))</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>首先announced长度为0，表示没有要fetch的任务，则返回，前面说过，在notify中向announced新添加时会触发此方法重设定时器。之后遍历所有announced，每个hash对应的那组取第一个也就时间最早的那个announce尝试更新earliest，最后earliest为所有announce最早的那一个，然后重设fetchTimer定时器。</p>
+<p>类似的还有一个rescheduleComplete，大致逻辑一样，不在赘述</p>
+<h1 id="forgetHash"><a href="#forgetHash" class="headerlink" title="forgetHash"></a>forgetHash</h1><p>这个也多次出现，出钥匙删除一个hash对应的announce<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(f *Fetcher)</span> <span class="title">forgetHash</span><span class="params">(hash common.Hash)</span></span> &#123;</span><br><span class="line">	<span class="keyword">for</span> _, announce := <span class="keyword">range</span> f.announced[hash] &#123;</span><br><span class="line">		f.announces[announce.origin]--</span><br><span class="line">		<span class="keyword">if</span> f.announces[announce.origin] == <span class="number">0</span> &#123;</span><br><span class="line">			<span class="built_in">delete</span>(f.announces, announce.origin)</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="built_in">delete</span>(f.announced, hash)</span><br><span class="line">	<span class="keyword">if</span> f.announceChangeHook != <span class="literal">nil</span> &#123;</span><br><span class="line">		f.announceChangeHook(hash, <span class="literal">false</span>)</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">if</span> announce := f.fetching[hash]; announce != <span class="literal">nil</span> &#123;</span><br><span class="line">		f.announces[announce.origin]--</span><br><span class="line">		<span class="keyword">if</span> f.announces[announce.origin] == <span class="number">0</span> &#123;</span><br><span class="line">			<span class="built_in">delete</span>(f.announces, announce.origin)</span><br><span class="line">		&#125;</span><br><span class="line">		<span class="built_in">delete</span>(f.fetching, hash)</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">	<span class="keyword">for</span> _, announce := <span class="keyword">range</span> f.fetched[hash] &#123;</span><br><span class="line">		f.announces[announce.origin]--</span><br><span class="line">		<span class="keyword">if</span> f.announces[announce.origin] == <span class="number">0</span> &#123;</span><br><span class="line">			<span class="built_in">delete</span>(f.announces, announce.origin)</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="built_in">delete</span>(f.fetched, hash)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">	<span class="keyword">if</span> announce := f.completing[hash]; announce != <span class="literal">nil</span> &#123;</span><br><span class="line">		f.announces[announce.origin]--</span><br><span class="line">		<span class="keyword">if</span> f.announces[announce.origin] == <span class="number">0</span> &#123;</span><br><span class="line">			<span class="built_in">delete</span>(f.announces, announce.origin)</span><br><span class="line">		&#125;</span><br><span class="line">		<span class="built_in">delete</span>(f.completing, hash)</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>首先遍历announced对应hash的所有announce，然后将对应来源的计数器减1，如果减到0则删除该来源的计数器。然后从announced删除hash对应的值。结合如果fetching、fetched及completing有对应的键值对，也相应的删除。</p>
+<h1 id="stop"><a href="#stop" class="headerlink" title="stop"></a>stop</h1><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(f *Fetcher)</span> <span class="title">Stop</span><span class="params">()</span></span> &#123;</span><br><span class="line">	<span class="built_in">close</span>(f.quit)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>这个就是关闭方法，关闭quit这个通道，触发多个地方的逻辑，第一个就是loop中，这里面退出了无限循环，其次还有其他涉及select阻塞的地方，如notify、FilterHeaders等，都是直接退出。</p>
+<blockquote>
+<p>题图来自unsplash：<a href="https://unsplash.com/photos/m6tAqZvy4RM" target="_blank" rel="noopener">https://unsplash.com/photos/m6tAqZvy4RM</a></p>
+</blockquote>
+
+      
+    </div>
+
+    
+
+    
+    
+    
+
+    
+
+    
+      
+    
+    
+      <div>
+        <div style="padding: 10px 0; margin: 20px auto; width: 90%; text-align: center;">
+  <div>谢谢你请我吃糖</div>
+  <button id="rewardButton" disable="enable" onclick="var qr = document.getElementById('QR'); if (qr.style.display === 'none') {qr.style.display='block';} else {qr.style.display='none'}">
+    <span>打赏</span>
+  </button>
+  <div id="QR" style="display: none;">
+
+    
+      <div id="wechat" style="display: inline-block">
+        <img id="wechat_qr" src="/assets/img/wechatpay.jpg" alt="AmorFati 微信支付">
+        <p>微信支付</p>
+      </div>
+    
+
+    
+      <div id="alipay" style="display: inline-block">
+        <img id="alipay_qr" src="/assets/img/alipay.jpg" alt="AmorFati 支付宝">
+        <p>支付宝</p>
+      </div>
+    
+
+    
+
+  </div>
+</div>
+
+      </div>
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/go/" rel="tag"># go</a>
+          
+            <a href="/tags/区块链/" rel="tag"># 区块链</a>
+          
+            <a href="/tags/以太坊/" rel="tag"># 以太坊</a>
+          
+            <a href="/tags/go-ethereum/" rel="tag"># go-ethereum</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2019/04/29/go-ethereum中eth-ProtocolManager源码学习/" rel="next" title="go-ethereum中eth-ProtocolManager源码学习">
+                <i class="fa fa-chevron-left"></i> go-ethereum中eth-ProtocolManager源码学习
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+  </div>
+
+
+          </div>
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image" src="/assets/img/icon.jpg" alt="AmorFati">
+            
+              <p class="site-author-name" itemprop="name">AmorFati</p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          
+            <nav class="site-state motion-element">
+              
+                <div class="site-state-item site-state-posts">
+                
+                  <a href="/archives/">
+                
+                    <span class="site-state-item-count">31</span>
+                    <span class="site-state-item-name">日志</span>
+                  </a>
+                </div>
+              
+
+              
+                
+                
+                <div class="site-state-item site-state-categories">
+                  <a href="/categories/index.html">
+                    
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">6</span>
+                    <span class="site-state-item-name">分类</span>
+                  </a>
+                </div>
+              
+
+              
+                
+                
+                <div class="site-state-item site-state-tags">
+                  <a href="/tags/index.html">
+                    
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">11</span>
+                    <span class="site-state-item-name">标签</span>
+                  </a>
+                </div>
+              
+            </nav>
+          
+
+          
+
+          
+            <div class="links-of-author motion-element">
+              
+                <span class="links-of-author-item">
+                  
+                  
+                    
+                  
+                  
+                    
+                  
+                  <a href="https://github.com/chenyaoyang" title="GitHub &rarr; https://github.com/chenyaoyang" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i>GitHub</a>
+                </span>
+              
+                <span class="links-of-author-item">
+                  
+                  
+                    
+                  
+                  
+                    
+                  
+                  <a href="mailto:chenyang4346@foxmail.com" title="E-Mail &rarr; mailto:chenyang4346@foxmail.com" rel="noopener" target="_blank"><i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+                </span>
+              
+                <span class="links-of-author-item">
+                  
+                  
+                    
+                  
+                  
+                    
+                  
+                  <a href="https://www.jianshu.com/u/52c1bec4559c" title="简书 &rarr; https://www.jianshu.com/u/52c1bec4559c" rel="noopener" target="_blank"><i class="fa fa-fw fa-globe"></i>简书</a>
+                </span>
+              
+            </div>
+          
+
+          
+
+          
+          
+
+          
+            
+          
+          
+
+        </div>
+      </div>
+
+      
+      <!--noindex-->
+        <div class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+            
+            
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#数据结构"><span class="nav-number">1.</span> <span class="nav-text">数据结构</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#New"><span class="nav-number">2.</span> <span class="nav-text">New</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Start-amp-loop"><span class="nav-number">3.</span> <span class="nav-text">Start &amp; loop</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#FilterHeaders"><span class="nav-number">4.</span> <span class="nav-text">FilterHeaders</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#FilterBodies"><span class="nav-number">5.</span> <span class="nav-text">FilterBodies</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Notify"><span class="nav-number">6.</span> <span class="nav-text">Notify</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Enqueue"><span class="nav-number">7.</span> <span class="nav-text">Enqueue</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#fetchTimer"><span class="nav-number">8.</span> <span class="nav-text">fetchTimer</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#completeTimer"><span class="nav-number">9.</span> <span class="nav-text">completeTimer</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#insert"><span class="nav-number">10.</span> <span class="nav-text">insert</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#rescheduleFetch"><span class="nav-number">11.</span> <span class="nav-text">rescheduleFetch</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#forgetHash"><span class="nav-number">12.</span> <span class="nav-text">forgetHash</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#stop"><span class="nav-number">13.</span> <span class="nav-text">stop</span></a></li></ol></div>
+            
+
+          </div>
+        </div>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; 2018 – <span itemprop="copyrightYear">2019</span>
+  <span class="with-love" id="animate">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">AmorFati</span>
+
+  
+
+  
+</div>
+
+
+  <div class="powered-by">由 <a href="https://hexo.io" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v3.8.0</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 – <a href="https://theme-next.org" class="theme-link" rel="noopener" target="_blank">NexT.Pisces</a> v6.6.0</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+    
+
+    
+  </div>
+
+  
+
+<script>
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+
+  
+
+
+  <script src="/js/src/utils.js?v=6.6.0"></script>
+
+  <script src="/js/src/motion.js?v=6.6.0"></script>
+
+
+
+  
+  
+
+
+  <script src="/js/src/affix.js?v=6.6.0"></script>
+
+  <script src="/js/src/schemes/pisces.js?v=6.6.0"></script>
+
+
+
+  
+  <script src="/js/src/scrollspy.js?v=6.6.0"></script>
+<script src="/js/src/post-details.js?v=6.6.0"></script>
+
+
+
+  
+
+
+  <script src="/js/src/bootstrap.js?v=6.6.0"></script>
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  <script>
+    // Popup Window;
+    var isfetched = false;
+    var isXml = true;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length === 0) {
+      search_path = "search.xml";
+    } else if (/json$/i.test(search_path)) {
+      isXml = false;
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    var onPopupClose = function (e) {
+      $('.popup').hide();
+      $('#local-search-input').val('');
+      $('.search-result-list').remove();
+      $('#no-result').remove();
+      $(".local-search-pop-overlay").remove();
+      $('body').css('overflow', '');
+    }
+
+    function proceedsearch() {
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay"></div>')
+        .css('overflow', 'hidden');
+      $('.search-popup-overlay').click(onPopupClose);
+      $('.popup').toggle();
+      var $localSearchInput = $('#local-search-input');
+      $localSearchInput.attr("autocapitalize", "none");
+      $localSearchInput.attr("autocorrect", "off");
+      $localSearchInput.focus();
+    }
+
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+      'use strict';
+
+      // start loading animation
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay">' +
+          '<div id="search-loading-icon">' +
+          '<i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>' +
+          '</div>' +
+          '</div>')
+        .css('overflow', 'hidden');
+      $("#search-loading-icon").css('margin', '20% auto 0 auto').css('text-align', 'center');
+
+      
+
+      $.ajax({
+        url: path,
+        dataType: isXml ? "xml" : "json",
+        async: true,
+        success: function(res) {
+          // get the contents from search data
+          isfetched = true;
+          $('.popup').detach().appendTo('.header-inner');
+          var datas = isXml ? $("entry", res).map(function() {
+            return {
+              title: $("title", this).text(),
+              content: $("content",this).text(),
+              url: $("url" , this).text()
+            };
+          }).get() : res;
+          var input = document.getElementById(search_id);
+          var resultContent = document.getElementById(content_id);
+          var inputEventFunction = function() {
+            var searchText = input.value.trim().toLowerCase();
+            var keywords = searchText.split(/[\s\-]+/);
+            if (keywords.length > 1) {
+              keywords.push(searchText);
+            }
+            var resultItems = [];
+            if (searchText.length > 0) {
+              // perform local searching
+              datas.forEach(function(data) {
+                var isMatch = false;
+                var hitCount = 0;
+                var searchTextCount = 0;
+                var title = data.title.trim();
+                var titleInLowerCase = title.toLowerCase();
+                var content = data.content.trim().replace(/<[^>]+>/g,"");
+                
+                var contentInLowerCase = content.toLowerCase();
+                var articleUrl = decodeURIComponent(data.url);
+                var indexOfTitle = [];
+                var indexOfContent = [];
+                // only match articles with not empty titles
+                if(title != '') {
+                  keywords.forEach(function(keyword) {
+                    function getIndexByWord(word, text, caseSensitive) {
+                      var wordLen = word.length;
+                      if (wordLen === 0) {
+                        return [];
+                      }
+                      var startPosition = 0, position = [], index = [];
+                      if (!caseSensitive) {
+                        text = text.toLowerCase();
+                        word = word.toLowerCase();
+                      }
+                      while ((position = text.indexOf(word, startPosition)) > -1) {
+                        index.push({position: position, word: word});
+                        startPosition = position + wordLen;
+                      }
+                      return index;
+                    }
+
+                    indexOfTitle = indexOfTitle.concat(getIndexByWord(keyword, titleInLowerCase, false));
+                    indexOfContent = indexOfContent.concat(getIndexByWord(keyword, contentInLowerCase, false));
+                  });
+                  if (indexOfTitle.length > 0 || indexOfContent.length > 0) {
+                    isMatch = true;
+                    hitCount = indexOfTitle.length + indexOfContent.length;
+                  }
+                }
+
+                // show search results
+
+                if (isMatch) {
+                  // sort index by position of keyword
+
+                  [indexOfTitle, indexOfContent].forEach(function (index) {
+                    index.sort(function (itemLeft, itemRight) {
+                      if (itemRight.position !== itemLeft.position) {
+                        return itemRight.position - itemLeft.position;
+                      } else {
+                        return itemLeft.word.length - itemRight.word.length;
+                      }
+                    });
+                  });
+
+                  // merge hits into slices
+
+                  function mergeIntoSlice(text, start, end, index) {
+                    var item = index[index.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    var hits = [];
+                    var searchTextCountInSlice = 0;
+                    while (position + word.length <= end && index.length != 0) {
+                      if (word === searchText) {
+                        searchTextCountInSlice++;
+                      }
+                      hits.push({position: position, length: word.length});
+                      var wordEnd = position + word.length;
+
+                      // move to next position of hit
+
+                      index.pop();
+                      while (index.length != 0) {
+                        item = index[index.length - 1];
+                        position = item.position;
+                        word = item.word;
+                        if (wordEnd > position) {
+                          index.pop();
+                        } else {
+                          break;
+                        }
+                      }
+                    }
+                    searchTextCount += searchTextCountInSlice;
+                    return {
+                      hits: hits,
+                      start: start,
+                      end: end,
+                      searchTextCount: searchTextCountInSlice
+                    };
+                  }
+
+                  var slicesOfTitle = [];
+                  if (indexOfTitle.length != 0) {
+                    slicesOfTitle.push(mergeIntoSlice(title, 0, title.length, indexOfTitle));
+                  }
+
+                  var slicesOfContent = [];
+                  while (indexOfContent.length != 0) {
+                    var item = indexOfContent[indexOfContent.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    // cut out 100 characters
+                    var start = position - 20;
+                    var end = position + 80;
+                    if(start < 0){
+                      start = 0;
+                    }
+                    if (end < position + word.length) {
+                      end = position + word.length;
+                    }
+                    if(end > content.length){
+                      end = content.length;
+                    }
+                    slicesOfContent.push(mergeIntoSlice(content, start, end, indexOfContent));
+                  }
+
+                  // sort slices in content by search text's count and hits' count
+
+                  slicesOfContent.sort(function (sliceLeft, sliceRight) {
+                    if (sliceLeft.searchTextCount !== sliceRight.searchTextCount) {
+                      return sliceRight.searchTextCount - sliceLeft.searchTextCount;
+                    } else if (sliceLeft.hits.length !== sliceRight.hits.length) {
+                      return sliceRight.hits.length - sliceLeft.hits.length;
+                    } else {
+                      return sliceLeft.start - sliceRight.start;
+                    }
+                  });
+
+                  // select top N slices in content
+
+                  var upperBound = parseInt('1');
+                  if (upperBound >= 0) {
+                    slicesOfContent = slicesOfContent.slice(0, upperBound);
+                  }
+
+                  // highlight title and content
+
+                  function highlightKeyword(text, slice) {
+                    var result = '';
+                    var prevEnd = slice.start;
+                    slice.hits.forEach(function (hit) {
+                      result += text.substring(prevEnd, hit.position);
+                      var end = hit.position + hit.length;
+                      result += '<b class="search-keyword">' + text.substring(hit.position, end) + '</b>';
+                      prevEnd = end;
+                    });
+                    result += text.substring(prevEnd, slice.end);
+                    return result;
+                  }
+
+                  var resultItem = '';
+
+                  if (slicesOfTitle.length != 0) {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + highlightKeyword(title, slicesOfTitle[0]) + "</a>";
+                  } else {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + title + "</a>";
+                  }
+
+                  slicesOfContent.forEach(function (slice) {
+                    resultItem += "<a href='" + articleUrl + "'>" +
+                      "<p class=\"search-result\">" + highlightKeyword(content, slice) +
+                      "...</p>" + "</a>";
+                  });
+
+                  resultItem += "</li>";
+                  resultItems.push({
+                    item: resultItem,
+                    searchTextCount: searchTextCount,
+                    hitCount: hitCount,
+                    id: resultItems.length
+                  });
+                }
+              })
+            };
+            if (keywords.length === 1 && keywords[0] === "") {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>'
+            } else if (resultItems.length === 0) {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>'
+            } else {
+              resultItems.sort(function (resultLeft, resultRight) {
+                if (resultLeft.searchTextCount !== resultRight.searchTextCount) {
+                  return resultRight.searchTextCount - resultLeft.searchTextCount;
+                } else if (resultLeft.hitCount !== resultRight.hitCount) {
+                  return resultRight.hitCount - resultLeft.hitCount;
+                } else {
+                  return resultRight.id - resultLeft.id;
+                }
+              });
+              var searchResultList = '<ul class=\"search-result-list\">';
+              resultItems.forEach(function (result) {
+                searchResultList += result.item;
+              })
+              searchResultList += "</ul>";
+              resultContent.innerHTML = searchResultList;
+            }
+          }
+
+          if ('auto' === 'auto') {
+            input.addEventListener('input', inputEventFunction);
+          } else {
+            $('.search-icon').click(inputEventFunction);
+            input.addEventListener('keypress', function (event) {
+              if (event.keyCode === 13) {
+                inputEventFunction();
+              }
+            });
+          }
+
+          // remove loading animation
+          $(".local-search-pop-overlay").remove();
+          $('body').css('overflow', '');
+
+          proceedsearch();
+        }
+      });
+    }
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched === false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+    });
+
+    $('.popup-btn-close').click(onPopupClose);
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+    $(document).on('keyup', function (event) {
+      var shouldDismissSearchPopup = event.which === 27 &&
+        $('.search-popup').is(':visible');
+      if (shouldDismissSearchPopup) {
+        onPopupClose();
+      }
+    });
+  </script>
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+  
+
+  
+
+
+  
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>
