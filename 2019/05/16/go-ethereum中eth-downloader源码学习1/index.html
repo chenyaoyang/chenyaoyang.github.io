@@ -1,0 +1,1397 @@
+<!DOCTYPE html>
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+<html class="theme-next pisces use-motion" lang="zh-CN">
+<head><meta name="generator" content="Hexo 3.8.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+    
+      
+    
+
+    
+  
+
+  
+
+  
+    
+      
+    
+
+    
+  
+
+  
+    
+      
+    
+
+    
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Monda:300,300italic,400,400italic,700,700italic|Roboto Slab:300,300italic,400,400italic,700,700italic|Dancing Script:300,300italic,400,400italic,700,700italic|Consolas:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css">
+
+<link href="/css/main.css?v=6.6.0" rel="stylesheet" type="text/css">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=6.6.0">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=6.6.0">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=6.6.0">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=6.6.0" color="#222">
+
+
+
+
+
+
+
+
+
+<script id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    version: '6.6.0',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: false,
+    fastclick: false,
+    lazyload: false,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+  
+
+
+
+
+  <meta name="keywords" content="go,区块链,以太坊,go-ethereum">
+<meta property="og:type" content="article">
+<meta property="og:title" content="go-ethereum中eth-downloader源码学习（一）">
+<meta property="og:url" content="http://yoursite.com/2019/05/16/go-ethereum中eth-downloader源码学习1/index.html">
+<meta property="og:site_name" content="AmorFati">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:image" content="https://raw.githubusercontent.com/chenyaoyang/blog-pic/master/head/christoph-schmid-437840-unsplash.jpg">
+<meta property="og:updated_time" content="2019-05-16T10:05:51.985Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="go-ethereum中eth-downloader源码学习（一）">
+<meta name="twitter:image" content="https://raw.githubusercontent.com/chenyaoyang/blog-pic/master/head/christoph-schmid-437840-unsplash.jpg">
+
+
+
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2019/05/16/go-ethereum中eth-downloader源码学习1/">
+
+
+
+<script id="page.configurations">
+  CONFIG.page = {
+    sidebar: "",
+  };
+</script>
+
+  <title>go-ethereum中eth-downloader源码学习（一） | AmorFati</title>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  <noscript>
+  <style>
+    .use-motion .motion-element,
+    .use-motion .brand,
+    .use-motion .menu-item,
+    .sidebar-inner,
+    .use-motion .post-block,
+    .use-motion .pagination,
+    .use-motion .comments,
+    .use-motion .post-header,
+    .use-motion .post-body,
+    .use-motion .collection-title { opacity: initial; }
+
+    .use-motion .logo,
+    .use-motion .site-title,
+    .use-motion .site-subtitle {
+      opacity: initial;
+      top: initial;
+    }
+
+    .use-motion .logo-line-before i { left: initial; }
+    .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope="" itemtype="http://schema.org/WebPage" lang="zh-CN">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope="" itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">AmorFati</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+    
+      
+        <p class="site-subtitle">风吹过窗前的书，又翻过一页</p>
+      
+    
+    
+  </div>
+
+  <div class="site-nav-toggle">
+    <button aria-label="切换导航栏">
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  
+    <ul id="menu" class="menu">
+      
+        
+        
+        
+          
+          <li class="menu-item menu-item-home">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/" rel="section"><i class="menu-item-icon fa fa-fw fa-home"></i> <br>首页</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-about">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/about/" rel="section"><i class="menu-item-icon fa fa-fw fa-user"></i> <br>关于</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-tags">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/tags/" rel="section"><i class="menu-item-icon fa fa-fw fa-tags"></i> <br>标签</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-categories">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/categories/" rel="section"><i class="menu-item-icon fa fa-fw fa-th"></i> <br>分类</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-archives">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/archives/" rel="section"><i class="menu-item-icon fa fa-fw fa-archive"></i> <br>归档</a>
+
+  </li>
+
+      
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br>搜索</a>
+        </li>
+      
+    </ul>
+  
+
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup search-popup local-search-popup">
+  <div class="local-search-header clearfix">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+    <div class="local-search-input-wrapper">
+      <input autocomplete="off" placeholder="搜索..." spellcheck="false" type="text" id="local-search-input">
+    </div>
+  </div>
+  <div id="local-search-result"></div>
+</div>
+
+
+
+    </div>
+  
+</nav>
+
+
+
+  
+
+
+
+</div>
+    </header>
+
+    
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+            
+
+          
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  
+
+  <article class="post post-type-normal" itemscope="" itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/05/16/go-ethereum中eth-downloader源码学习1/">
+
+    <span hidden itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="AmorFati">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/assets/img/icon.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope="" itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="AmorFati">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">go-ethereum中eth-downloader源码学习（一）
+
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+
+            
+            
+            
+
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+
+              
+                
+              
+
+              <time title="创建时间：2019-05-16 17:49:51 / 修改时间：18:05:51" itemprop="dateCreated datePublished" datetime="2019-05-16T17:49:51+08:00">2019-05-16</time>
+            
+
+            
+              
+
+              
+            
+          </span>
+
+          
+            <span class="post-category">
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope="" itemtype="http://schema.org/Thing"><a href="/categories/go-ethereum源码学习/" itemprop="url" rel="index"><span itemprop="name">go-ethereum源码学习</span></a></span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p><img src="https://raw.githubusercontent.com/chenyaoyang/blog-pic/master/head/christoph-schmid-437840-unsplash.jpg" alt=""><br><a id="more"></a><br>本文是downloader的源码分析的第一部分，分析downloader.go也就是主流程</p>
+<h2 id="new"><a href="#new" class="headerlink" title="new"></a>new</h2><p>downloader主要是进行网络的同步，有两种同步模式，FullSync和FastSync，后者只能在第一次运行时才有效，这里可见ProtocolManager源码。关于两种同步模式，FullSync会通过下载区块头和区块体构建区块链，包括区块的验证，交易的执行，账户的状态改变等，就类似于一个一个插入区块。而FastSync在开始时会直接下载区块头、区块体和收据，并不执行交易，然后在最后若干个区块才会像FullSync一样进行区块同步。</p>
+<p>downloader在ProtocolManager创建时被创建，用的是New方法：<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">New</span><span class="params">(mode SyncMode, stateDb ethdb.Database, mux *event.TypeMux, chain BlockChain, lightchain LightChain, dropPeer peerDropFn)</span> *<span class="title">Downloader</span></span> &#123;</span><br><span class="line">	<span class="keyword">if</span> lightchain == <span class="literal">nil</span> &#123;</span><br><span class="line">		lightchain = chain</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	dl := &amp;Downloader&#123;</span><br><span class="line">		mode:           mode,</span><br><span class="line">		stateDB:        stateDb,</span><br><span class="line">		mux:            mux,</span><br><span class="line">		queue:          newQueue(),</span><br><span class="line">		peers:          newPeerSet(),</span><br><span class="line">		rttEstimate:    <span class="keyword">uint64</span>(rttMaxEstimate),</span><br><span class="line">		rttConfidence:  <span class="keyword">uint64</span>(<span class="number">1000000</span>),</span><br><span class="line">		blockchain:     chain,</span><br><span class="line">		lightchain:     lightchain,</span><br><span class="line">		dropPeer:       dropPeer,</span><br><span class="line">		headerCh:       <span class="built_in">make</span>(<span class="keyword">chan</span> dataPack, <span class="number">1</span>),</span><br><span class="line">		bodyCh:         <span class="built_in">make</span>(<span class="keyword">chan</span> dataPack, <span class="number">1</span>),</span><br><span class="line">		receiptCh:      <span class="built_in">make</span>(<span class="keyword">chan</span> dataPack, <span class="number">1</span>),</span><br><span class="line">		bodyWakeCh:     <span class="built_in">make</span>(<span class="keyword">chan</span> <span class="keyword">bool</span>, <span class="number">1</span>),</span><br><span class="line">		receiptWakeCh:  <span class="built_in">make</span>(<span class="keyword">chan</span> <span class="keyword">bool</span>, <span class="number">1</span>),</span><br><span class="line">		headerProcCh:   <span class="built_in">make</span>(<span class="keyword">chan</span> []*types.Header, <span class="number">1</span>),</span><br><span class="line">		quitCh:         <span class="built_in">make</span>(<span class="keyword">chan</span> <span class="keyword">struct</span>&#123;&#125;),</span><br><span class="line">		stateCh:        <span class="built_in">make</span>(<span class="keyword">chan</span> dataPack),</span><br><span class="line">		stateSyncStart: <span class="built_in">make</span>(<span class="keyword">chan</span> *stateSync),</span><br><span class="line">		syncStatsState: stateSyncStats&#123;</span><br><span class="line">			processed: rawdb.ReadFastTrieProgress(stateDb),</span><br><span class="line">		&#125;,</span><br><span class="line">		trackStateReq: <span class="built_in">make</span>(<span class="keyword">chan</span> *stateReq),</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">go</span> dl.qosTuner()</span><br><span class="line">	<span class="keyword">go</span> dl.stateFetcher()</span><br><span class="line">	<span class="keyword">return</span> dl</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>首先根据传入的参数创建了一个Downloader对象，然后启动了两个goroutine分别执行qosTuner和stateFetcher方法。</p>
+<h2 id="Synchronise"><a href="#Synchronise" class="headerlink" title="Synchronise"></a>Synchronise</h2><p>通过前面的ProtocolManager的学习，我们了解到总共有两个地方调用了Synchronise，一个是收到一个NewBlockMsg消息时，表示对方有新的区块，如果对方的总难度大于我们，则进行同步调用pm的synchronise方法。另外在启动pm时，在syncer方法中无论是forceSync定时器到时间或者newPeerCh得到赋值（在连接到一个peer时触发）都会调用synchronise。在pm的synchronise中会调用Synchronise方法</p>
+<p>Synchronise方法实现如下：<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(d *Downloader)</span> <span class="title">Synchronise</span><span class="params">(id <span class="keyword">string</span>, head common.Hash, td *big.Int, mode SyncMode)</span> <span class="title">error</span></span> &#123;</span><br><span class="line">	err := d.synchronise(id, head, td, mode)</span><br><span class="line">	<span class="keyword">switch</span> err &#123;</span><br><span class="line">	<span class="keyword">case</span> <span class="literal">nil</span>:</span><br><span class="line">	<span class="keyword">case</span> errBusy:</span><br><span class="line"></span><br><span class="line">	<span class="keyword">case</span> errTimeout, errBadPeer, errStallingPeer,</span><br><span class="line">		errEmptyHeaderSet, errPeersUnavailable, errTooOld,</span><br><span class="line">		errInvalidAncestor, errInvalidChain:</span><br><span class="line">		log.Warn(<span class="string">"Synchronisation failed, dropping peer"</span>, <span class="string">"peer"</span>, id, <span class="string">"err"</span>, err)</span><br><span class="line">		<span class="keyword">if</span> d.dropPeer == <span class="literal">nil</span> &#123;</span><br><span class="line">			log.Warn(<span class="string">"Downloader wants to drop peer, but peerdrop-function is not set"</span>, <span class="string">"peer"</span>, id)</span><br><span class="line">		&#125; <span class="keyword">else</span> &#123;</span><br><span class="line">			d.dropPeer(id)</span><br><span class="line">		&#125;</span><br><span class="line">	<span class="keyword">default</span>:</span><br><span class="line">		log.Warn(<span class="string">"Synchronisation failed, retrying"</span>, <span class="string">"err"</span>, err)</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">return</span> err</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>直接调用synchronise方法：<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(d *Downloader)</span> <span class="title">synchronise</span><span class="params">(id <span class="keyword">string</span>, hash common.Hash, td *big.Int, mode SyncMode)</span> <span class="title">error</span></span> &#123;</span><br><span class="line">	<span class="keyword">if</span> d.synchroniseMock != <span class="literal">nil</span> &#123;</span><br><span class="line">		<span class="keyword">return</span> d.synchroniseMock(id, hash)</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">if</span> !atomic.CompareAndSwapInt32(&amp;d.synchronising, <span class="number">0</span>, <span class="number">1</span>) &#123;</span><br><span class="line">		<span class="keyword">return</span> errBusy</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">defer</span> atomic.StoreInt32(&amp;d.synchronising, <span class="number">0</span>)</span><br><span class="line"></span><br><span class="line">	<span class="keyword">if</span> atomic.CompareAndSwapInt32(&amp;d.notified, <span class="number">0</span>, <span class="number">1</span>) &#123;</span><br><span class="line">		log.Info(<span class="string">"Block synchronisation started"</span>)</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	d.queue.Reset()</span><br><span class="line">	d.peers.Reset()</span><br><span class="line"></span><br><span class="line">	<span class="keyword">for</span> _, ch := <span class="keyword">range</span> []<span class="keyword">chan</span> <span class="keyword">bool</span>&#123;d.bodyWakeCh, d.receiptWakeCh&#125; &#123;</span><br><span class="line">		<span class="keyword">select</span> &#123;</span><br><span class="line">		<span class="keyword">case</span> &lt;-ch:</span><br><span class="line">		<span class="keyword">default</span>:</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">for</span> _, ch := <span class="keyword">range</span> []<span class="keyword">chan</span> dataPack&#123;d.headerCh, d.bodyCh, d.receiptCh&#125; &#123;</span><br><span class="line">		<span class="keyword">for</span> empty := <span class="literal">false</span>; !empty; &#123;</span><br><span class="line">			<span class="keyword">select</span> &#123;</span><br><span class="line">			<span class="keyword">case</span> &lt;-ch:</span><br><span class="line">			<span class="keyword">default</span>:</span><br><span class="line">				empty = <span class="literal">true</span></span><br><span class="line">			&#125;</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">for</span> empty := <span class="literal">false</span>; !empty; &#123;</span><br><span class="line">		<span class="keyword">select</span> &#123;</span><br><span class="line">		<span class="keyword">case</span> &lt;-d.headerProcCh:</span><br><span class="line">		<span class="keyword">default</span>:</span><br><span class="line">			empty = <span class="literal">true</span></span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	d.cancelLock.Lock()</span><br><span class="line">	d.cancelCh = <span class="built_in">make</span>(<span class="keyword">chan</span> <span class="keyword">struct</span>&#123;&#125;)</span><br><span class="line">	d.cancelPeer = id</span><br><span class="line">	d.cancelLock.Unlock()</span><br><span class="line"></span><br><span class="line">	<span class="keyword">defer</span> d.Cancel()  channel open</span><br><span class="line"></span><br><span class="line">	d.mode = mode</span><br><span class="line"></span><br><span class="line">	p := d.peers.Peer(id)</span><br><span class="line">	<span class="keyword">if</span> p == <span class="literal">nil</span> &#123;</span><br><span class="line">		<span class="keyword">return</span> errUnknownPeer</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">return</span> d.syncWithPeer(p, hash, td)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>这一个方法是在做同步前的准备工作，先确定只有一个实例运行，然后重置queue和peers,表示一次同步准备开始，清空几个channel。之后从peers取出对应id的peer。peer保存着已连接的peer的peerConnection对象，由pm在新连接到来时通过downloader的RegisterPeer方法添加。然后执行syncWithPeer:<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(d *Downloader)</span> <span class="title">syncWithPeer</span><span class="params">(p *peerConnection, hash common.Hash, td *big.Int)</span> <span class="params">(err error)</span></span> &#123;</span><br><span class="line">	d.mux.Post(StartEvent&#123;&#125;)</span><br><span class="line">	<span class="keyword">defer</span> <span class="function"><span class="keyword">func</span><span class="params">()</span></span> &#123;</span><br><span class="line">		<span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">			d.mux.Post(FailedEvent&#123;err&#125;)</span><br><span class="line">		&#125; <span class="keyword">else</span> &#123;</span><br><span class="line">			latest := d.lightchain.CurrentHeader()</span><br><span class="line">			d.mux.Post(DoneEvent&#123;latest&#125;)</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;()</span><br><span class="line">	<span class="keyword">if</span> p.version &lt; <span class="number">62</span> &#123;</span><br><span class="line">		<span class="keyword">return</span> errTooOld</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	log.Debug(<span class="string">"Synchronising with the network"</span>, <span class="string">"peer"</span>, p.id, <span class="string">"eth"</span>, p.version, <span class="string">"head"</span>, hash, <span class="string">"td"</span>, td, <span class="string">"mode"</span>, d.mode)</span><br><span class="line">	<span class="keyword">defer</span> <span class="function"><span class="keyword">func</span><span class="params">(start time.Time)</span></span> &#123;</span><br><span class="line">		log.Debug(<span class="string">"Synchronisation terminated"</span>, <span class="string">"elapsed"</span>, time.Since(start))</span><br><span class="line">	&#125;(time.Now())</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">	latest, err := d.fetchHeight(p)</span><br><span class="line">	<span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">		<span class="keyword">return</span> err</span><br><span class="line">	&#125;</span><br><span class="line">	height := latest.Number.Uint64()</span><br><span class="line"></span><br><span class="line">	origin, err := d.findAncestor(p, latest)</span><br><span class="line">	<span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">		<span class="keyword">return</span> err</span><br><span class="line">	&#125;</span><br><span class="line">	d.syncStatsLock.Lock()</span><br><span class="line">	<span class="keyword">if</span> d.syncStatsChainHeight &lt;= origin || d.syncStatsChainOrigin &gt; origin &#123;</span><br><span class="line">		d.syncStatsChainOrigin = origin</span><br><span class="line">	&#125;</span><br><span class="line">	d.syncStatsChainHeight = height</span><br><span class="line">	d.syncStatsLock.Unlock()</span><br><span class="line"></span><br><span class="line">	pivot := <span class="keyword">uint64</span>(<span class="number">0</span>)</span><br><span class="line">	<span class="keyword">if</span> d.mode == FastSync &#123;</span><br><span class="line">		<span class="keyword">if</span> height &lt;= <span class="keyword">uint64</span>(fsMinFullBlocks) &#123;</span><br><span class="line">			origin = <span class="number">0</span></span><br><span class="line">		&#125; <span class="keyword">else</span> &#123;</span><br><span class="line">			pivot = height - <span class="keyword">uint64</span>(fsMinFullBlocks)</span><br><span class="line">			<span class="keyword">if</span> pivot &lt;= origin &#123;</span><br><span class="line">				origin = pivot - <span class="number">1</span></span><br><span class="line">			&#125;</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">	d.committed = <span class="number">1</span></span><br><span class="line">	<span class="keyword">if</span> d.mode == FastSync &amp;&amp; pivot != <span class="number">0</span> &#123;</span><br><span class="line">		d.committed = <span class="number">0</span></span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	d.queue.Prepare(origin+<span class="number">1</span>, d.mode)</span><br><span class="line">	<span class="keyword">if</span> d.syncInitHook != <span class="literal">nil</span> &#123;</span><br><span class="line">		d.syncInitHook(origin, height)</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	fetchers := []<span class="function"><span class="keyword">func</span><span class="params">()</span> <span class="title">error</span></span>&#123;</span><br><span class="line">		<span class="function"><span class="keyword">func</span><span class="params">()</span> <span class="title">error</span></span> &#123; <span class="keyword">return</span> d.fetchHeaders(p, origin+<span class="number">1</span>, pivot) &#125;, <span class="comment">// Headers are always retrieved</span></span><br><span class="line">		<span class="function"><span class="keyword">func</span><span class="params">()</span> <span class="title">error</span></span> &#123; <span class="keyword">return</span> d.fetchBodies(origin + <span class="number">1</span>) &#125;,          <span class="comment">// Bodies are retrieved during normal and fast sync</span></span><br><span class="line">		<span class="function"><span class="keyword">func</span><span class="params">()</span> <span class="title">error</span></span> &#123; <span class="keyword">return</span> d.fetchReceipts(origin + <span class="number">1</span>) &#125;,        <span class="comment">// Receipts are retrieved during fast sync</span></span><br><span class="line">		<span class="function"><span class="keyword">func</span><span class="params">()</span> <span class="title">error</span></span> &#123; <span class="keyword">return</span> d.processHeaders(origin+<span class="number">1</span>, pivot, td) &#125;,</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">if</span> d.mode == FastSync &#123;</span><br><span class="line">		fetchers = <span class="built_in">append</span>(fetchers, <span class="function"><span class="keyword">func</span><span class="params">()</span> <span class="title">error</span></span> &#123; <span class="keyword">return</span> d.processFastSyncContent(latest) &#125;)</span><br><span class="line">	&#125; <span class="keyword">else</span> <span class="keyword">if</span> d.mode == FullSync &#123;</span><br><span class="line">		fetchers = <span class="built_in">append</span>(fetchers, d.processFullSyncContent)</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">return</span> d.spawnSync(fetchers)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>这个表示从某个peer开始同步，先调用fetchHeight获取区块头：<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(d *Downloader)</span> <span class="title">fetchHeight</span><span class="params">(p *peerConnection)</span> <span class="params">(*types.Header, error)</span></span> &#123;</span><br><span class="line">	p.log.Debug(<span class="string">"Retrieving remote chain height"</span>)</span><br><span class="line"></span><br><span class="line">	head, _ := p.peer.Head()</span><br><span class="line">	<span class="keyword">go</span> p.peer.RequestHeadersByHash(head, <span class="number">1</span>, <span class="number">0</span>, <span class="literal">false</span>)</span><br><span class="line"></span><br><span class="line">	ttl := d.requestTTL()</span><br><span class="line">	timeout := time.After(ttl)</span><br><span class="line">	<span class="keyword">for</span> &#123;</span><br><span class="line">		<span class="keyword">select</span> &#123;</span><br><span class="line">		<span class="keyword">case</span> &lt;-d.cancelCh:</span><br><span class="line">			<span class="keyword">return</span> <span class="literal">nil</span>, errCancelBlockFetch</span><br><span class="line"></span><br><span class="line">		<span class="keyword">case</span> packet := &lt;-d.headerCh:</span><br><span class="line">			<span class="keyword">if</span> packet.PeerId() != p.id &#123;</span><br><span class="line">				log.Debug(<span class="string">"Received headers from incorrect peer"</span>, <span class="string">"peer"</span>, packet.PeerId())</span><br><span class="line">				<span class="keyword">break</span></span><br><span class="line">			&#125;</span><br><span class="line">			headers := packet.(*headerPack).headers</span><br><span class="line">			<span class="keyword">if</span> <span class="built_in">len</span>(headers) != <span class="number">1</span> &#123;</span><br><span class="line">				p.log.Debug(<span class="string">"Multiple headers for single request"</span>, <span class="string">"headers"</span>, <span class="built_in">len</span>(headers))</span><br><span class="line">				<span class="keyword">return</span> <span class="literal">nil</span>, errBadPeer</span><br><span class="line">			&#125;</span><br><span class="line">			head := headers[<span class="number">0</span>]</span><br><span class="line">			p.log.Debug(<span class="string">"Remote head header identified"</span>, <span class="string">"number"</span>, head.Number, <span class="string">"hash"</span>, head.Hash())</span><br><span class="line">			<span class="keyword">return</span> head, <span class="literal">nil</span></span><br><span class="line"></span><br><span class="line">		<span class="keyword">case</span> &lt;-timeout:</span><br><span class="line">			p.log.Debug(<span class="string">"Waiting for head header timed out"</span>, <span class="string">"elapsed"</span>, ttl)</span><br><span class="line">			<span class="keyword">return</span> <span class="literal">nil</span>, errTimeout</span><br><span class="line"></span><br><span class="line">		<span class="keyword">case</span> &lt;-d.bodyCh:</span><br><span class="line">		<span class="keyword">case</span> &lt;-d.receiptCh:</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>这里主要就是启动一个goroutine利用RequestHeadersByHash方法去请求区块头，这里的peer是pm的newPeer方法创建的，RequestHeadersByHash就是发送一个GetBlockHeadersMsg消息。由于是在单独线程执行的RequestHeadersByHash，在外面设置了一个定时器，超时的话报错。</p>
+<p>另外在回顾pm，在对方收到GetBlockHeadersMsg消息后，会回复BlockHeadersMsg消息，在fetcher过滤完后调用DeliverHeaders方法：<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(d *Downloader)</span> <span class="title">DeliverHeaders</span><span class="params">(id <span class="keyword">string</span>, headers []*types.Header)</span> <span class="params">(err error)</span></span> &#123;</span><br><span class="line">	<span class="keyword">return</span> d.deliver(id, d.headerCh, &amp;headerPack&#123;id, headers&#125;, headerInMeter, headerDropMeter)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(d *Downloader)</span> <span class="title">deliver</span><span class="params">(id <span class="keyword">string</span>, destCh <span class="keyword">chan</span> dataPack, packet dataPack, inMeter, dropMeter metrics.Meter)</span> <span class="params">(err error)</span></span> &#123;</span><br><span class="line">	inMeter.Mark(<span class="keyword">int64</span>(packet.Items()))</span><br><span class="line">	<span class="keyword">defer</span> <span class="function"><span class="keyword">func</span><span class="params">()</span></span> &#123;</span><br><span class="line">		<span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">			dropMeter.Mark(<span class="keyword">int64</span>(packet.Items()))</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;()</span><br><span class="line"></span><br><span class="line">	d.cancelLock.RLock()</span><br><span class="line">	cancel := d.cancelCh</span><br><span class="line">	d.cancelLock.RUnlock()</span><br><span class="line">	<span class="keyword">if</span> cancel == <span class="literal">nil</span> &#123;</span><br><span class="line">		<span class="keyword">return</span> errNoSyncActive</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">select</span> &#123;</span><br><span class="line">	<span class="keyword">case</span> destCh &lt;- packet:</span><br><span class="line">		<span class="keyword">return</span> <span class="literal">nil</span></span><br><span class="line">	<span class="keyword">case</span> &lt;-cancel:</span><br><span class="line">		<span class="keyword">return</span> errNoSyncActive</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>这里向destCh也就是headerCh赋值，也就触发fetchHeight中的对应逻辑，从而返回获得的区块头，这个区块头就是该peer的最新的区块。回到syncWithPeer中，又用findAncestor方法去寻找大家的共同祖先以便开始同步。</p>
+<p>再往下设置了pivot，这是针对快速同步而言的，在最后64个块，即使是快速同步模式也要使用fullmode模式，这里如果对方高度小于64，则从0开始同步而pivot也为0，否则如果刚才计算的公共祖先在最后64个以内，则从倒数第64个开始同步而且pivot也设为倒数第64个区块高度。另外还设置committed的值，为1时表示快速模式结束。然后调用了queue的prepare方法准备进行同步，prepare主要是配置了偏移量和同步模式以便于调度时寻找正确区块。</p>
+<p>接着设置一组fetcher方法分别用于fetch区块头、区块体和收据以及处理区块头，另外根据模式的不同添加不通的方法，最后调用spawnSync<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(d *Downloader)</span> <span class="title">spawnSync</span><span class="params">(fetchers []<span class="keyword">func</span>()</span> <span class="title">error</span>) <span class="title">error</span></span> &#123;</span><br><span class="line">	errc := <span class="built_in">make</span>(<span class="keyword">chan</span> error, <span class="built_in">len</span>(fetchers))</span><br><span class="line">	d.cancelWg.Add(<span class="built_in">len</span>(fetchers))</span><br><span class="line">	<span class="keyword">for</span> _, fn := <span class="keyword">range</span> fetchers &#123;</span><br><span class="line">		fn := fn</span><br><span class="line">		<span class="keyword">go</span> <span class="function"><span class="keyword">func</span><span class="params">()</span></span> &#123; <span class="keyword">defer</span> d.cancelWg.Done(); errc &lt;- fn() &#125;()</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">for</span> i := <span class="number">0</span>; i &lt; <span class="built_in">len</span>(fetchers); i++ &#123;</span><br><span class="line">		<span class="keyword">if</span> i == <span class="built_in">len</span>(fetchers)<span class="number">-1</span> &#123;</span><br><span class="line"></span><br><span class="line">			d.queue.Close()</span><br><span class="line">		&#125;</span><br><span class="line">		<span class="keyword">if</span> err = &lt;-errc; err != <span class="literal">nil</span> &#123;</span><br><span class="line">			<span class="keyword">break</span></span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">	d.queue.Close()</span><br><span class="line">	d.Cancel()</span><br><span class="line">	<span class="keyword">return</span> err</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>这里为fetchers中每个方法都启动一个goroutine去执行，等待结束或出错。我们看一下fetchers中的方法</p>
+<h2 id="fetchHeaders"><a href="#fetchHeaders" class="headerlink" title="fetchHeaders"></a>fetchHeaders</h2><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br><span class="line">129</span><br><span class="line">130</span><br><span class="line">131</span><br><span class="line">132</span><br><span class="line">133</span><br><span class="line">134</span><br><span class="line">135</span><br><span class="line">136</span><br><span class="line">137</span><br><span class="line">138</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(d *Downloader)</span> <span class="title">fetchHeaders</span><span class="params">(p *peerConnection, from <span class="keyword">uint64</span>, pivot <span class="keyword">uint64</span>)</span> <span class="title">error</span></span> &#123;</span><br><span class="line">	p.log.Debug(<span class="string">"Directing header downloads"</span>, <span class="string">"origin"</span>, from)</span><br><span class="line">	<span class="keyword">defer</span> p.log.Debug(<span class="string">"Header download terminated"</span>)</span><br><span class="line"></span><br><span class="line">	skeleton := <span class="literal">true</span>            <span class="comment">// Skeleton assembly phase or finishing up</span></span><br><span class="line">	request := time.Now()       <span class="comment">// time of the last skeleton fetch request</span></span><br><span class="line">	timeout := time.NewTimer(<span class="number">0</span>) <span class="comment">// timer to dump a non-responsive active peer</span></span><br><span class="line">	&lt;-timeout.C                 <span class="comment">// timeout channel should be initially empty</span></span><br><span class="line">	<span class="keyword">defer</span> timeout.Stop()</span><br><span class="line"></span><br><span class="line">	<span class="keyword">var</span> ttl time.Duration</span><br><span class="line">	getHeaders := <span class="function"><span class="keyword">func</span><span class="params">(from <span class="keyword">uint64</span>)</span></span> &#123;</span><br><span class="line">		request = time.Now()</span><br><span class="line"></span><br><span class="line">		ttl = d.requestTTL()</span><br><span class="line">		timeout.Reset(ttl)</span><br><span class="line"></span><br><span class="line">		<span class="keyword">if</span> skeleton &#123;</span><br><span class="line">			p.log.Trace(<span class="string">"Fetching skeleton headers"</span>, <span class="string">"count"</span>, MaxHeaderFetch, <span class="string">"from"</span>, from)</span><br><span class="line">			<span class="keyword">go</span> p.peer.RequestHeadersByNumber(from+<span class="keyword">uint64</span>(MaxHeaderFetch)<span class="number">-1</span>, MaxSkeletonSize, MaxHeaderFetch<span class="number">-1</span>, <span class="literal">false</span>)</span><br><span class="line">		&#125; <span class="keyword">else</span> &#123;</span><br><span class="line">			p.log.Trace(<span class="string">"Fetching full headers"</span>, <span class="string">"count"</span>, MaxHeaderFetch, <span class="string">"from"</span>, from)</span><br><span class="line">			<span class="keyword">go</span> p.peer.RequestHeadersByNumber(from, MaxHeaderFetch, <span class="number">0</span>, <span class="literal">false</span>)</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">	getHeaders(from)</span><br><span class="line"></span><br><span class="line">	<span class="keyword">for</span> &#123;</span><br><span class="line">		<span class="keyword">select</span> &#123;</span><br><span class="line">		<span class="keyword">case</span> &lt;-d.cancelCh:</span><br><span class="line">			<span class="keyword">return</span> errCancelHeaderFetch</span><br><span class="line"></span><br><span class="line">		<span class="keyword">case</span> packet := &lt;-d.headerCh:</span><br><span class="line">			<span class="keyword">if</span> packet.PeerId() != p.id &#123;</span><br><span class="line">				log.Debug(<span class="string">"Received skeleton from incorrect peer"</span>, <span class="string">"peer"</span>, packet.PeerId())</span><br><span class="line">				<span class="keyword">break</span></span><br><span class="line">			&#125;</span><br><span class="line">			headerReqTimer.UpdateSince(request)</span><br><span class="line">			timeout.Stop()</span><br><span class="line"></span><br><span class="line">			<span class="keyword">if</span> packet.Items() == <span class="number">0</span> &amp;&amp; skeleton &#123;</span><br><span class="line">				skeleton = <span class="literal">false</span></span><br><span class="line">				getHeaders(from)</span><br><span class="line">				<span class="keyword">continue</span></span><br><span class="line">			&#125;</span><br><span class="line"></span><br><span class="line">			<span class="keyword">if</span> packet.Items() == <span class="number">0</span> &#123;</span><br><span class="line">				<span class="keyword">if</span> atomic.LoadInt32(&amp;d.committed) == <span class="number">0</span> &amp;&amp; pivot &lt;= from &#123;</span><br><span class="line">					p.log.Debug(<span class="string">"No headers, waiting for pivot commit"</span>)</span><br><span class="line">					<span class="keyword">select</span> &#123;</span><br><span class="line">					<span class="keyword">case</span> &lt;-time.After(fsHeaderContCheck):</span><br><span class="line">						getHeaders(from)</span><br><span class="line">						<span class="keyword">continue</span></span><br><span class="line">					<span class="keyword">case</span> &lt;-d.cancelCh:</span><br><span class="line">						<span class="keyword">return</span> errCancelHeaderFetch</span><br><span class="line">					&#125;</span><br><span class="line">				&#125;</span><br><span class="line">				p.log.Debug(<span class="string">"No more headers available"</span>)</span><br><span class="line">				<span class="keyword">select</span> &#123;</span><br><span class="line">				<span class="keyword">case</span> d.headerProcCh &lt;- <span class="literal">nil</span>:</span><br><span class="line">					<span class="keyword">return</span> <span class="literal">nil</span></span><br><span class="line">				<span class="keyword">case</span> &lt;-d.cancelCh:</span><br><span class="line">					<span class="keyword">return</span> errCancelHeaderFetch</span><br><span class="line">				&#125;</span><br><span class="line">			&#125;</span><br><span class="line">			headers := packet.(*headerPack).headers</span><br><span class="line"></span><br><span class="line">			<span class="keyword">if</span> skeleton &#123;</span><br><span class="line">				filled, proced, err := d.fillHeaderSkeleton(from, headers)</span><br><span class="line">				<span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">					p.log.Debug(<span class="string">"Skeleton chain invalid"</span>, <span class="string">"err"</span>, err)</span><br><span class="line">					<span class="keyword">return</span> errInvalidChain</span><br><span class="line">				&#125;</span><br><span class="line">				headers = filled[proced:]</span><br><span class="line">				from += <span class="keyword">uint64</span>(proced)</span><br><span class="line">			&#125; <span class="keyword">else</span> &#123;</span><br><span class="line">				<span class="keyword">if</span> n := <span class="built_in">len</span>(headers); n &gt; <span class="number">0</span> &#123;</span><br><span class="line">					head := <span class="keyword">uint64</span>(<span class="number">0</span>)</span><br><span class="line">					<span class="keyword">if</span> d.mode == LightSync &#123;</span><br><span class="line">						head = d.lightchain.CurrentHeader().Number.Uint64()</span><br><span class="line">					&#125; <span class="keyword">else</span> &#123;</span><br><span class="line">						head = d.blockchain.CurrentFastBlock().NumberU64()</span><br><span class="line">						<span class="keyword">if</span> full := d.blockchain.CurrentBlock().NumberU64(); head &lt; full &#123;</span><br><span class="line">							head = full</span><br><span class="line">						&#125;</span><br><span class="line">					&#125;</span><br><span class="line">					<span class="keyword">if</span> head+<span class="keyword">uint64</span>(reorgProtThreshold) &lt; headers[n<span class="number">-1</span>].Number.Uint64() &#123;</span><br><span class="line">						delay := reorgProtHeaderDelay</span><br><span class="line">						<span class="keyword">if</span> delay &gt; n &#123;</span><br><span class="line">							delay = n</span><br><span class="line">						&#125;</span><br><span class="line">						headers = headers[:n-delay]</span><br><span class="line">					&#125;</span><br><span class="line">				&#125;</span><br><span class="line">			&#125;</span><br><span class="line">			<span class="keyword">if</span> <span class="built_in">len</span>(headers) &gt; <span class="number">0</span> &#123;</span><br><span class="line">				p.log.Trace(<span class="string">"Scheduling new headers"</span>, <span class="string">"count"</span>, <span class="built_in">len</span>(headers), <span class="string">"from"</span>, from)</span><br><span class="line">				<span class="keyword">select</span> &#123;</span><br><span class="line">				<span class="keyword">case</span> d.headerProcCh &lt;- headers:</span><br><span class="line">				<span class="keyword">case</span> &lt;-d.cancelCh:</span><br><span class="line">					<span class="keyword">return</span> errCancelHeaderFetch</span><br><span class="line">				&#125;</span><br><span class="line">				from += <span class="keyword">uint64</span>(<span class="built_in">len</span>(headers))</span><br><span class="line">				getHeaders(from)</span><br><span class="line">			&#125; <span class="keyword">else</span> &#123;</span><br><span class="line">				p.log.Trace(<span class="string">"All headers delayed, waiting"</span>)</span><br><span class="line">				<span class="keyword">select</span> &#123;</span><br><span class="line">				<span class="keyword">case</span> &lt;-time.After(fsHeaderContCheck):</span><br><span class="line">					getHeaders(from)</span><br><span class="line">					<span class="keyword">continue</span></span><br><span class="line">				<span class="keyword">case</span> &lt;-d.cancelCh:</span><br><span class="line">					<span class="keyword">return</span> errCancelHeaderFetch</span><br><span class="line">				&#125;</span><br><span class="line">			&#125;</span><br><span class="line"></span><br><span class="line">		<span class="keyword">case</span> &lt;-timeout.C:</span><br><span class="line">			<span class="keyword">if</span> d.dropPeer == <span class="literal">nil</span> &#123;</span><br><span class="line">				p.log.Warn(<span class="string">"Downloader wants to drop peer, but peerdrop-function is not set"</span>, <span class="string">"peer"</span>, p.id)</span><br><span class="line">				<span class="keyword">break</span></span><br><span class="line">			&#125;</span><br><span class="line">			p.log.Debug(<span class="string">"Header request timed out"</span>, <span class="string">"elapsed"</span>, ttl)</span><br><span class="line">			headerTimeoutMeter.Mark(<span class="number">1</span>)</span><br><span class="line">			d.dropPeer(p.id)</span><br><span class="line"></span><br><span class="line">			<span class="keyword">for</span> _, ch := <span class="keyword">range</span> []<span class="keyword">chan</span> <span class="keyword">bool</span>&#123;d.bodyWakeCh, d.receiptWakeCh&#125; &#123;</span><br><span class="line">				<span class="keyword">select</span> &#123;</span><br><span class="line">				<span class="keyword">case</span> ch &lt;- <span class="literal">false</span>:</span><br><span class="line">				<span class="keyword">case</span> &lt;-d.cancelCh:</span><br><span class="line">				&#125;</span><br><span class="line">			&#125;</span><br><span class="line">			<span class="keyword">select</span> &#123;</span><br><span class="line">			<span class="keyword">case</span> d.headerProcCh &lt;- <span class="literal">nil</span>:</span><br><span class="line">			<span class="keyword">case</span> &lt;-d.cancelCh:</span><br><span class="line">			&#125;</span><br><span class="line">			<span class="keyword">return</span> errBadPeer</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>这个方法比较长，基本上分了两部分首先定义了一个getHeaders方法，用于从对应的peer获取一定数量的head，指定起始位置之后，根据是否是骨架模式来决定下载哪些head。如果是骨架模式，则从from+191开始获取128个head，每两个head之间间隔191个区块，这样构成一个断续的框架。如果不是骨架模式，则从from开始连续请求192个区块。请求方法都是peer的RequestHeadersByNumber方法，发送了GetBlockHeadersMsg消息，这个我们前面分析过，会触发接下来的for-select结构的headerCh逻辑。</p>
+<p>在对应case中，首先验证了是否来自对应的peer，判断返回的head数，如果为0且是骨架模式，则禁用骨架模式，再次调用getHeaders请求head。如果再一次获取的head数量还是0，且仍处于快速模式并且没有进入最后64个区块，则等待3秒后继续刚才的连续请求知道接收到取消信号；如果获取的head数量还是0但不处于快速模式，表示已经同步完毕，给headerProcCh赋值并退出，headerProcCh影响processHeaders里的逻辑。</p>
+<p>对于收到的区块头数量不为0的话，根据不同模式进行不同处理。</p>
+<p>如果是骨架模式，则调用fillHeaderSkeleton去填充那个框架，这个方法里先调用ScheduleSkeleton进行调用，然后调用了fetchParts方法，这个稍后再讲。</p>
+<p>如果不是骨架模式，表示我们从from开始连续请求了192个head，这里根据具体情况延迟最后几个区块头。总之这个if-else结构确定了下一步fetch的head集合。然后将该集合内的head赋值给headerProcCh触发processHeaders中对应逻辑，并更新from的值再次调用getHeaders去请求下一批head，直到没有head可取，等待3秒再次尝试。</p>
+<h2 id="fetchBodies"><a href="#fetchBodies" class="headerlink" title="fetchBodies"></a>fetchBodies</h2><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(d *Downloader)</span> <span class="title">fetchBodies</span><span class="params">(from <span class="keyword">uint64</span>)</span> <span class="title">error</span></span> &#123;</span><br><span class="line">	log.Debug(<span class="string">"Downloading block bodies"</span>, <span class="string">"origin"</span>, from)</span><br><span class="line"></span><br><span class="line">	<span class="keyword">var</span> (</span><br><span class="line">		deliver = <span class="function"><span class="keyword">func</span><span class="params">(packet dataPack)</span> <span class="params">(<span class="keyword">int</span>, error)</span></span> &#123;</span><br><span class="line">			pack := packet.(*bodyPack)</span><br><span class="line">			<span class="keyword">return</span> d.queue.DeliverBodies(pack.peerID, pack.transactions, pack.uncles)</span><br><span class="line">		&#125;</span><br><span class="line">		expire   = <span class="function"><span class="keyword">func</span><span class="params">()</span> <span class="title">map</span>[<span class="title">string</span>]<span class="title">int</span></span> &#123; <span class="keyword">return</span> d.queue.ExpireBodies(d.requestTTL()) &#125;</span><br><span class="line">		fetch    = <span class="function"><span class="keyword">func</span><span class="params">(p *peerConnection, req *fetchRequest)</span> <span class="title">error</span></span> &#123; <span class="keyword">return</span> p.FetchBodies(req) &#125;</span><br><span class="line">		capacity = <span class="function"><span class="keyword">func</span><span class="params">(p *peerConnection)</span> <span class="title">int</span></span> &#123; <span class="keyword">return</span> p.BlockCapacity(d.requestRTT()) &#125;</span><br><span class="line">		setIdle  = <span class="function"><span class="keyword">func</span><span class="params">(p *peerConnection, accepted <span class="keyword">int</span>)</span></span> &#123; p.SetBodiesIdle(accepted) &#125;</span><br><span class="line">	)</span><br><span class="line">	err := d.fetchParts(errCancelBodyFetch, d.bodyCh, deliver, d.bodyWakeCh, expire,</span><br><span class="line">		d.queue.PendingBlocks, d.queue.InFlightBlocks, d.queue.ShouldThrottleBlocks, d.queue.ReserveBodies,</span><br><span class="line">		d.bodyFetchHook, fetch, d.queue.CancelBodies, capacity, d.peers.BodyIdlePeers, setIdle, <span class="string">"bodies"</span>)</span><br><span class="line"></span><br><span class="line">	log.Debug(<span class="string">"Block body download terminated"</span>, <span class="string">"err"</span>, err)</span><br><span class="line">	<span class="keyword">return</span> err</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>相比fetchHeaders，fetchBodies就简单很多，就是直接调用fetchParts，关于fetchParts稍后再分析</p>
+<h2 id="fetchReceipts"><a href="#fetchReceipts" class="headerlink" title="fetchReceipts"></a>fetchReceipts</h2><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(d *Downloader)</span> <span class="title">fetchReceipts</span><span class="params">(from <span class="keyword">uint64</span>)</span> <span class="title">error</span></span> &#123;</span><br><span class="line">	log.Debug(<span class="string">"Downloading transaction receipts"</span>, <span class="string">"origin"</span>, from)</span><br><span class="line"></span><br><span class="line">	<span class="keyword">var</span> (</span><br><span class="line">		deliver = <span class="function"><span class="keyword">func</span><span class="params">(packet dataPack)</span> <span class="params">(<span class="keyword">int</span>, error)</span></span> &#123;</span><br><span class="line">			pack := packet.(*receiptPack)</span><br><span class="line">			<span class="keyword">return</span> d.queue.DeliverReceipts(pack.peerID, pack.receipts)</span><br><span class="line">		&#125;</span><br><span class="line">		expire   = <span class="function"><span class="keyword">func</span><span class="params">()</span> <span class="title">map</span>[<span class="title">string</span>]<span class="title">int</span></span> &#123; <span class="keyword">return</span> d.queue.ExpireReceipts(d.requestTTL()) &#125;</span><br><span class="line">		fetch    = <span class="function"><span class="keyword">func</span><span class="params">(p *peerConnection, req *fetchRequest)</span> <span class="title">error</span></span> &#123; <span class="keyword">return</span> p.FetchReceipts(req) &#125;</span><br><span class="line">		capacity = <span class="function"><span class="keyword">func</span><span class="params">(p *peerConnection)</span> <span class="title">int</span></span> &#123; <span class="keyword">return</span> p.ReceiptCapacity(d.requestRTT()) &#125;</span><br><span class="line">		setIdle  = <span class="function"><span class="keyword">func</span><span class="params">(p *peerConnection, accepted <span class="keyword">int</span>)</span></span> &#123; p.SetReceiptsIdle(accepted) &#125;</span><br><span class="line">	)</span><br><span class="line">	err := d.fetchParts(errCancelReceiptFetch, d.receiptCh, deliver, d.receiptWakeCh, expire,</span><br><span class="line">		d.queue.PendingReceipts, d.queue.InFlightReceipts, d.queue.ShouldThrottleReceipts, d.queue.ReserveReceipts,</span><br><span class="line">		d.receiptFetchHook, fetch, d.queue.CancelReceipts, capacity, d.peers.ReceiptIdlePeers, setIdle, <span class="string">"receipts"</span>)</span><br><span class="line"></span><br><span class="line">	log.Debug(<span class="string">"Transaction receipt download terminated"</span>, <span class="string">"err"</span>, err)</span><br><span class="line">	<span class="keyword">return</span> err</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>和fetchBodies一样，都是直接调用fetchParts</p>
+<h2 id="processHeaders"><a href="#processHeaders" class="headerlink" title="processHeaders"></a>processHeaders</h2><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(d *Downloader)</span> <span class="title">processHeaders</span><span class="params">(origin <span class="keyword">uint64</span>, pivot <span class="keyword">uint64</span>, td *big.Int)</span> <span class="title">error</span></span> &#123;</span><br><span class="line">	rollback := []*types.Header&#123;&#125;</span><br><span class="line">	<span class="keyword">defer</span> <span class="function"><span class="keyword">func</span><span class="params">()</span></span> &#123;</span><br><span class="line">		<span class="keyword">if</span> <span class="built_in">len</span>(rollback) &gt; <span class="number">0</span> &#123;</span><br><span class="line">			hashes := <span class="built_in">make</span>([]common.Hash, <span class="built_in">len</span>(rollback))</span><br><span class="line">			<span class="keyword">for</span> i, header := <span class="keyword">range</span> rollback &#123;</span><br><span class="line">				hashes[i] = header.Hash()</span><br><span class="line">			&#125;</span><br><span class="line">			lastHeader, lastFastBlock, lastBlock := d.lightchain.CurrentHeader().Number, common.Big0, common.Big0</span><br><span class="line">			<span class="keyword">if</span> d.mode != LightSync &#123;</span><br><span class="line">				lastFastBlock = d.blockchain.CurrentFastBlock().Number()</span><br><span class="line">				lastBlock = d.blockchain.CurrentBlock().Number()</span><br><span class="line">			&#125;</span><br><span class="line">			d.lightchain.Rollback(hashes)</span><br><span class="line">			curFastBlock, curBlock := common.Big0, common.Big0</span><br><span class="line">			<span class="keyword">if</span> d.mode != LightSync &#123;</span><br><span class="line">				curFastBlock = d.blockchain.CurrentFastBlock().Number()</span><br><span class="line">				curBlock = d.blockchain.CurrentBlock().Number()</span><br><span class="line">			&#125;</span><br><span class="line">			log.Warn(<span class="string">"Rolled back headers"</span>, <span class="string">"count"</span>, <span class="built_in">len</span>(hashes),</span><br><span class="line">				<span class="string">"header"</span>, fmt.Sprintf(<span class="string">"%d-&gt;%d"</span>, lastHeader, d.lightchain.CurrentHeader().Number),</span><br><span class="line">				<span class="string">"fast"</span>, fmt.Sprintf(<span class="string">"%d-&gt;%d"</span>, lastFastBlock, curFastBlock),</span><br><span class="line">				<span class="string">"block"</span>, fmt.Sprintf(<span class="string">"%d-&gt;%d"</span>, lastBlock, curBlock))</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;()</span><br><span class="line"></span><br><span class="line">	gotHeaders := <span class="literal">false</span></span><br><span class="line"></span><br><span class="line">	<span class="keyword">for</span> &#123;</span><br><span class="line">		<span class="keyword">select</span> &#123;</span><br><span class="line">		<span class="keyword">case</span> &lt;-d.cancelCh:</span><br><span class="line">			<span class="keyword">return</span> errCancelHeaderProcessing</span><br><span class="line"></span><br><span class="line">		<span class="keyword">case</span> headers := &lt;-d.headerProcCh:</span><br><span class="line">			<span class="keyword">if</span> <span class="built_in">len</span>(headers) == <span class="number">0</span> &#123;</span><br><span class="line">				<span class="keyword">for</span> _, ch := <span class="keyword">range</span> []<span class="keyword">chan</span> <span class="keyword">bool</span>&#123;d.bodyWakeCh, d.receiptWakeCh&#125; &#123;</span><br><span class="line">					<span class="keyword">select</span> &#123;</span><br><span class="line">					<span class="keyword">case</span> ch &lt;- <span class="literal">false</span>:</span><br><span class="line">					<span class="keyword">case</span> &lt;-d.cancelCh:</span><br><span class="line">					&#125;</span><br><span class="line">				&#125;</span><br><span class="line">				<span class="keyword">if</span> d.mode != LightSync &#123;</span><br><span class="line">					head := d.blockchain.CurrentBlock()</span><br><span class="line">					<span class="keyword">if</span> !gotHeaders &amp;&amp; td.Cmp(d.blockchain.GetTd(head.Hash(), head.NumberU64())) &gt; <span class="number">0</span> &#123;</span><br><span class="line">						<span class="keyword">return</span> errStallingPeer</span><br><span class="line">					&#125;</span><br><span class="line">				&#125;</span><br><span class="line">				<span class="keyword">if</span> d.mode == FastSync || d.mode == LightSync &#123;</span><br><span class="line">					head := d.lightchain.CurrentHeader()</span><br><span class="line">					<span class="keyword">if</span> td.Cmp(d.lightchain.GetTd(head.Hash(), head.Number.Uint64())) &gt; <span class="number">0</span> &#123;</span><br><span class="line">						<span class="keyword">return</span> errStallingPeer</span><br><span class="line">					&#125;</span><br><span class="line">				&#125;</span><br><span class="line">				rollback = <span class="literal">nil</span></span><br><span class="line">				<span class="keyword">return</span> <span class="literal">nil</span></span><br><span class="line">			&#125;</span><br><span class="line">			gotHeaders = <span class="literal">true</span></span><br><span class="line">			<span class="keyword">for</span> <span class="built_in">len</span>(headers) &gt; <span class="number">0</span> &#123;</span><br><span class="line">				<span class="keyword">select</span> &#123;</span><br><span class="line">				<span class="keyword">case</span> &lt;-d.cancelCh:</span><br><span class="line">					<span class="keyword">return</span> errCancelHeaderProcessing</span><br><span class="line">				<span class="keyword">default</span>:</span><br><span class="line">				&#125;</span><br><span class="line">				limit := maxHeadersProcess</span><br><span class="line">				<span class="keyword">if</span> limit &gt; <span class="built_in">len</span>(headers) &#123;</span><br><span class="line">					limit = <span class="built_in">len</span>(headers)</span><br><span class="line">				&#125;</span><br><span class="line">				chunk := headers[:limit]</span><br><span class="line"></span><br><span class="line">				<span class="keyword">if</span> d.mode == FastSync || d.mode == LightSync &#123;</span><br><span class="line">					unknown := <span class="built_in">make</span>([]*types.Header, <span class="number">0</span>, <span class="built_in">len</span>(headers))</span><br><span class="line">					<span class="keyword">for</span> _, header := <span class="keyword">range</span> chunk &#123;</span><br><span class="line">						<span class="keyword">if</span> !d.lightchain.HasHeader(header.Hash(), header.Number.Uint64()) &#123;</span><br><span class="line">							unknown = <span class="built_in">append</span>(unknown, header)</span><br><span class="line">						&#125;</span><br><span class="line">					&#125;</span><br><span class="line">					frequency := fsHeaderCheckFrequency</span><br><span class="line">					<span class="keyword">if</span> chunk[<span class="built_in">len</span>(chunk)<span class="number">-1</span>].Number.Uint64()+<span class="keyword">uint64</span>(fsHeaderForceVerify) &gt; pivot &#123;</span><br><span class="line">						frequency = <span class="number">1</span></span><br><span class="line">					&#125;</span><br><span class="line">					<span class="keyword">if</span> n, err := d.lightchain.InsertHeaderChain(chunk, frequency); err != <span class="literal">nil</span> &#123;</span><br><span class="line">						<span class="keyword">if</span> n &gt; <span class="number">0</span> &#123;</span><br><span class="line">							rollback = <span class="built_in">append</span>(rollback, chunk[:n]...)</span><br><span class="line">						&#125;</span><br><span class="line">						log.Debug(<span class="string">"Invalid header encountered"</span>, <span class="string">"number"</span>, chunk[n].Number, <span class="string">"hash"</span>, chunk[n].Hash(), <span class="string">"err"</span>, err)</span><br><span class="line">						<span class="keyword">return</span> errInvalidChain</span><br><span class="line">					&#125;</span><br><span class="line">					rollback = <span class="built_in">append</span>(rollback, unknown...)</span><br><span class="line">					<span class="keyword">if</span> <span class="built_in">len</span>(rollback) &gt; fsHeaderSafetyNet &#123;</span><br><span class="line">						rollback = <span class="built_in">append</span>(rollback[:<span class="number">0</span>], rollback[<span class="built_in">len</span>(rollback)-fsHeaderSafetyNet:]...)</span><br><span class="line">					&#125;</span><br><span class="line">				&#125;</span><br><span class="line">				<span class="keyword">if</span> d.mode == FullSync || d.mode == FastSync &#123;</span><br><span class="line">					<span class="keyword">for</span> d.queue.PendingBlocks() &gt;= maxQueuedHeaders || d.queue.PendingReceipts() &gt;= maxQueuedHeaders &#123;</span><br><span class="line">						<span class="keyword">select</span> &#123;</span><br><span class="line">						<span class="keyword">case</span> &lt;-d.cancelCh:</span><br><span class="line">							<span class="keyword">return</span> errCancelHeaderProcessing</span><br><span class="line">						<span class="keyword">case</span> &lt;-time.After(time.Second):</span><br><span class="line">						&#125;</span><br><span class="line">					&#125;</span><br><span class="line">					inserts := d.queue.Schedule(chunk, origin)</span><br><span class="line">					<span class="keyword">if</span> <span class="built_in">len</span>(inserts) != <span class="built_in">len</span>(chunk) &#123;</span><br><span class="line">						log.Debug(<span class="string">"Stale headers"</span>)</span><br><span class="line">						<span class="keyword">return</span> errBadPeer</span><br><span class="line">					&#125;</span><br><span class="line">				&#125;</span><br><span class="line">				headers = headers[limit:]</span><br><span class="line">				origin += <span class="keyword">uint64</span>(limit)</span><br><span class="line">			&#125;</span><br><span class="line">			d.syncStatsLock.Lock()</span><br><span class="line">			<span class="keyword">if</span> d.syncStatsChainHeight &lt; origin &#123;</span><br><span class="line">				d.syncStatsChainHeight = origin - <span class="number">1</span></span><br><span class="line">			&#125;</span><br><span class="line">			d.syncStatsLock.Unlock()</span><br><span class="line"></span><br><span class="line">			<span class="keyword">for</span> _, ch := <span class="keyword">range</span> []<span class="keyword">chan</span> <span class="keyword">bool</span>&#123;d.bodyWakeCh, d.receiptWakeCh&#125; &#123;</span><br><span class="line">				<span class="keyword">select</span> &#123;</span><br><span class="line">				<span class="keyword">case</span> ch &lt;- <span class="literal">true</span>:</span><br><span class="line">				<span class="keyword">default</span>:</span><br><span class="line">				&#125;</span><br><span class="line">			&#125;</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>这是固定的一组fetchers中的最后一个启动的方法，用于处理收到了head。</p>
+<p>首先定义了一个defer执行的方法用于在出错时回滚。接着还是一个无限循环加select的结构，还记得前面fetchHeaders方法最后将一组head赋值给headerProcCh了么，就在这里触发了响应逻辑。</p>
+<p>首先处理的传来的head数量为0的情况，为0的情况是在fetchHeaders中fetch区块头结束后给headerProcCh传了nil导致的，此时给bodyWakeCh和receiptWakeCh都传了false。接着判断了如果对方此时总难度还比我们大，但是我们却取不到什么东西则返回一个错误</p>
+<p>对于传来的head数量不为0时，先判断数量是否大于2048，否则进行截断，先处理前2048个。接着对于同步模式是FastSync或者LightSync的情况，先遍历了传来的head在本地是否已有，没有的存入unknown中。接着定义了frequency，原始值为100，但是如果是最后64个则为1，这个值表示在插入时每隔多少个区块验证一次，最后64个区块需要全部验证，其余的每100个验证一次。然后调用InsertHeaderChain进行插入，这是core/blockchain.go中的方法，返回的n表示实在第几个区块出错的，最后如果有错则将chunk[:n]添加到rollback便于回滚，目的是一旦出错则回滚所有内容。如果没错也将刚才unknown的内容添加到rollback，如果回滚的总量大于2048，只取最后2048个区块。</p>
+<p>再往下如果是FullSync或FastSync模式，先判断queue的PendingBlocks或PendingReceipts数量是否大于规定，是的话先等待1秒，反复循环直到其数量满足要求。然后调用了Schedule申请调度，接下来修改headers和origin循环处理剩余的head。</p>
+<p>最后给通道d.bodyWakeCh, d.receiptWakeCh发送消息，触发对应逻辑。</p>
+<h2 id="fetchParts"><a href="#fetchParts" class="headerlink" title="fetchParts"></a>fetchParts</h2><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br><span class="line">129</span><br><span class="line">130</span><br><span class="line">131</span><br><span class="line">132</span><br><span class="line">133</span><br><span class="line">134</span><br><span class="line">135</span><br><span class="line">136</span><br><span class="line">137</span><br><span class="line">138</span><br><span class="line">139</span><br><span class="line">140</span><br><span class="line">141</span><br><span class="line">142</span><br><span class="line">143</span><br><span class="line">144</span><br><span class="line">145</span><br><span class="line">146</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// The instrumentation parameters:</span></span><br><span class="line"><span class="comment">//  - errCancel:   fetch操作被取消时返回的错误类型</span></span><br><span class="line"><span class="comment">//  - deliveryCh:  检索下载数据包的通道</span></span><br><span class="line"><span class="comment">//  - deliver:     将数据包传递到特定队列的回调函数</span></span><br><span class="line"><span class="comment">//  - wakeCh:      当心的任务到来时唤醒fetch</span></span><br><span class="line"><span class="comment">//  - expire:      因为超时而终止的回调</span></span><br><span class="line"><span class="comment">//  - pending:     还需要下载的任务数量</span></span><br><span class="line"><span class="comment">//  - inFlight:    正在处理的请求数量</span></span><br><span class="line"><span class="comment">//  - throttle:    用于检测某个队列是否已满</span></span><br><span class="line"><span class="comment">//  - reserve:     用来将新的下载任务保留给特定的peer</span></span><br><span class="line"><span class="comment">//  - fetchHook:   用于通知正在启动新的任务</span></span><br><span class="line"><span class="comment">//  - fetch:       发送网络请求</span></span><br><span class="line"><span class="comment">//  - cancel:      取消正在请求的下载</span></span><br><span class="line"><span class="comment">//  - capacity:    获取网络带宽</span></span><br><span class="line"><span class="comment">//  - idle:        检测peer是否空闲</span></span><br><span class="line"><span class="comment">//  - setIdle:     设置peer为空闲</span></span><br><span class="line"><span class="comment">//  - kind:        正在下载的类型</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(d *Downloader)</span> <span class="title">fetchParts</span><span class="params">(errCancel error, deliveryCh <span class="keyword">chan</span> dataPack, deliver <span class="keyword">func</span>(dataPack)</span> <span class="params">(<span class="keyword">int</span>, error)</span>, <span class="title">wakeCh</span> <span class="title">chan</span> <span class="title">bool</span>,</span></span><br><span class="line"><span class="function">	<span class="title">expire</span> <span class="title">func</span><span class="params">()</span> <span class="title">map</span>[<span class="title">string</span>]<span class="title">int</span>, <span class="title">pending</span> <span class="title">func</span><span class="params">()</span> <span class="title">int</span>, <span class="title">inFlight</span> <span class="title">func</span><span class="params">()</span> <span class="title">bool</span>, <span class="title">throttle</span> <span class="title">func</span><span class="params">()</span> <span class="title">bool</span>, <span class="title">reserve</span> <span class="title">func</span><span class="params">(*peerConnection, <span class="keyword">int</span>)</span> <span class="params">(*fetchRequest, <span class="keyword">bool</span>, error)</span>,</span></span><br><span class="line"><span class="function">	<span class="title">fetchHook</span> <span class="title">func</span><span class="params">([]*types.Header)</span>, <span class="title">fetch</span> <span class="title">func</span><span class="params">(*peerConnection, *fetchRequest)</span> <span class="title">error</span>, <span class="title">cancel</span> <span class="title">func</span><span class="params">(*fetchRequest)</span>, <span class="title">capacity</span> <span class="title">func</span><span class="params">(*peerConnection)</span> <span class="title">int</span>,</span></span><br><span class="line"><span class="function">	<span class="title">idle</span> <span class="title">func</span><span class="params">()</span> <span class="params">([]*peerConnection, <span class="keyword">int</span>)</span>, <span class="title">setIdle</span> <span class="title">func</span><span class="params">(*peerConnection, <span class="keyword">int</span>)</span>, <span class="title">kind</span> <span class="title">string</span>) <span class="title">error</span></span> &#123;</span><br><span class="line"></span><br><span class="line">	ticker := time.NewTicker(<span class="number">100</span> * time.Millisecond)</span><br><span class="line">	<span class="keyword">defer</span> ticker.Stop()</span><br><span class="line"></span><br><span class="line">	update := <span class="built_in">make</span>(<span class="keyword">chan</span> <span class="keyword">struct</span>&#123;&#125;, <span class="number">1</span>)</span><br><span class="line"></span><br><span class="line">	finished := <span class="literal">false</span></span><br><span class="line">	<span class="keyword">for</span> &#123;</span><br><span class="line">		<span class="keyword">select</span> &#123;</span><br><span class="line">		<span class="keyword">case</span> &lt;-d.cancelCh:</span><br><span class="line">			<span class="keyword">return</span> errCancel</span><br><span class="line"></span><br><span class="line">		<span class="keyword">case</span> packet := &lt;-deliveryCh:</span><br><span class="line">			<span class="keyword">if</span> peer := d.peers.Peer(packet.PeerId()); peer != <span class="literal">nil</span> &#123;</span><br><span class="line">				accepted, err := deliver(packet)</span><br><span class="line">				<span class="keyword">if</span> err == errInvalidChain &#123;</span><br><span class="line">					<span class="keyword">return</span> err</span><br><span class="line">				&#125;</span><br><span class="line">				<span class="keyword">if</span> err != errStaleDelivery &#123;</span><br><span class="line">					setIdle(peer, accepted)</span><br><span class="line">				&#125;</span><br><span class="line">				<span class="keyword">switch</span> &#123;</span><br><span class="line">				<span class="keyword">case</span> err == <span class="literal">nil</span> &amp;&amp; packet.Items() == <span class="number">0</span>:</span><br><span class="line">					peer.log.Trace(<span class="string">"Requested data not delivered"</span>, <span class="string">"type"</span>, kind)</span><br><span class="line">				<span class="keyword">case</span> err == <span class="literal">nil</span>:</span><br><span class="line">					peer.log.Trace(<span class="string">"Delivered new batch of data"</span>, <span class="string">"type"</span>, kind, <span class="string">"count"</span>, packet.Stats())</span><br><span class="line">				<span class="keyword">default</span>:</span><br><span class="line">					peer.log.Trace(<span class="string">"Failed to deliver retrieved data"</span>, <span class="string">"type"</span>, kind, <span class="string">"err"</span>, err)</span><br><span class="line">				&#125;</span><br><span class="line">			&#125;</span><br><span class="line"></span><br><span class="line">			<span class="keyword">select</span> &#123;</span><br><span class="line">			<span class="keyword">case</span> update &lt;- <span class="keyword">struct</span>&#123;&#125;&#123;&#125;:</span><br><span class="line">			<span class="keyword">default</span>:</span><br><span class="line">			&#125;</span><br><span class="line"></span><br><span class="line">		<span class="keyword">case</span> cont := &lt;-wakeCh:</span><br><span class="line">			<span class="keyword">if</span> !cont &#123;</span><br><span class="line">				finished = <span class="literal">true</span></span><br><span class="line">			&#125;</span><br><span class="line">			<span class="keyword">select</span> &#123;</span><br><span class="line">			<span class="keyword">case</span> update &lt;- <span class="keyword">struct</span>&#123;&#125;&#123;&#125;:</span><br><span class="line">			<span class="keyword">default</span>:</span><br><span class="line">			&#125;</span><br><span class="line"></span><br><span class="line">		<span class="keyword">case</span> &lt;-ticker.C:</span><br><span class="line">			<span class="keyword">select</span> &#123;</span><br><span class="line">			<span class="keyword">case</span> update &lt;- <span class="keyword">struct</span>&#123;&#125;&#123;&#125;:</span><br><span class="line">			<span class="keyword">default</span>:</span><br><span class="line">			&#125;</span><br><span class="line"></span><br><span class="line">		<span class="keyword">case</span> &lt;-update:</span><br><span class="line"></span><br><span class="line">			<span class="keyword">if</span> d.peers.Len() == <span class="number">0</span> &#123;</span><br><span class="line">				<span class="keyword">return</span> errNoPeers</span><br><span class="line">			&#125;</span><br><span class="line"></span><br><span class="line">			<span class="keyword">for</span> pid, fails := <span class="keyword">range</span> expire() &#123;</span><br><span class="line">				<span class="keyword">if</span> peer := d.peers.Peer(pid); peer != <span class="literal">nil</span> &#123;</span><br><span class="line">					<span class="keyword">if</span> fails &gt; <span class="number">2</span> &#123;</span><br><span class="line">						peer.log.Trace(<span class="string">"Data delivery timed out"</span>, <span class="string">"type"</span>, kind)</span><br><span class="line">						setIdle(peer, <span class="number">0</span>)</span><br><span class="line">					&#125; <span class="keyword">else</span> &#123;</span><br><span class="line">						peer.log.Debug(<span class="string">"Stalling delivery, dropping"</span>, <span class="string">"type"</span>, kind)</span><br><span class="line">						<span class="keyword">if</span> d.dropPeer == <span class="literal">nil</span> &#123;</span><br><span class="line">							peer.log.Warn(<span class="string">"Downloader wants to drop peer, but peerdrop-function is not set"</span>, <span class="string">"peer"</span>, pid)</span><br><span class="line">						&#125; <span class="keyword">else</span> &#123;</span><br><span class="line">							d.dropPeer(pid)</span><br><span class="line">						&#125;</span><br><span class="line">					&#125;</span><br><span class="line">				&#125;</span><br><span class="line">			&#125;</span><br><span class="line"></span><br><span class="line">			<span class="keyword">if</span> pending() == <span class="number">0</span> &#123;</span><br><span class="line">				<span class="keyword">if</span> !inFlight() &amp;&amp; finished &#123;</span><br><span class="line">					log.Debug(<span class="string">"Data fetching completed"</span>, <span class="string">"type"</span>, kind)</span><br><span class="line">					<span class="keyword">return</span> <span class="literal">nil</span></span><br><span class="line">				&#125;</span><br><span class="line">				<span class="keyword">break</span></span><br><span class="line">			&#125;</span><br><span class="line"></span><br><span class="line">			progressed, throttled, running := <span class="literal">false</span>, <span class="literal">false</span>, inFlight()</span><br><span class="line">			idles, total := idle()</span><br><span class="line"></span><br><span class="line">			<span class="keyword">for</span> _, peer := <span class="keyword">range</span> idles &#123;</span><br><span class="line"></span><br><span class="line">				<span class="keyword">if</span> throttle() &#123;</span><br><span class="line">					throttled = <span class="literal">true</span></span><br><span class="line">					<span class="keyword">break</span></span><br><span class="line">				&#125;</span><br><span class="line"></span><br><span class="line">				<span class="keyword">if</span> pending() == <span class="number">0</span> &#123;</span><br><span class="line">					<span class="keyword">break</span></span><br><span class="line">				&#125;</span><br><span class="line"></span><br><span class="line">				request, progress, err := reserve(peer, capacity(peer))</span><br><span class="line">				<span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">					<span class="keyword">return</span> err</span><br><span class="line">				&#125;</span><br><span class="line">				<span class="keyword">if</span> progress &#123;</span><br><span class="line">					progressed = <span class="literal">true</span></span><br><span class="line">				&#125;</span><br><span class="line">				<span class="keyword">if</span> request == <span class="literal">nil</span> &#123;</span><br><span class="line">					<span class="keyword">continue</span></span><br><span class="line">				&#125;</span><br><span class="line">				<span class="keyword">if</span> request.From &gt; <span class="number">0</span> &#123;</span><br><span class="line">					peer.log.Trace(<span class="string">"Requesting new batch of data"</span>, <span class="string">"type"</span>, kind, <span class="string">"from"</span>, request.From)</span><br><span class="line">				&#125; <span class="keyword">else</span> &#123;</span><br><span class="line">					peer.log.Trace(<span class="string">"Requesting new batch of data"</span>, <span class="string">"type"</span>, kind, <span class="string">"count"</span>, <span class="built_in">len</span>(request.Headers), <span class="string">"from"</span>, request.Headers[<span class="number">0</span>].Number)</span><br><span class="line">				&#125;</span><br><span class="line">				<span class="keyword">if</span> fetchHook != <span class="literal">nil</span> &#123;</span><br><span class="line">					fetchHook(request.Headers)</span><br><span class="line">				&#125;</span><br><span class="line">				<span class="keyword">if</span> err := fetch(peer, request); err != <span class="literal">nil</span> &#123;</span><br><span class="line">					<span class="built_in">panic</span>(fmt.Sprintf(<span class="string">"%v: %s fetch assignment failed"</span>, peer, kind))</span><br><span class="line">				&#125;</span><br><span class="line">				running = <span class="literal">true</span></span><br><span class="line">			&#125;</span><br><span class="line"></span><br><span class="line">			<span class="keyword">if</span> !progressed &amp;&amp; !throttled &amp;&amp; !running &amp;&amp; <span class="built_in">len</span>(idles) == total &amp;&amp; pending() &gt; <span class="number">0</span> &#123;</span><br><span class="line">				<span class="keyword">return</span> errPeersUnavailable</span><br><span class="line">			&#125;</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>这个方法在前面多次出现，这里详细分析一下。首先这个方法的参数非常多，大致功能在方法前的注释部分已经写了，可以简单参考一下。</p>
+<p>首先设置了一个ticker，每100毫秒触发一次，触发时向update写入内容，触发相应逻辑：首先判断peer数量是否为0，然后调用expire方法获取那些因为超时而终止的请求，expire根据传入的参数有不同的方法，但都属于queue的ExpireXxx其中之一，最后返回的是一个map，保存着每个peer超时的请求的head数量。回到fetchParts中，遍历这个map，如果对应peer失效的head数大于2，者将其设为idle状态。否则调用pm的removePeer方法将该peer移除。</p>
+<p>处理完超时的请求后，调用了pending方法，这个方法主要就是返回queue中headerTaskQueue、blockTaskQueue和receiptTaskQueue这几个队列其中某个的大小，这些队列存储着调度任务。如果对应队列为空的话，调用了inFlight方法，对应的是queue中headerPendPool、blockPendPool和receiptPendPool这几个请求等待池中对应的那个池是否为空，如果不为空但是finished为true表示完成则退出，否则表示暂时没有任务，进行下次循环等待逻辑触发。</p>
+<p>接下来设置了几个标志位，然后通过idle方法获取了对应状态空闲的peer。之后遍历这些空闲的peer。下面调用了throttle方法，分别对应queue中的ShouldThrottleBlocks和ShouldThrottleReceipts，在fillHeaderSkeleton中调用fetchParts该方法时直接返回false。ShouldThrottleBlocks和ShouldThrottleReceipts分别返回对应下载任务是否需要限流。如果需要则停止本次操作，等待下一次。否则如果没有等待的任务则也停止本次操作。</p>
+<p>再往下调用了reserve，对应的是queue的ReserveHeaders、ReserveBodies和ReserveReceipts方法。传入的参数是相应的peer的HeaderCapacity、BlockCapacity或ReceiptCapacity返回的结果。关于ReserveXxx后面会详细介绍，这里简单说一下作用。对于ReserveHeaders，是构造一个请求，请求中包含了起始位置，让后将请求放入headerPendPool并返回这个请求，headerPendPool存储了等待下载的请求。对于ReserveBodies和ReserveReceipts则是将对应的taskQueue的head进行分类，并构造请求结果放入resultCache中，之后将要跳过的head重新放入taskQueue，最后构建一个请求包含剩余的head，并将该请求放入对应的pendPool，最后返回该请求以及处理状态progress。其中的taskQueue是在调用Schedule时放入的，这里取出准备进行请求。</p>
+<p>回到fetchParts中，经过reserve方法后，返回了构造的请求。进行了简单的判断后，调用了fetch方法去处理请求。分别对应peer的FetchHeaders、FetchBodies和FetchReceipts。这几个方法就是根据请求的内容实际调用peer的Request去发送请求。</p>
+<p>这样一个idle状态的peer处理完毕，后面会遍历所有idle状态的peer执行相同逻辑。</p>
+<p>除了update对应的逻辑，还有deliveryCh对应的逻辑。回顾pm的handleMsg逻辑，在收到BlockHeadersMsg、BlockBodiesMsg和ReceiptsMsg消息后，这几个消息对应前面FetchHeaders、FetchBodies和FetchReceipts发送的请求消息的回应，也就是在收到响应后，会调用downloader的相应DeliverXxx方法，之后调用deliver方法，这个方法的主要作用是向headerCh、bodyCh和receiptCh某一个发送收到的包，headerCh、bodyCh和receiptCh这三个channel分别在调用fetchParts时被传入deliveryCh参数，所以收到响应后触发了deliveryCh对应的逻辑。</p>
+<p>在这里面，首先调用了deliver方法，这个分别对应queue的DeliverHeaders、DeliverBodies和DeliverReceipts方法。这几个方法后面会详细介绍，这里简单说一下作用。对于DeliverHeaders方法主要是检查收到的heads是否正确，不正确的话将其重新放回headerTaskQueue等待后续处理。正确的话将准备好的head传入headerProcCh触发processHeaders中逻辑并返回收到的head数量。对于DeliverBodies和DeliverReceipts，主要是对收到的数据进行检查，成功的补全fetchResult，不成功放入taskQueue重新请求。最后返回成功接收的数量，然后将对应peer设为空闲，最后打印log。</p>
+<h2 id="processFastSyncContent"><a href="#processFastSyncContent" class="headerlink" title="processFastSyncContent"></a>processFastSyncContent</h2><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(d *Downloader)</span> <span class="title">processFastSyncContent</span><span class="params">(latest *types.Header)</span> <span class="title">error</span></span> &#123;</span><br><span class="line">	stateSync := d.syncState(latest.Root)</span><br><span class="line">	<span class="keyword">defer</span> stateSync.Cancel()</span><br><span class="line">	<span class="keyword">go</span> <span class="function"><span class="keyword">func</span><span class="params">()</span></span> &#123;</span><br><span class="line">		<span class="keyword">if</span> err := stateSync.Wait(); err != <span class="literal">nil</span> &amp;&amp; err != errCancelStateFetch &#123;</span><br><span class="line">			d.queue.Close() <span class="comment">// wake up Results</span></span><br><span class="line">		&#125;</span><br><span class="line">	&#125;()</span><br><span class="line">	pivot := <span class="keyword">uint64</span>(<span class="number">0</span>)</span><br><span class="line">	<span class="keyword">if</span> height := latest.Number.Uint64(); height &gt; <span class="keyword">uint64</span>(fsMinFullBlocks) &#123;</span><br><span class="line">		pivot = height - <span class="keyword">uint64</span>(fsMinFullBlocks)</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">var</span> (</span><br><span class="line">		oldPivot *fetchResult   <span class="comment">// Locked in pivot block, might change eventually</span></span><br><span class="line">		oldTail  []*fetchResult <span class="comment">// Downloaded content after the pivot</span></span><br><span class="line">	)</span><br><span class="line">	<span class="keyword">for</span> &#123;</span><br><span class="line">		results := d.queue.Results(oldPivot == <span class="literal">nil</span>) <span class="comment">// Block if we're not monitoring pivot staleness</span></span><br><span class="line">		<span class="keyword">if</span> <span class="built_in">len</span>(results) == <span class="number">0</span> &#123;</span><br><span class="line">			<span class="keyword">if</span> oldPivot == <span class="literal">nil</span> &#123;</span><br><span class="line">				<span class="keyword">return</span> stateSync.Cancel()</span><br><span class="line">			&#125;</span><br><span class="line">			<span class="keyword">select</span> &#123;</span><br><span class="line">			<span class="keyword">case</span> &lt;-d.cancelCh:</span><br><span class="line">				<span class="keyword">return</span> stateSync.Cancel()</span><br><span class="line">			<span class="keyword">default</span>:</span><br><span class="line">			&#125;</span><br><span class="line">		&#125;</span><br><span class="line">		<span class="keyword">if</span> d.chainInsertHook != <span class="literal">nil</span> &#123;</span><br><span class="line">			d.chainInsertHook(results)</span><br><span class="line">		&#125;</span><br><span class="line">		<span class="keyword">if</span> oldPivot != <span class="literal">nil</span> &#123;</span><br><span class="line">			results = <span class="built_in">append</span>(<span class="built_in">append</span>([]*fetchResult&#123;oldPivot&#125;, oldTail...), results...)</span><br><span class="line">		&#125;</span><br><span class="line">		<span class="keyword">if</span> atomic.LoadInt32(&amp;d.committed) == <span class="number">0</span> &#123;</span><br><span class="line">			latest = results[<span class="built_in">len</span>(results)<span class="number">-1</span>].Header</span><br><span class="line">			<span class="keyword">if</span> height := latest.Number.Uint64(); height &gt; pivot+<span class="number">2</span>*<span class="keyword">uint64</span>(fsMinFullBlocks) &#123;</span><br><span class="line">				log.Warn(<span class="string">"Pivot became stale, moving"</span>, <span class="string">"old"</span>, pivot, <span class="string">"new"</span>, height-<span class="keyword">uint64</span>(fsMinFullBlocks))</span><br><span class="line">				pivot = height - <span class="keyword">uint64</span>(fsMinFullBlocks)</span><br><span class="line">			&#125;</span><br><span class="line">		&#125;</span><br><span class="line">		P, beforeP, afterP := splitAroundPivot(pivot, results)</span><br><span class="line">		<span class="keyword">if</span> err := d.commitFastSyncData(beforeP, stateSync); err != <span class="literal">nil</span> &#123;</span><br><span class="line">			<span class="keyword">return</span> err</span><br><span class="line">		&#125;</span><br><span class="line">		<span class="keyword">if</span> P != <span class="literal">nil</span> &#123;</span><br><span class="line">			<span class="keyword">if</span> oldPivot != P &#123;</span><br><span class="line">				stateSync.Cancel()</span><br><span class="line"></span><br><span class="line">				stateSync = d.syncState(P.Header.Root)</span><br><span class="line">				<span class="keyword">defer</span> stateSync.Cancel()</span><br><span class="line">				<span class="keyword">go</span> <span class="function"><span class="keyword">func</span><span class="params">()</span></span> &#123;</span><br><span class="line">					<span class="keyword">if</span> err := stateSync.Wait(); err != <span class="literal">nil</span> &amp;&amp; err != errCancelStateFetch &#123;</span><br><span class="line">						d.queue.Close() <span class="comment">// wake up Results</span></span><br><span class="line">					&#125;</span><br><span class="line">				&#125;()</span><br><span class="line">				oldPivot = P</span><br><span class="line">			&#125;</span><br><span class="line">			<span class="keyword">select</span> &#123;</span><br><span class="line">			<span class="keyword">case</span> &lt;-stateSync.done:</span><br><span class="line">				<span class="keyword">if</span> stateSync.err != <span class="literal">nil</span> &#123;</span><br><span class="line">					<span class="keyword">return</span> stateSync.err</span><br><span class="line">				&#125;</span><br><span class="line">				<span class="keyword">if</span> err := d.commitPivotBlock(P); err != <span class="literal">nil</span> &#123;</span><br><span class="line">					<span class="keyword">return</span> err</span><br><span class="line">				&#125;</span><br><span class="line">				oldPivot = <span class="literal">nil</span></span><br><span class="line"></span><br><span class="line">			<span class="keyword">case</span> &lt;-time.After(time.Second):</span><br><span class="line">				oldTail = afterP</span><br><span class="line">				<span class="keyword">continue</span></span><br><span class="line">			&#125;</span><br><span class="line">		&#125;</span><br><span class="line">		<span class="keyword">if</span> err := d.importBlockResults(afterP); err != <span class="literal">nil</span> &#123;</span><br><span class="line">			<span class="keyword">return</span> err</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>这是fast模式特有的方法，也是整个快速同步过程中的最后一步。首先调用syncState，这个方法后面会分析，syncState启动后开始同步状态树。与此同时processFastSyncContent中计算了pivot，这个值和前面syncWithPeer中的pivot类似。随后启动了一个死循环，循环中先调用Results方法，Results主要取出已经处理完成的块。然后将这些块根据pivot的值分为3部分（使用splitAroundPivot）：pivot之前的、pivot之后的和pivot位置上的。然后将之前的直接插入区块链（使用commitFastSyncData方法），对于之后的虽然也要插入区块链，但是不直接插入收据数据。</p>
+<h2 id="processFullSyncContent"><a href="#processFullSyncContent" class="headerlink" title="processFullSyncContent"></a>processFullSyncContent</h2><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(d *Downloader)</span> <span class="title">processFullSyncContent</span><span class="params">()</span> <span class="title">error</span></span> &#123;</span><br><span class="line">	<span class="keyword">for</span> &#123;</span><br><span class="line">		results := d.queue.Results(<span class="literal">true</span>)</span><br><span class="line">		<span class="keyword">if</span> <span class="built_in">len</span>(results) == <span class="number">0</span> &#123;</span><br><span class="line">			<span class="keyword">return</span> <span class="literal">nil</span></span><br><span class="line">		&#125;</span><br><span class="line">		<span class="keyword">if</span> d.chainInsertHook != <span class="literal">nil</span> &#123;</span><br><span class="line">			d.chainInsertHook(results)</span><br><span class="line">		&#125;</span><br><span class="line">		<span class="keyword">if</span> err := d.importBlockResults(results); err != <span class="literal">nil</span> &#123;</span><br><span class="line">			<span class="keyword">return</span> err</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>这个是full模式下的最后一步，首先还是调用Results获取已经处理完毕的块，然后调用importBlockResults方法插入区块链，和processFastSyncContent中处理pivot点之后的区块一样，不直接插入下载的收据，详细插入过程在BlockChain源码部分分析。</p>
+<p>processFullSyncContent与processFastSyncContent也就集中体现了两种同步方式的区别</p>
+<h2 id="DeliverXxx"><a href="#DeliverXxx" class="headerlink" title="DeliverXxx"></a>DeliverXxx</h2><p>是一组方法，一共有四个DeliverHeaders、DeliverBodies、DeliverReceipts和DeliverNodeData，前三个在queue中有同名方法，但作用不同。这几个方法主要用在pm中，用于在收到对应响应时执行对应逻辑<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(d *Downloader)</span> <span class="title">DeliverHeaders</span><span class="params">(id <span class="keyword">string</span>, headers []*types.Header)</span> <span class="params">(err error)</span></span> &#123;</span><br><span class="line">	<span class="keyword">return</span> d.deliver(id, d.headerCh, &amp;headerPack&#123;id, headers&#125;, headerInMeter, headerDropMeter)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(d *Downloader)</span> <span class="title">DeliverBodies</span><span class="params">(id <span class="keyword">string</span>, transactions [][]*types.Transaction, uncles [][]*types.Header)</span> <span class="params">(err error)</span></span> &#123;</span><br><span class="line">	<span class="keyword">return</span> d.deliver(id, d.bodyCh, &amp;bodyPack&#123;id, transactions, uncles&#125;, bodyInMeter, bodyDropMeter)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(d *Downloader)</span> <span class="title">DeliverReceipts</span><span class="params">(id <span class="keyword">string</span>, receipts [][]*types.Receipt)</span> <span class="params">(err error)</span></span> &#123;</span><br><span class="line">	<span class="keyword">return</span> d.deliver(id, d.receiptCh, &amp;receiptPack&#123;id, receipts&#125;, receiptInMeter, receiptDropMeter)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(d *Downloader)</span> <span class="title">DeliverNodeData</span><span class="params">(id <span class="keyword">string</span>, data [][]<span class="keyword">byte</span>)</span> <span class="params">(err error)</span></span> &#123;</span><br><span class="line">	<span class="keyword">return</span> d.deliver(id, d.stateCh, &amp;statePack&#123;id, data&#125;, stateInMeter, stateDropMeter)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>都只是调用了deliver方法，区别在于传入的数据和触发异步逻辑的channel<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(d *Downloader)</span> <span class="title">deliver</span><span class="params">(id <span class="keyword">string</span>, destCh <span class="keyword">chan</span> dataPack, packet dataPack, inMeter, dropMeter metrics.Meter)</span> <span class="params">(err error)</span></span> &#123;</span><br><span class="line">	inMeter.Mark(<span class="keyword">int64</span>(packet.Items()))</span><br><span class="line">	<span class="keyword">defer</span> <span class="function"><span class="keyword">func</span><span class="params">()</span></span> &#123;</span><br><span class="line">		<span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">			dropMeter.Mark(<span class="keyword">int64</span>(packet.Items()))</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;()</span><br><span class="line"></span><br><span class="line">	d.cancelLock.RLock()</span><br><span class="line">	cancel := d.cancelCh</span><br><span class="line">	d.cancelLock.RUnlock()</span><br><span class="line">	<span class="keyword">if</span> cancel == <span class="literal">nil</span> &#123;</span><br><span class="line">		<span class="keyword">return</span> errNoSyncActive</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">select</span> &#123;</span><br><span class="line">	<span class="keyword">case</span> destCh &lt;- packet:</span><br><span class="line">		<span class="keyword">return</span> <span class="literal">nil</span></span><br><span class="line">	<span class="keyword">case</span> &lt;-cancel:</span><br><span class="line">		<span class="keyword">return</span> errNoSyncActive</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>没有什么实际动作，关键是将收到的数据传给destCh触发后续逻辑，对于前三个方法都是触发fetchParts中deliveryCh的逻辑，第四个方法触发了statesync中runStateSyn方法的逻辑。</p>
+<blockquote>
+<p>题图来自unsplash：<a href="https://unsplash.com/photos/PHdLDymaV90" target="_blank" rel="noopener">https://unsplash.com/photos/PHdLDymaV90</a></p>
+</blockquote>
+
+      
+    </div>
+
+    
+
+    
+    
+    
+
+    
+
+    
+      
+    
+    
+      <div>
+        <div style="padding: 10px 0; margin: 20px auto; width: 90%; text-align: center;">
+  <div>谢谢你请我吃糖</div>
+  <button id="rewardButton" disable="enable" onclick="var qr = document.getElementById('QR'); if (qr.style.display === 'none') {qr.style.display='block';} else {qr.style.display='none'}">
+    <span>打赏</span>
+  </button>
+  <div id="QR" style="display: none;">
+
+    
+      <div id="wechat" style="display: inline-block">
+        <img id="wechat_qr" src="/assets/img/wechatpay.jpg" alt="AmorFati 微信支付">
+        <p>微信支付</p>
+      </div>
+    
+
+    
+      <div id="alipay" style="display: inline-block">
+        <img id="alipay_qr" src="/assets/img/alipay.jpg" alt="AmorFati 支付宝">
+        <p>支付宝</p>
+      </div>
+    
+
+    
+
+  </div>
+</div>
+
+      </div>
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/go/" rel="tag"># go</a>
+          
+            <a href="/tags/区块链/" rel="tag"># 区块链</a>
+          
+            <a href="/tags/以太坊/" rel="tag"># 以太坊</a>
+          
+            <a href="/tags/go-ethereum/" rel="tag"># go-ethereum</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2019/05/13/通过RPC与太坊节点交互/" rel="next" title="通过RPC与太坊节点交互">
+                <i class="fa fa-chevron-left"></i> 通过RPC与太坊节点交互
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2019/05/16/go-ethereum中eth-downloader源码学习2/" rel="prev" title="go-ethereum中eth-downloader源码学习（二）">
+                go-ethereum中eth-downloader源码学习（二） <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+  </div>
+
+
+          </div>
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image" src="/assets/img/icon.jpg" alt="AmorFati">
+            
+              <p class="site-author-name" itemprop="name">AmorFati</p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          
+            <nav class="site-state motion-element">
+              
+                <div class="site-state-item site-state-posts">
+                
+                  <a href="/archives/">
+                
+                    <span class="site-state-item-count">34</span>
+                    <span class="site-state-item-name">日志</span>
+                  </a>
+                </div>
+              
+
+              
+                
+                
+                <div class="site-state-item site-state-categories">
+                  <a href="/categories/index.html">
+                    
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">7</span>
+                    <span class="site-state-item-name">分类</span>
+                  </a>
+                </div>
+              
+
+              
+                
+                
+                <div class="site-state-item site-state-tags">
+                  <a href="/tags/index.html">
+                    
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">11</span>
+                    <span class="site-state-item-name">标签</span>
+                  </a>
+                </div>
+              
+            </nav>
+          
+
+          
+
+          
+            <div class="links-of-author motion-element">
+              
+                <span class="links-of-author-item">
+                  
+                  
+                    
+                  
+                  
+                    
+                  
+                  <a href="https://github.com/chenyaoyang" title="GitHub &rarr; https://github.com/chenyaoyang" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i>GitHub</a>
+                </span>
+              
+                <span class="links-of-author-item">
+                  
+                  
+                    
+                  
+                  
+                    
+                  
+                  <a href="mailto:chenyang4346@foxmail.com" title="E-Mail &rarr; mailto:chenyang4346@foxmail.com" rel="noopener" target="_blank"><i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+                </span>
+              
+                <span class="links-of-author-item">
+                  
+                  
+                    
+                  
+                  
+                    
+                  
+                  <a href="https://www.jianshu.com/u/52c1bec4559c" title="简书 &rarr; https://www.jianshu.com/u/52c1bec4559c" rel="noopener" target="_blank"><i class="fa fa-fw fa-globe"></i>简书</a>
+                </span>
+              
+            </div>
+          
+
+          
+
+          
+          
+
+          
+            
+          
+          
+
+        </div>
+      </div>
+
+      
+      <!--noindex-->
+        <div class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+            
+            
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#new"><span class="nav-number">1.</span> <span class="nav-text">new</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Synchronise"><span class="nav-number">2.</span> <span class="nav-text">Synchronise</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#fetchHeaders"><span class="nav-number">3.</span> <span class="nav-text">fetchHeaders</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#fetchBodies"><span class="nav-number">4.</span> <span class="nav-text">fetchBodies</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#fetchReceipts"><span class="nav-number">5.</span> <span class="nav-text">fetchReceipts</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#processHeaders"><span class="nav-number">6.</span> <span class="nav-text">processHeaders</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#fetchParts"><span class="nav-number">7.</span> <span class="nav-text">fetchParts</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#processFastSyncContent"><span class="nav-number">8.</span> <span class="nav-text">processFastSyncContent</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#processFullSyncContent"><span class="nav-number">9.</span> <span class="nav-text">processFullSyncContent</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#DeliverXxx"><span class="nav-number">10.</span> <span class="nav-text">DeliverXxx</span></a></li></ol></div>
+            
+
+          </div>
+        </div>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; 2018 – <span itemprop="copyrightYear">2019</span>
+  <span class="with-love" id="animate">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">AmorFati</span>
+
+  
+
+  
+</div>
+
+
+  <div class="powered-by">由 <a href="https://hexo.io" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v3.8.0</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 – <a href="https://theme-next.org" class="theme-link" rel="noopener" target="_blank">NexT.Pisces</a> v6.6.0</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+    
+
+    
+  </div>
+
+  
+
+<script>
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+
+  
+
+
+  <script src="/js/src/utils.js?v=6.6.0"></script>
+
+  <script src="/js/src/motion.js?v=6.6.0"></script>
+
+
+
+  
+  
+
+
+  <script src="/js/src/affix.js?v=6.6.0"></script>
+
+  <script src="/js/src/schemes/pisces.js?v=6.6.0"></script>
+
+
+
+  
+  <script src="/js/src/scrollspy.js?v=6.6.0"></script>
+<script src="/js/src/post-details.js?v=6.6.0"></script>
+
+
+
+  
+
+
+  <script src="/js/src/bootstrap.js?v=6.6.0"></script>
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  <script>
+    // Popup Window;
+    var isfetched = false;
+    var isXml = true;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length === 0) {
+      search_path = "search.xml";
+    } else if (/json$/i.test(search_path)) {
+      isXml = false;
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    var onPopupClose = function (e) {
+      $('.popup').hide();
+      $('#local-search-input').val('');
+      $('.search-result-list').remove();
+      $('#no-result').remove();
+      $(".local-search-pop-overlay").remove();
+      $('body').css('overflow', '');
+    }
+
+    function proceedsearch() {
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay"></div>')
+        .css('overflow', 'hidden');
+      $('.search-popup-overlay').click(onPopupClose);
+      $('.popup').toggle();
+      var $localSearchInput = $('#local-search-input');
+      $localSearchInput.attr("autocapitalize", "none");
+      $localSearchInput.attr("autocorrect", "off");
+      $localSearchInput.focus();
+    }
+
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+      'use strict';
+
+      // start loading animation
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay">' +
+          '<div id="search-loading-icon">' +
+          '<i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>' +
+          '</div>' +
+          '</div>')
+        .css('overflow', 'hidden');
+      $("#search-loading-icon").css('margin', '20% auto 0 auto').css('text-align', 'center');
+
+      
+
+      $.ajax({
+        url: path,
+        dataType: isXml ? "xml" : "json",
+        async: true,
+        success: function(res) {
+          // get the contents from search data
+          isfetched = true;
+          $('.popup').detach().appendTo('.header-inner');
+          var datas = isXml ? $("entry", res).map(function() {
+            return {
+              title: $("title", this).text(),
+              content: $("content",this).text(),
+              url: $("url" , this).text()
+            };
+          }).get() : res;
+          var input = document.getElementById(search_id);
+          var resultContent = document.getElementById(content_id);
+          var inputEventFunction = function() {
+            var searchText = input.value.trim().toLowerCase();
+            var keywords = searchText.split(/[\s\-]+/);
+            if (keywords.length > 1) {
+              keywords.push(searchText);
+            }
+            var resultItems = [];
+            if (searchText.length > 0) {
+              // perform local searching
+              datas.forEach(function(data) {
+                var isMatch = false;
+                var hitCount = 0;
+                var searchTextCount = 0;
+                var title = data.title.trim();
+                var titleInLowerCase = title.toLowerCase();
+                var content = data.content.trim().replace(/<[^>]+>/g,"");
+                
+                var contentInLowerCase = content.toLowerCase();
+                var articleUrl = decodeURIComponent(data.url);
+                var indexOfTitle = [];
+                var indexOfContent = [];
+                // only match articles with not empty titles
+                if(title != '') {
+                  keywords.forEach(function(keyword) {
+                    function getIndexByWord(word, text, caseSensitive) {
+                      var wordLen = word.length;
+                      if (wordLen === 0) {
+                        return [];
+                      }
+                      var startPosition = 0, position = [], index = [];
+                      if (!caseSensitive) {
+                        text = text.toLowerCase();
+                        word = word.toLowerCase();
+                      }
+                      while ((position = text.indexOf(word, startPosition)) > -1) {
+                        index.push({position: position, word: word});
+                        startPosition = position + wordLen;
+                      }
+                      return index;
+                    }
+
+                    indexOfTitle = indexOfTitle.concat(getIndexByWord(keyword, titleInLowerCase, false));
+                    indexOfContent = indexOfContent.concat(getIndexByWord(keyword, contentInLowerCase, false));
+                  });
+                  if (indexOfTitle.length > 0 || indexOfContent.length > 0) {
+                    isMatch = true;
+                    hitCount = indexOfTitle.length + indexOfContent.length;
+                  }
+                }
+
+                // show search results
+
+                if (isMatch) {
+                  // sort index by position of keyword
+
+                  [indexOfTitle, indexOfContent].forEach(function (index) {
+                    index.sort(function (itemLeft, itemRight) {
+                      if (itemRight.position !== itemLeft.position) {
+                        return itemRight.position - itemLeft.position;
+                      } else {
+                        return itemLeft.word.length - itemRight.word.length;
+                      }
+                    });
+                  });
+
+                  // merge hits into slices
+
+                  function mergeIntoSlice(text, start, end, index) {
+                    var item = index[index.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    var hits = [];
+                    var searchTextCountInSlice = 0;
+                    while (position + word.length <= end && index.length != 0) {
+                      if (word === searchText) {
+                        searchTextCountInSlice++;
+                      }
+                      hits.push({position: position, length: word.length});
+                      var wordEnd = position + word.length;
+
+                      // move to next position of hit
+
+                      index.pop();
+                      while (index.length != 0) {
+                        item = index[index.length - 1];
+                        position = item.position;
+                        word = item.word;
+                        if (wordEnd > position) {
+                          index.pop();
+                        } else {
+                          break;
+                        }
+                      }
+                    }
+                    searchTextCount += searchTextCountInSlice;
+                    return {
+                      hits: hits,
+                      start: start,
+                      end: end,
+                      searchTextCount: searchTextCountInSlice
+                    };
+                  }
+
+                  var slicesOfTitle = [];
+                  if (indexOfTitle.length != 0) {
+                    slicesOfTitle.push(mergeIntoSlice(title, 0, title.length, indexOfTitle));
+                  }
+
+                  var slicesOfContent = [];
+                  while (indexOfContent.length != 0) {
+                    var item = indexOfContent[indexOfContent.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    // cut out 100 characters
+                    var start = position - 20;
+                    var end = position + 80;
+                    if(start < 0){
+                      start = 0;
+                    }
+                    if (end < position + word.length) {
+                      end = position + word.length;
+                    }
+                    if(end > content.length){
+                      end = content.length;
+                    }
+                    slicesOfContent.push(mergeIntoSlice(content, start, end, indexOfContent));
+                  }
+
+                  // sort slices in content by search text's count and hits' count
+
+                  slicesOfContent.sort(function (sliceLeft, sliceRight) {
+                    if (sliceLeft.searchTextCount !== sliceRight.searchTextCount) {
+                      return sliceRight.searchTextCount - sliceLeft.searchTextCount;
+                    } else if (sliceLeft.hits.length !== sliceRight.hits.length) {
+                      return sliceRight.hits.length - sliceLeft.hits.length;
+                    } else {
+                      return sliceLeft.start - sliceRight.start;
+                    }
+                  });
+
+                  // select top N slices in content
+
+                  var upperBound = parseInt('1');
+                  if (upperBound >= 0) {
+                    slicesOfContent = slicesOfContent.slice(0, upperBound);
+                  }
+
+                  // highlight title and content
+
+                  function highlightKeyword(text, slice) {
+                    var result = '';
+                    var prevEnd = slice.start;
+                    slice.hits.forEach(function (hit) {
+                      result += text.substring(prevEnd, hit.position);
+                      var end = hit.position + hit.length;
+                      result += '<b class="search-keyword">' + text.substring(hit.position, end) + '</b>';
+                      prevEnd = end;
+                    });
+                    result += text.substring(prevEnd, slice.end);
+                    return result;
+                  }
+
+                  var resultItem = '';
+
+                  if (slicesOfTitle.length != 0) {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + highlightKeyword(title, slicesOfTitle[0]) + "</a>";
+                  } else {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + title + "</a>";
+                  }
+
+                  slicesOfContent.forEach(function (slice) {
+                    resultItem += "<a href='" + articleUrl + "'>" +
+                      "<p class=\"search-result\">" + highlightKeyword(content, slice) +
+                      "...</p>" + "</a>";
+                  });
+
+                  resultItem += "</li>";
+                  resultItems.push({
+                    item: resultItem,
+                    searchTextCount: searchTextCount,
+                    hitCount: hitCount,
+                    id: resultItems.length
+                  });
+                }
+              })
+            };
+            if (keywords.length === 1 && keywords[0] === "") {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>'
+            } else if (resultItems.length === 0) {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>'
+            } else {
+              resultItems.sort(function (resultLeft, resultRight) {
+                if (resultLeft.searchTextCount !== resultRight.searchTextCount) {
+                  return resultRight.searchTextCount - resultLeft.searchTextCount;
+                } else if (resultLeft.hitCount !== resultRight.hitCount) {
+                  return resultRight.hitCount - resultLeft.hitCount;
+                } else {
+                  return resultRight.id - resultLeft.id;
+                }
+              });
+              var searchResultList = '<ul class=\"search-result-list\">';
+              resultItems.forEach(function (result) {
+                searchResultList += result.item;
+              })
+              searchResultList += "</ul>";
+              resultContent.innerHTML = searchResultList;
+            }
+          }
+
+          if ('auto' === 'auto') {
+            input.addEventListener('input', inputEventFunction);
+          } else {
+            $('.search-icon').click(inputEventFunction);
+            input.addEventListener('keypress', function (event) {
+              if (event.keyCode === 13) {
+                inputEventFunction();
+              }
+            });
+          }
+
+          // remove loading animation
+          $(".local-search-pop-overlay").remove();
+          $('body').css('overflow', '');
+
+          proceedsearch();
+        }
+      });
+    }
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched === false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+    });
+
+    $('.popup-btn-close').click(onPopupClose);
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+    $(document).on('keyup', function (event) {
+      var shouldDismissSearchPopup = event.which === 27 &&
+        $('.search-popup').is(':visible');
+      if (shouldDismissSearchPopup) {
+        onPopupClose();
+      }
+    });
+  </script>
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+  
+
+  
+
+
+  
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

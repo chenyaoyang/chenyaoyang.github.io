@@ -1,0 +1,1412 @@
+<!DOCTYPE html>
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+<html class="theme-next pisces use-motion" lang="zh-CN">
+<head><meta name="generator" content="Hexo 3.8.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+    
+      
+    
+
+    
+  
+
+  
+
+  
+    
+      
+    
+
+    
+  
+
+  
+    
+      
+    
+
+    
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Monda:300,300italic,400,400italic,700,700italic|Roboto Slab:300,300italic,400,400italic,700,700italic|Dancing Script:300,300italic,400,400italic,700,700italic|Consolas:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css">
+
+<link href="/css/main.css?v=6.6.0" rel="stylesheet" type="text/css">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=6.6.0">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=6.6.0">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=6.6.0">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=6.6.0" color="#222">
+
+
+
+
+
+
+
+
+
+<script id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    version: '6.6.0',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: false,
+    fastclick: false,
+    lazyload: false,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+  
+
+
+
+
+  <meta name="keywords" content="go,区块链,以太坊,go-ethereum">
+<meta property="og:type" content="article">
+<meta property="og:title" content="go-ethereum中eth-downloader源码学习（二）">
+<meta property="og:url" content="http://yoursite.com/2019/05/16/go-ethereum中eth-downloader源码学习2/index.html">
+<meta property="og:site_name" content="AmorFati">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:image" content="https://raw.githubusercontent.com/chenyaoyang/blog-pic/master/head/yermek-zhakipzhanov-1582770-unsplash.jpg">
+<meta property="og:updated_time" content="2019-05-16T10:17:59.401Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="go-ethereum中eth-downloader源码学习（二）">
+<meta name="twitter:image" content="https://raw.githubusercontent.com/chenyaoyang/blog-pic/master/head/yermek-zhakipzhanov-1582770-unsplash.jpg">
+
+
+
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2019/05/16/go-ethereum中eth-downloader源码学习2/">
+
+
+
+<script id="page.configurations">
+  CONFIG.page = {
+    sidebar: "",
+  };
+</script>
+
+  <title>go-ethereum中eth-downloader源码学习（二） | AmorFati</title>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  <noscript>
+  <style>
+    .use-motion .motion-element,
+    .use-motion .brand,
+    .use-motion .menu-item,
+    .sidebar-inner,
+    .use-motion .post-block,
+    .use-motion .pagination,
+    .use-motion .comments,
+    .use-motion .post-header,
+    .use-motion .post-body,
+    .use-motion .collection-title { opacity: initial; }
+
+    .use-motion .logo,
+    .use-motion .site-title,
+    .use-motion .site-subtitle {
+      opacity: initial;
+      top: initial;
+    }
+
+    .use-motion .logo-line-before i { left: initial; }
+    .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope="" itemtype="http://schema.org/WebPage" lang="zh-CN">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope="" itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">AmorFati</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+    
+      
+        <p class="site-subtitle">风吹过窗前的书，又翻过一页</p>
+      
+    
+    
+  </div>
+
+  <div class="site-nav-toggle">
+    <button aria-label="切换导航栏">
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  
+    <ul id="menu" class="menu">
+      
+        
+        
+        
+          
+          <li class="menu-item menu-item-home">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/" rel="section"><i class="menu-item-icon fa fa-fw fa-home"></i> <br>首页</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-about">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/about/" rel="section"><i class="menu-item-icon fa fa-fw fa-user"></i> <br>关于</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-tags">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/tags/" rel="section"><i class="menu-item-icon fa fa-fw fa-tags"></i> <br>标签</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-categories">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/categories/" rel="section"><i class="menu-item-icon fa fa-fw fa-th"></i> <br>分类</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-archives">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/archives/" rel="section"><i class="menu-item-icon fa fa-fw fa-archive"></i> <br>归档</a>
+
+  </li>
+
+      
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br>搜索</a>
+        </li>
+      
+    </ul>
+  
+
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup search-popup local-search-popup">
+  <div class="local-search-header clearfix">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+    <div class="local-search-input-wrapper">
+      <input autocomplete="off" placeholder="搜索..." spellcheck="false" type="text" id="local-search-input">
+    </div>
+  </div>
+  <div id="local-search-result"></div>
+</div>
+
+
+
+    </div>
+  
+</nav>
+
+
+
+  
+
+
+
+</div>
+    </header>
+
+    
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+            
+
+          
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  
+
+  <article class="post post-type-normal" itemscope="" itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/05/16/go-ethereum中eth-downloader源码学习2/">
+
+    <span hidden itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="AmorFati">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/assets/img/icon.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope="" itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="AmorFati">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">go-ethereum中eth-downloader源码学习（二）
+
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+
+            
+            
+            
+
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+
+              
+                
+              
+
+              <time title="创建时间：2019-05-16 17:49:56 / 修改时间：18:17:59" itemprop="dateCreated datePublished" datetime="2019-05-16T17:49:56+08:00">2019-05-16</time>
+            
+
+            
+              
+
+              
+            
+          </span>
+
+          
+            <span class="post-category">
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope="" itemtype="http://schema.org/Thing"><a href="/categories/go-ethereum源码学习/" itemprop="url" rel="index"><span itemprop="name">go-ethereum源码学习</span></a></span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p><img src="https://raw.githubusercontent.com/chenyaoyang/blog-pic/master/head/yermek-zhakipzhanov-1582770-unsplash.jpg" alt=""><br><a id="more"></a><br>本文是downloader的源码分析的第二部分，分析peer、queue和statesync这三个辅助部分</p>
+<h1 id="peer-go"><a href="#peer-go" class="headerlink" title="peer.go"></a>peer.go</h1><p>peer表示了一个节点，封装了一系列有用的方法<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">type</span> Peer <span class="keyword">interface</span> &#123;</span><br><span class="line">	LightPeer</span><br><span class="line">	RequestBodies([]common.Hash) error</span><br><span class="line">	RequestReceipts([]common.Hash) error</span><br><span class="line">	RequestNodeData([]common.Hash) error</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">type</span> LightPeer <span class="keyword">interface</span> &#123;</span><br><span class="line">	Head() (common.Hash, *big.Int)</span><br><span class="line">	RequestHeadersByHash(common.Hash, <span class="keyword">int</span>, <span class="keyword">int</span>, <span class="keyword">bool</span>) error</span><br><span class="line">	RequestHeadersByNumber(<span class="keyword">uint64</span>, <span class="keyword">int</span>, <span class="keyword">int</span>, <span class="keyword">bool</span>) error</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<h2 id="register-amp-Unregister"><a href="#register-amp-Unregister" class="headerlink" title="register &amp; Unregister"></a>register &amp; Unregister</h2><p>实际使用中，当一个连接建立后，使用pm的handle去处理一个peer时会用RegisterPeer的RegisterPeer方法去注册一个peer，RegisterPeer方法如下<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(d *Downloader)</span> <span class="title">RegisterPeer</span><span class="params">(id <span class="keyword">string</span>, version <span class="keyword">int</span>, peer Peer)</span> <span class="title">error</span></span> &#123;</span><br><span class="line">	logger := log.New(<span class="string">"peer"</span>, id)</span><br><span class="line">	logger.Trace(<span class="string">"Registering sync peer"</span>)</span><br><span class="line">	<span class="keyword">if</span> err := d.peers.Register(newPeerConnection(id, version, peer, logger)); err != <span class="literal">nil</span> &#123;</span><br><span class="line">		logger.Error(<span class="string">"Failed to register sync peer"</span>, <span class="string">"err"</span>, err)</span><br><span class="line">		<span class="keyword">return</span> err</span><br><span class="line">	&#125;</span><br><span class="line">	d.qosReduceConfidence()</span><br><span class="line"></span><br><span class="line">	<span class="keyword">return</span> <span class="literal">nil</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>可见实际上是向peers中注册，peers是一个peerSet对象，它的注册的是peerConnection对象<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">type</span> peerSet <span class="keyword">struct</span> &#123;</span><br><span class="line">	peers        <span class="keyword">map</span>[<span class="keyword">string</span>]*peerConnection</span><br><span class="line">	newPeerFeed  event.Feed</span><br><span class="line">	peerDropFeed event.Feed</span><br><span class="line">	lock         sync.RWMutex</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">type</span> peerConnection <span class="keyword">struct</span> &#123;</span><br><span class="line">	id <span class="keyword">string</span> <span class="comment">// Unique identifier of the peer</span></span><br><span class="line"></span><br><span class="line">	headerIdle  <span class="keyword">int32</span> <span class="comment">// Current header activity state of the peer (idle = 0, active = 1)</span></span><br><span class="line">	blockIdle   <span class="keyword">int32</span> <span class="comment">// Current block activity state of the peer (idle = 0, active = 1)</span></span><br><span class="line">	receiptIdle <span class="keyword">int32</span> <span class="comment">// Current receipt activity state of the peer (idle = 0, active = 1)</span></span><br><span class="line">	stateIdle   <span class="keyword">int32</span> <span class="comment">// Current node data activity state of the peer (idle = 0, active = 1)</span></span><br><span class="line"></span><br><span class="line">	headerThroughput  <span class="keyword">float64</span> <span class="comment">// Number of headers measured to be retrievable per second</span></span><br><span class="line">	blockThroughput   <span class="keyword">float64</span> <span class="comment">// Number of blocks (bodies) measured to be retrievable per second</span></span><br><span class="line">	receiptThroughput <span class="keyword">float64</span> <span class="comment">// Number of receipts measured to be retrievable per second</span></span><br><span class="line">	stateThroughput   <span class="keyword">float64</span> <span class="comment">// Number of node data pieces measured to be retrievable per second</span></span><br><span class="line"></span><br><span class="line">	rtt time.Duration <span class="comment">// Request round trip time to track responsiveness (QoS)</span></span><br><span class="line"></span><br><span class="line">	headerStarted  time.Time <span class="comment">// Time instance when the last header fetch was started</span></span><br><span class="line">	blockStarted   time.Time <span class="comment">// Time instance when the last block (body) fetch was started</span></span><br><span class="line">	receiptStarted time.Time <span class="comment">// Time instance when the last receipt fetch was started</span></span><br><span class="line">	stateStarted   time.Time <span class="comment">// Time instance when the last node data fetch was started</span></span><br><span class="line"></span><br><span class="line">	lacking <span class="keyword">map</span>[common.Hash]<span class="keyword">struct</span>&#123;&#125; <span class="comment">// Set of hashes not to request (didn't have previously)</span></span><br><span class="line"></span><br><span class="line">	peer Peer</span><br><span class="line"></span><br><span class="line">	version <span class="keyword">int</span>        <span class="comment">// Eth protocol version number to switch strategies</span></span><br><span class="line">	log     log.Logger <span class="comment">// Contextual logger to add extra infos to peer logs</span></span><br><span class="line">	lock    sync.RWMutex</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>peerSet的Register方法如下<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(ps *peerSet)</span> <span class="title">Register</span><span class="params">(p *peerConnection)</span> <span class="title">error</span></span> &#123;</span><br><span class="line">	p.rtt = ps.medianRTT()</span><br><span class="line"></span><br><span class="line">	ps.lock.Lock()</span><br><span class="line">	<span class="keyword">if</span> _, ok := ps.peers[p.id]; ok &#123;</span><br><span class="line">		ps.lock.Unlock()</span><br><span class="line">		<span class="keyword">return</span> errAlreadyRegistered</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">if</span> <span class="built_in">len</span>(ps.peers) &gt; <span class="number">0</span> &#123;</span><br><span class="line">		p.headerThroughput, p.blockThroughput, p.receiptThroughput, p.stateThroughput = <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span></span><br><span class="line"></span><br><span class="line">		<span class="keyword">for</span> _, peer := <span class="keyword">range</span> ps.peers &#123;</span><br><span class="line">			peer.lock.RLock()</span><br><span class="line">			p.headerThroughput += peer.headerThroughput</span><br><span class="line">			p.blockThroughput += peer.blockThroughput</span><br><span class="line">			p.receiptThroughput += peer.receiptThroughput</span><br><span class="line">			p.stateThroughput += peer.stateThroughput</span><br><span class="line">			peer.lock.RUnlock()</span><br><span class="line">		&#125;</span><br><span class="line">		p.headerThroughput /= <span class="keyword">float64</span>(<span class="built_in">len</span>(ps.peers))</span><br><span class="line">		p.blockThroughput /= <span class="keyword">float64</span>(<span class="built_in">len</span>(ps.peers))</span><br><span class="line">		p.receiptThroughput /= <span class="keyword">float64</span>(<span class="built_in">len</span>(ps.peers))</span><br><span class="line">		p.stateThroughput /= <span class="keyword">float64</span>(<span class="built_in">len</span>(ps.peers))</span><br><span class="line">	&#125;</span><br><span class="line">	ps.peers[p.id] = p</span><br><span class="line">	ps.lock.Unlock()</span><br><span class="line"></span><br><span class="line">	ps.newPeerFeed.Send(p)</span><br><span class="line">	<span class="keyword">return</span> <span class="literal">nil</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>medianRTT是取ps存储的所有peer的rtt的中位数，RTT即round-trip time，往返时间，可以评估和一个peer的通信质量。medianRTT实现如下：<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(ps *peerSet)</span> <span class="title">medianRTT</span><span class="params">()</span> <span class="title">time</span>.<span class="title">Duration</span></span> &#123;</span><br><span class="line">	ps.lock.RLock()</span><br><span class="line">	<span class="keyword">defer</span> ps.lock.RUnlock()</span><br><span class="line"></span><br><span class="line">	rtts := <span class="built_in">make</span>([]<span class="keyword">float64</span>, <span class="number">0</span>, <span class="built_in">len</span>(ps.peers))</span><br><span class="line">	<span class="keyword">for</span> _, p := <span class="keyword">range</span> ps.peers &#123;</span><br><span class="line">		p.lock.RLock()</span><br><span class="line">		rtts = <span class="built_in">append</span>(rtts, <span class="keyword">float64</span>(p.rtt))</span><br><span class="line">		p.lock.RUnlock()</span><br><span class="line">	&#125;</span><br><span class="line">	sort.Float64s(rtts)</span><br><span class="line"></span><br><span class="line">	median := rttMaxEstimate</span><br><span class="line">	<span class="keyword">if</span> qosTuningPeers &lt;= <span class="built_in">len</span>(rtts) &#123;</span><br><span class="line">		median = time.Duration(rtts[qosTuningPeers/<span class="number">2</span>]) </span><br><span class="line">	&#125; <span class="keyword">else</span> <span class="keyword">if</span> <span class="built_in">len</span>(rtts) &gt; <span class="number">0</span> &#123;</span><br><span class="line">		median = time.Duration(rtts[<span class="built_in">len</span>(rtts)/<span class="number">2</span>]) <span class="comment">// Median of our connected peers (maintain even like this some baseline qos)</span></span><br><span class="line">	&#125;</span><br><span class="line">	</span><br><span class="line">	<span class="keyword">if</span> median &lt; rttMinEstimate &#123;</span><br><span class="line">		median = rttMinEstimate</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">if</span> median &gt; rttMaxEstimate &#123;</span><br><span class="line">		median = rttMaxEstimate</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">return</span> median</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>逻辑很简单，首先取出所有peer的rtt，然后排序，如果序列长度大于5，就只取前5个的中位数，否则就是序列的中位数，获得的时间最后控制在2秒到20秒之间。</p>
+<p>回到Register中，先看是否注册过，若没有再判断是否注册过其他peer，则计算headerThroughput、blockThroughput、receiptThroughput和stateThroughput四个值，分别代表：每秒可检索的区块头数量，每秒可检索的区块体数量，每秒可检索的收据数量和每秒可检测的节点数据数量。然后将peer按照其id放入peers中。</p>
+<p>有注册就有反注册，Unregister实现如下<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(ps *peerSet)</span> <span class="title">Unregister</span><span class="params">(id <span class="keyword">string</span>)</span> <span class="title">error</span></span> &#123;</span><br><span class="line">	ps.lock.Lock()</span><br><span class="line">	p, ok := ps.peers[id]</span><br><span class="line">	<span class="keyword">if</span> !ok &#123;</span><br><span class="line">		<span class="keyword">defer</span> ps.lock.Unlock()</span><br><span class="line">		<span class="keyword">return</span> errNotRegistered</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="built_in">delete</span>(ps.peers, id)</span><br><span class="line">	ps.lock.Unlock()</span><br><span class="line"></span><br><span class="line">	ps.peerDropFeed.Send(p)</span><br><span class="line">	<span class="keyword">return</span> <span class="literal">nil</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>很简单就是先判断在删除。</p>
+<h2 id="FetchXxx"><a href="#FetchXxx" class="headerlink" title="FetchXxx"></a>FetchXxx</h2><p>peerConnection除了封装一个peer，还有一系列的peer相关的信息，除了前面提到过的headerThroughput、blockThroughput、receiptThroughput和stateThroughput，还有headerIdle、blockIdle、receiptIdle和stateIdle分别用来记录peer对应的工作状态，这几个变量为0时表示对应状态空闲，为1时表示对应状态繁忙。除此之外还有headerStarted、blockStarted、receiptStarted和stateStarted几个时间变量记录对应工作开始的时间。</p>
+<p>以head为例介绍一下相关变量的改变，在peerConnection有一个FetchHeaders表示请求区块头，实现如下<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(p *peerConnection)</span> <span class="title">FetchHeaders</span><span class="params">(from <span class="keyword">uint64</span>, count <span class="keyword">int</span>)</span> <span class="title">error</span></span> &#123;</span><br><span class="line">	<span class="keyword">if</span> p.version &lt; <span class="number">62</span> &#123;</span><br><span class="line">		<span class="built_in">panic</span>(fmt.Sprintf(<span class="string">"header fetch [eth/62+] requested on eth/%d"</span>, p.version))</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">if</span> !atomic.CompareAndSwapInt32(&amp;p.headerIdle, <span class="number">0</span>, <span class="number">1</span>) &#123;</span><br><span class="line">		<span class="keyword">return</span> errAlreadyFetching</span><br><span class="line">	&#125;</span><br><span class="line">	p.headerStarted = time.Now()</span><br><span class="line"></span><br><span class="line">	<span class="keyword">go</span> p.peer.RequestHeadersByNumber(from, count, <span class="number">0</span>, <span class="literal">false</span>)</span><br><span class="line"></span><br><span class="line">	<span class="keyword">return</span> <span class="literal">nil</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>这里先判断了eth协议的版本号，然后将headerIdle置为1，并记录开始时间到headerStarted，真正的请求逻辑在peer的RequestHeadersByNumber方法。这里的peer是ProtocolManager的newPeer方法创建的peer(go-ethereum\eth\peer.go)。</p>
+<p>同样还有FetchBodies、FetchReceipts和FetchNodeData等方法。</p>
+<h2 id="SetXxxIdle"><a href="#SetXxxIdle" class="headerlink" title="SetXxxIdle"></a>SetXxxIdle</h2><p>前面的FetchXxx是将对应状态置为忙碌，这里SetXxxIdle则是相反，他们都调用的是setIdle方法。<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(p *peerConnection)</span> <span class="title">setIdle</span><span class="params">(started time.Time, delivered <span class="keyword">int</span>, throughput *<span class="keyword">float64</span>, idle *<span class="keyword">int32</span>)</span></span> &#123;</span><br><span class="line">	<span class="keyword">defer</span> atomic.StoreInt32(idle, <span class="number">0</span>)</span><br><span class="line"></span><br><span class="line">	p.lock.Lock()</span><br><span class="line">	<span class="keyword">defer</span> p.lock.Unlock()</span><br><span class="line"></span><br><span class="line">	<span class="keyword">if</span> delivered == <span class="number">0</span> &#123;</span><br><span class="line">		*throughput = <span class="number">0</span></span><br><span class="line">		<span class="keyword">return</span></span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	elapsed := time.Since(started) + <span class="number">1</span> </span><br><span class="line">	measured := <span class="keyword">float64</span>(delivered) / (<span class="keyword">float64</span>(elapsed) / <span class="keyword">float64</span>(time.Second))</span><br><span class="line"></span><br><span class="line">	*throughput = (<span class="number">1</span>-measurementImpact)*(*throughput) + measurementImpact*measured</span><br><span class="line">	p.rtt = time.Duration((<span class="number">1</span>-measurementImpact)*<span class="keyword">float64</span>(p.rtt) + measurementImpact*<span class="keyword">float64</span>(elapsed))</span><br><span class="line"></span><br><span class="line">	p.log.Trace(<span class="string">"Peer throughput measurements updated"</span>,</span><br><span class="line">		<span class="string">"hps"</span>, p.headerThroughput, <span class="string">"bps"</span>, p.blockThroughput,</span><br><span class="line">		<span class="string">"rps"</span>, p.receiptThroughput, <span class="string">"sps"</span>, p.stateThroughput,</span><br><span class="line">		<span class="string">"miss"</span>, <span class="built_in">len</span>(p.lacking), <span class="string">"rtt"</span>, p.rtt)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>首先置0，表示空闲，然后如果delivered为0，表示没有传送到，则该peer的对应throughput置0.否则更新throughput和rtt。</p>
+<h2 id="XxxCapacity"><a href="#XxxCapacity" class="headerlink" title="XxxCapacity"></a>XxxCapacity</h2><p>返回的对应状态的吞吐量，以heads为例<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(p *peerConnection)</span> <span class="title">HeaderCapacity</span><span class="params">(targetRTT time.Duration)</span> <span class="title">int</span></span> &#123;</span><br><span class="line">	p.lock.RLock()</span><br><span class="line">	<span class="keyword">defer</span> p.lock.RUnlock()</span><br><span class="line"></span><br><span class="line">	<span class="keyword">return</span> <span class="keyword">int</span>(math.Min(<span class="number">1</span>+math.Max(<span class="number">1</span>, p.headerThroughput*<span class="keyword">float64</span>(targetRTT)/<span class="keyword">float64</span>(time.Second)), <span class="keyword">float64</span>(MaxHeaderFetch)))</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<h2 id="XxxIdlePeers"><a href="#XxxIdlePeers" class="headerlink" title="XxxIdlePeers"></a>XxxIdlePeers</h2><p>用来获取对应状态空闲的peer<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(ps *peerSet)</span> <span class="title">HeaderIdlePeers</span><span class="params">()</span> <span class="params">([]*peerConnection, <span class="keyword">int</span>)</span></span> &#123;</span><br><span class="line">	idle := <span class="function"><span class="keyword">func</span><span class="params">(p *peerConnection)</span> <span class="title">bool</span></span> &#123;</span><br><span class="line">		<span class="keyword">return</span> atomic.LoadInt32(&amp;p.headerIdle) == <span class="number">0</span></span><br><span class="line">	&#125;</span><br><span class="line">	throughput := <span class="function"><span class="keyword">func</span><span class="params">(p *peerConnection)</span> <span class="title">float64</span></span> &#123;</span><br><span class="line">		p.lock.RLock()</span><br><span class="line">		<span class="keyword">defer</span> p.lock.RUnlock()</span><br><span class="line">		<span class="keyword">return</span> p.headerThroughput</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">return</span> ps.idlePeers(<span class="number">62</span>, <span class="number">64</span>, idle, throughput)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>调用的是idlePeers<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(ps *peerSet)</span> <span class="title">idlePeers</span><span class="params">(minProtocol, maxProtocol <span class="keyword">int</span>, idleCheck <span class="keyword">func</span>(*peerConnection)</span> <span class="title">bool</span>, <span class="title">throughput</span> <span class="title">func</span><span class="params">(*peerConnection)</span> <span class="title">float64</span>) <span class="params">([]*peerConnection, <span class="keyword">int</span>)</span></span> &#123;</span><br><span class="line">	ps.lock.RLock()</span><br><span class="line">	<span class="keyword">defer</span> ps.lock.RUnlock()</span><br><span class="line"></span><br><span class="line">	idle, total := <span class="built_in">make</span>([]*peerConnection, <span class="number">0</span>, <span class="built_in">len</span>(ps.peers)), <span class="number">0</span></span><br><span class="line">	<span class="keyword">for</span> _, p := <span class="keyword">range</span> ps.peers &#123;</span><br><span class="line">		<span class="keyword">if</span> p.version &gt;= minProtocol &amp;&amp; p.version &lt;= maxProtocol &#123;</span><br><span class="line">			<span class="keyword">if</span> idleCheck(p) &#123;</span><br><span class="line">				idle = <span class="built_in">append</span>(idle, p)</span><br><span class="line">			&#125;</span><br><span class="line">			total++</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">for</span> i := <span class="number">0</span>; i &lt; <span class="built_in">len</span>(idle); i++ &#123;</span><br><span class="line">		<span class="keyword">for</span> j := i + <span class="number">1</span>; j &lt; <span class="built_in">len</span>(idle); j++ &#123;</span><br><span class="line">			<span class="keyword">if</span> throughput(idle[i]) &lt; throughput(idle[j]) &#123;</span><br><span class="line">				idle[i], idle[j] = idle[j], idle[i]</span><br><span class="line">			&#125;</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">return</span> idle, total</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>就是简单的遍历，然后将结果按throughput排序。</p>
+<h2 id="Reset"><a href="#Reset" class="headerlink" title="Reset"></a>Reset</h2><p>重置所有变量<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(p *peerConnection)</span> <span class="title">Reset</span><span class="params">()</span></span> &#123;</span><br><span class="line">	p.lock.Lock()</span><br><span class="line">	<span class="keyword">defer</span> p.lock.Unlock()</span><br><span class="line"></span><br><span class="line">	atomic.StoreInt32(&amp;p.headerIdle, <span class="number">0</span>)</span><br><span class="line">	atomic.StoreInt32(&amp;p.blockIdle, <span class="number">0</span>)</span><br><span class="line">	atomic.StoreInt32(&amp;p.receiptIdle, <span class="number">0</span>)</span><br><span class="line">	atomic.StoreInt32(&amp;p.stateIdle, <span class="number">0</span>)</span><br><span class="line"></span><br><span class="line">	p.headerThroughput = <span class="number">0</span></span><br><span class="line">	p.blockThroughput = <span class="number">0</span></span><br><span class="line">	p.receiptThroughput = <span class="number">0</span></span><br><span class="line">	p.stateThroughput = <span class="number">0</span></span><br><span class="line"></span><br><span class="line">	p.lacking = <span class="built_in">make</span>(<span class="keyword">map</span>[common.Hash]<span class="keyword">struct</span>&#123;&#125;)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<h1 id="queue-go"><a href="#queue-go" class="headerlink" title="queue.go"></a>queue.go</h1><p>这实际上起到一个调度的作用，配合downloader的fetchParts方法，它用来告诉downloader哪些可以去处理。先看构造方法，在downloader创建时调用了newQueue方法创建了一个queue<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">newQueue</span><span class="params">()</span> *<span class="title">queue</span></span> &#123;</span><br><span class="line">	lock := <span class="built_in">new</span>(sync.Mutex)</span><br><span class="line">	<span class="keyword">return</span> &amp;queue&#123;</span><br><span class="line">		headerPendPool:   <span class="built_in">make</span>(<span class="keyword">map</span>[<span class="keyword">string</span>]*fetchRequest),</span><br><span class="line">		headerContCh:     <span class="built_in">make</span>(<span class="keyword">chan</span> <span class="keyword">bool</span>),</span><br><span class="line">		blockTaskPool:    <span class="built_in">make</span>(<span class="keyword">map</span>[common.Hash]*types.Header),</span><br><span class="line">		blockTaskQueue:   prque.New(<span class="literal">nil</span>),</span><br><span class="line">		blockPendPool:    <span class="built_in">make</span>(<span class="keyword">map</span>[<span class="keyword">string</span>]*fetchRequest),</span><br><span class="line">		blockDonePool:    <span class="built_in">make</span>(<span class="keyword">map</span>[common.Hash]<span class="keyword">struct</span>&#123;&#125;),</span><br><span class="line">		receiptTaskPool:  <span class="built_in">make</span>(<span class="keyword">map</span>[common.Hash]*types.Header),</span><br><span class="line">		receiptTaskQueue: prque.New(<span class="literal">nil</span>),</span><br><span class="line">		receiptPendPool:  <span class="built_in">make</span>(<span class="keyword">map</span>[<span class="keyword">string</span>]*fetchRequest),</span><br><span class="line">		receiptDonePool:  <span class="built_in">make</span>(<span class="keyword">map</span>[common.Hash]<span class="keyword">struct</span>&#123;&#125;),</span><br><span class="line">		resultCache:      <span class="built_in">make</span>([]*fetchResult, blockCacheItems),</span><br><span class="line">		active:           sync.NewCond(lock),</span><br><span class="line">		lock:             lock,</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>其中的active变量是一个Cond类型的锁，它有一个锁L可以正常加锁解锁，除此之外还有wait进入阻塞，Signal和Broadcast可以进行唤醒。receiptTaskQueue与blockTaskQueue是两个优先级队列。</p>
+<h2 id="Schedule"><a href="#Schedule" class="headerlink" title="Schedule"></a>Schedule</h2><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(q *queue)</span> <span class="title">Schedule</span><span class="params">(headers []*types.Header, from <span class="keyword">uint64</span>)</span> []*<span class="title">types</span>.<span class="title">Header</span></span> &#123;</span><br><span class="line">	q.lock.Lock()</span><br><span class="line">	<span class="keyword">defer</span> q.lock.Unlock()</span><br><span class="line"></span><br><span class="line">	inserts := <span class="built_in">make</span>([]*types.Header, <span class="number">0</span>, <span class="built_in">len</span>(headers))</span><br><span class="line">	<span class="keyword">for</span> _, header := <span class="keyword">range</span> headers &#123;</span><br><span class="line">		hash := header.Hash()</span><br><span class="line">		<span class="keyword">if</span> header.Number == <span class="literal">nil</span> || header.Number.Uint64() != from &#123;</span><br><span class="line">			log.Warn(<span class="string">"Header broke chain ordering"</span>, <span class="string">"number"</span>, header.Number, <span class="string">"hash"</span>, hash, <span class="string">"expected"</span>, from)</span><br><span class="line">			<span class="keyword">break</span></span><br><span class="line">		&#125;</span><br><span class="line">		<span class="keyword">if</span> q.headerHead != (common.Hash&#123;&#125;) &amp;&amp; q.headerHead != header.ParentHash &#123;</span><br><span class="line">			log.Warn(<span class="string">"Header broke chain ancestry"</span>, <span class="string">"number"</span>, header.Number, <span class="string">"hash"</span>, hash)</span><br><span class="line">			<span class="keyword">break</span></span><br><span class="line">		&#125;</span><br><span class="line">		<span class="keyword">if</span> _, ok := q.blockTaskPool[hash]; ok &#123;</span><br><span class="line">			log.Warn(<span class="string">"Header already scheduled for block fetch"</span>, <span class="string">"number"</span>, header.Number, <span class="string">"hash"</span>, hash)</span><br><span class="line">			<span class="keyword">continue</span></span><br><span class="line">		&#125;</span><br><span class="line">		<span class="keyword">if</span> _, ok := q.receiptTaskPool[hash]; ok &#123;</span><br><span class="line">			log.Warn(<span class="string">"Header already scheduled for receipt fetch"</span>, <span class="string">"number"</span>, header.Number, <span class="string">"hash"</span>, hash)</span><br><span class="line">			<span class="keyword">continue</span></span><br><span class="line">		&#125;</span><br><span class="line">		q.blockTaskPool[hash] = header</span><br><span class="line">		q.blockTaskQueue.Push(header, -<span class="keyword">int64</span>(header.Number.Uint64()))</span><br><span class="line"></span><br><span class="line">		<span class="keyword">if</span> q.mode == FastSync &#123;</span><br><span class="line">			q.receiptTaskPool[hash] = header</span><br><span class="line">			q.receiptTaskQueue.Push(header, -<span class="keyword">int64</span>(header.Number.Uint64()))</span><br><span class="line">		&#125;</span><br><span class="line">		inserts = <span class="built_in">append</span>(inserts, header)</span><br><span class="line">		q.headerHead = hash</span><br><span class="line">		from++</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">return</span> inserts</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>这个方法在downloader的processHeaders方法中出现。传入的参数headers是一组head，from是开始的位置。这个方法的主要作用是申请对一些区块头进行下载的调度。首先创建了一个Header数组，之后遍历了所有传入的head，对每个head进行一系列检查。</p>
+<p>首先检测head格式是否正确，即编号是否为空，且是否为正确的编号。在检测区块间是否为父子关系，即检测父区块哈希是否正确且对应。然后在检测是否已经位于blockTaskPool和receiptTaskPool中，是的话直接跳过。</p>
+<p>检测完毕后，将head放入blockTaskPool，这个map存储着等待检索区块体的任务。之后再放入blockTaskQueue这个队列，并以区块编号的负数作为优先级，编号越小的区块优先级越高。再接着对于fast模式下，再向receiptTaskPool和receiptTaskQueue添加内容，这也就显示出fast模式的特性。之后将head放入insert中，然后更新headerHead与from，用于下一个区块验证。整个方法的返回值就是要等待请求的区块头集合。</p>
+<p>其中的两个TaskPool主要作用是避免重复申请调度，会在请求结束后在DeliverXxx方法中被删除。而这两个TaskQueue则是调度的关键，存储着等待调度的东西，在后面的ReserveXxx方法中会被拿出来构造请求进行处理。</p>
+<h2 id="ScheduleSkeleton"><a href="#ScheduleSkeleton" class="headerlink" title="ScheduleSkeleton"></a>ScheduleSkeleton</h2><p>这个方法出现在downloader的fillHeaderSkeleton方法中，就是在fetchHeaders中对于骨架模式进行填充<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(q *queue)</span> <span class="title">ScheduleSkeleton</span><span class="params">(from <span class="keyword">uint64</span>, skeleton []*types.Header)</span></span> &#123;</span><br><span class="line">	q.lock.Lock()</span><br><span class="line">	<span class="keyword">defer</span> q.lock.Unlock()</span><br><span class="line"></span><br><span class="line">	<span class="keyword">if</span> q.headerResults != <span class="literal">nil</span> &#123;</span><br><span class="line">		<span class="built_in">panic</span>(<span class="string">"skeleton assembly already in progress"</span>)</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	q.headerTaskPool = <span class="built_in">make</span>(<span class="keyword">map</span>[<span class="keyword">uint64</span>]*types.Header)</span><br><span class="line">	q.headerTaskQueue = prque.New(<span class="literal">nil</span>)</span><br><span class="line">	q.headerPeerMiss = <span class="built_in">make</span>(<span class="keyword">map</span>[<span class="keyword">string</span>]<span class="keyword">map</span>[<span class="keyword">uint64</span>]<span class="keyword">struct</span>&#123;&#125;) <span class="comment">// Reset availability to correct invalid chains</span></span><br><span class="line">	q.headerResults = <span class="built_in">make</span>([]*types.Header, <span class="built_in">len</span>(skeleton)*MaxHeaderFetch)</span><br><span class="line">	q.headerProced = <span class="number">0</span></span><br><span class="line">	q.headerOffset = from</span><br><span class="line">	q.headerContCh = <span class="built_in">make</span>(<span class="keyword">chan</span> <span class="keyword">bool</span>, <span class="number">1</span>)</span><br><span class="line"></span><br><span class="line">	<span class="keyword">for</span> i, header := <span class="keyword">range</span> skeleton &#123;</span><br><span class="line">		index := from + <span class="keyword">uint64</span>(i*MaxHeaderFetch)</span><br><span class="line"></span><br><span class="line">		q.headerTaskPool[index] = header</span><br><span class="line">		q.headerTaskQueue.Push(index, -<span class="keyword">int64</span>(index))</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>首先避免重复框架组装，通过检测headerResults是否为空来判断。之后遍历skeleton，skeleton是一组断续的header，他从from+191位置开始，每隔192个区块请求一个，总共请求128个。遍历的时候用headerTaskPool记录框架对于位置的head，并将index按照其负数作为优先级存入headerTaskQueue队列。headerTaskPool和headerTaskQueue的作用和前面Schedule方法中那两对变量作用类似。</p>
+<h2 id="ReserveXxx"><a href="#ReserveXxx" class="headerlink" title="ReserveXxx"></a>ReserveXxx</h2><p>这是一组方法，在downloader的Synchronise流程最后定义了一组fetch方法，最后都调用了fetchParts方法，其中reserve参数就是这里对应的ReserveXxx方法，这组方法的主要用途是从TaskQueue队列中领取任务构造请求便于后续执行。</p>
+<p>一共有三个方法：ReserveReceipts、ReserveBodies和ReserveHeaders，但是ReserveReceipts和ReserveBodies都调用了reserveHeaders方法<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(q *queue)</span> <span class="title">ReserveBodies</span><span class="params">(p *peerConnection, count <span class="keyword">int</span>)</span> <span class="params">(*fetchRequest, <span class="keyword">bool</span>, error)</span></span> &#123;</span><br><span class="line">	isNoop := <span class="function"><span class="keyword">func</span><span class="params">(header *types.Header)</span> <span class="title">bool</span></span> &#123;</span><br><span class="line">		<span class="keyword">return</span> header.TxHash == types.EmptyRootHash &amp;&amp; header.UncleHash == types.EmptyUncleHash</span><br><span class="line">	&#125;</span><br><span class="line">	q.lock.Lock()</span><br><span class="line">	<span class="keyword">defer</span> q.lock.Unlock()</span><br><span class="line"></span><br><span class="line">	<span class="keyword">return</span> q.reserveHeaders(p, count, q.blockTaskPool, q.blockTaskQueue, q.blockPendPool, q.blockDonePool, isNoop)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(q *queue)</span> <span class="title">ReserveReceipts</span><span class="params">(p *peerConnection, count <span class="keyword">int</span>)</span> <span class="params">(*fetchRequest, <span class="keyword">bool</span>, error)</span></span> &#123;</span><br><span class="line">	isNoop := <span class="function"><span class="keyword">func</span><span class="params">(header *types.Header)</span> <span class="title">bool</span></span> &#123;</span><br><span class="line">		<span class="keyword">return</span> header.ReceiptHash == types.EmptyRootHash</span><br><span class="line">	&#125;</span><br><span class="line">	q.lock.Lock()</span><br><span class="line">	<span class="keyword">defer</span> q.lock.Unlock()</span><br><span class="line"></span><br><span class="line">	<span class="keyword">return</span> q.reserveHeaders(p, count, q.receiptTaskPool, q.receiptTaskQueue, q.receiptPendPool, q.receiptDonePool, isNoop)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<h3 id="reserveHeaders"><a href="#reserveHeaders" class="headerlink" title="reserveHeaders"></a>reserveHeaders</h3><p>这里看一下这个方法<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(q *queue)</span> <span class="title">reserveHeaders</span><span class="params">(p *peerConnection, count <span class="keyword">int</span>, taskPool <span class="keyword">map</span>[common.Hash]*types.Header, taskQueue *prque.Prque,</span></span></span><br><span class="line"><span class="function"><span class="params">	pendPool <span class="keyword">map</span>[<span class="keyword">string</span>]*fetchRequest, donePool <span class="keyword">map</span>[common.Hash]<span class="keyword">struct</span>&#123;&#125;, isNoop <span class="keyword">func</span>(*types.Header)</span> <span class="title">bool</span>) <span class="params">(*fetchRequest, <span class="keyword">bool</span>, error)</span></span> &#123;</span><br><span class="line">	<span class="keyword">if</span> taskQueue.Empty() &#123;</span><br><span class="line">		<span class="keyword">return</span> <span class="literal">nil</span>, <span class="literal">false</span>, <span class="literal">nil</span></span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">if</span> _, ok := pendPool[p.id]; ok &#123;</span><br><span class="line">		<span class="keyword">return</span> <span class="literal">nil</span>, <span class="literal">false</span>, <span class="literal">nil</span></span><br><span class="line">	&#125;</span><br><span class="line">	space := q.resultSlots(pendPool, donePool)</span><br><span class="line"></span><br><span class="line">	send := <span class="built_in">make</span>([]*types.Header, <span class="number">0</span>, count)</span><br><span class="line">	skip := <span class="built_in">make</span>([]*types.Header, <span class="number">0</span>)</span><br><span class="line"></span><br><span class="line">	progress := <span class="literal">false</span></span><br><span class="line">	<span class="keyword">for</span> proc := <span class="number">0</span>; proc &lt; space &amp;&amp; <span class="built_in">len</span>(send) &lt; count &amp;&amp; !taskQueue.Empty(); proc++ &#123;</span><br><span class="line">		header := taskQueue.PopItem().(*types.Header)</span><br><span class="line">		hash := header.Hash()</span><br><span class="line"></span><br><span class="line">		index := <span class="keyword">int</span>(header.Number.Int64() - <span class="keyword">int64</span>(q.resultOffset))</span><br><span class="line">		<span class="keyword">if</span> index &gt;= <span class="built_in">len</span>(q.resultCache) || index &lt; <span class="number">0</span> &#123;</span><br><span class="line">			common.Report(<span class="string">"index allocation went beyond available resultCache space"</span>)</span><br><span class="line">			<span class="keyword">return</span> <span class="literal">nil</span>, <span class="literal">false</span>, errInvalidChain</span><br><span class="line">		&#125;</span><br><span class="line">		<span class="keyword">if</span> q.resultCache[index] == <span class="literal">nil</span> &#123;</span><br><span class="line">			components := <span class="number">1</span></span><br><span class="line">			<span class="keyword">if</span> q.mode == FastSync &#123;</span><br><span class="line">				components = <span class="number">2</span></span><br><span class="line">			&#125;</span><br><span class="line">			q.resultCache[index] = &amp;fetchResult&#123;</span><br><span class="line">				Pending: components,</span><br><span class="line">				Hash:    hash,</span><br><span class="line">				Header:  header,</span><br><span class="line">			&#125;</span><br><span class="line">		&#125;</span><br><span class="line"></span><br><span class="line">		<span class="keyword">if</span> isNoop(header) &#123;</span><br><span class="line">			donePool[hash] = <span class="keyword">struct</span>&#123;&#125;&#123;&#125;</span><br><span class="line">			<span class="built_in">delete</span>(taskPool, hash)</span><br><span class="line"></span><br><span class="line">			space, proc = space<span class="number">-1</span>, proc<span class="number">-1</span></span><br><span class="line">			q.resultCache[index].Pending--</span><br><span class="line">			progress = <span class="literal">true</span></span><br><span class="line">			<span class="keyword">continue</span></span><br><span class="line">		&#125;</span><br><span class="line"></span><br><span class="line">		<span class="keyword">if</span> p.Lacks(hash) &#123;</span><br><span class="line">			skip = <span class="built_in">append</span>(skip, header)</span><br><span class="line">		&#125; <span class="keyword">else</span> &#123;</span><br><span class="line">			send = <span class="built_in">append</span>(send, header)</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">for</span> _, header := <span class="keyword">range</span> skip &#123;</span><br><span class="line">		taskQueue.Push(header, -<span class="keyword">int64</span>(header.Number.Uint64()))</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">if</span> progress &#123;</span><br><span class="line">		q.active.Signal()</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">if</span> <span class="built_in">len</span>(send) == <span class="number">0</span> &#123;</span><br><span class="line">		<span class="keyword">return</span> <span class="literal">nil</span>, progress, <span class="literal">nil</span></span><br><span class="line">	&#125;</span><br><span class="line">	request := &amp;fetchRequest&#123;</span><br><span class="line">		Peer:    p,</span><br><span class="line">		Headers: send,</span><br><span class="line">		Time:    time.Now(),</span><br><span class="line">	&#125;</span><br><span class="line">	pendPool[p.id] = request</span><br><span class="line"></span><br><span class="line">	<span class="keyword">return</span> request, progress, <span class="literal">nil</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>首先检查taskQueue是否为空，taskQueue是作为参数传入的，对应ReserveBodies和ReserveReceipts分别是blockTaskQueue和receiptTaskQueue，这两个队列分别在前面Schedule方法中被填充。接着计算了fetch的上限，创建了两个数组send和skip。</p>
+<p>然后开始循环，每次从taskQueue获取优先级最高的item，然后根据区块头的高度计算index，index表示在resultCache的位置，resultCache是一个fetchResult数组，存储已经下载完毕的结果。如果resultCache对应位置为空，则构造一个fetchResult对象存入。然后调用了isNoop方法，这是方法的一个参数，用于检测是否为包含交易。如果是的话表示不需要继续操作，将其donePool对应元素置空，然后从taskPool中删除，由于taskPool被改变，则space和proc两个计数器响应的都减一。如果不为空，检测hash是否在lacking中，如在表示没有这个hash相关数据，则放入skip中，否则放入send中。</p>
+<p>循环结束后，也就是从taskPool中分类一定数量的head后，遍历skip，将其中改的head按期高度的负数再次添加到对应taskQueue队列中。然后如果progress为true，表示刚才循环中出现没有交易的区块头，则调用active的Signal方法，唤醒wait，他在Result方法中阻塞，稍后介绍。之后检测send数组，如果空则返回，否则构建一个fetchRequest，然后按照peer的id放入pendPool。</p>
+<h3 id="ReserveHeaders"><a href="#ReserveHeaders" class="headerlink" title="ReserveHeaders"></a>ReserveHeaders</h3><p>这个方法和前面的ScheduleSkeleton一样只有在骨架模式下才回调用，该方法实现如下<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(q *queue)</span> <span class="title">ReserveHeaders</span><span class="params">(p *peerConnection, count <span class="keyword">int</span>)</span> *<span class="title">fetchRequest</span></span> &#123;</span><br><span class="line">	q.lock.Lock()</span><br><span class="line">	<span class="keyword">defer</span> q.lock.Unlock()</span><br><span class="line"></span><br><span class="line">	<span class="keyword">if</span> _, ok := q.headerPendPool[p.id]; ok &#123;</span><br><span class="line">		<span class="keyword">return</span> <span class="literal">nil</span></span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	send, skip := <span class="keyword">uint64</span>(<span class="number">0</span>), []<span class="keyword">uint64</span>&#123;&#125;</span><br><span class="line">	<span class="keyword">for</span> send == <span class="number">0</span> &amp;&amp; !q.headerTaskQueue.Empty() &#123;</span><br><span class="line">		from, _ := q.headerTaskQueue.Pop()</span><br><span class="line">		<span class="keyword">if</span> q.headerPeerMiss[p.id] != <span class="literal">nil</span> &#123;</span><br><span class="line">			<span class="keyword">if</span> _, ok := q.headerPeerMiss[p.id][from.(<span class="keyword">uint64</span>)]; ok &#123;</span><br><span class="line">				skip = <span class="built_in">append</span>(skip, from.(<span class="keyword">uint64</span>))</span><br><span class="line">				<span class="keyword">continue</span></span><br><span class="line">			&#125;</span><br><span class="line">		&#125;</span><br><span class="line">		send = from.(<span class="keyword">uint64</span>)</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">for</span> _, from := <span class="keyword">range</span> skip &#123;</span><br><span class="line">		q.headerTaskQueue.Push(from, -<span class="keyword">int64</span>(from))</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">if</span> send == <span class="number">0</span> &#123;</span><br><span class="line">		<span class="keyword">return</span> <span class="literal">nil</span></span><br><span class="line">	&#125;</span><br><span class="line">	request := &amp;fetchRequest&#123;</span><br><span class="line">		Peer: p,</span><br><span class="line">		From: send,</span><br><span class="line">		Time: time.Now(),</span><br><span class="line">	&#125;</span><br><span class="line">	q.headerPendPool[p.id] = request</span><br><span class="line">	<span class="keyword">return</span> request</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>逻辑和reserveHeaders类似，首先检测peer是否已在headerPendPool中。然后遍历headerTaskQueue，每次取优先级最高的，在检测对应hash是否在headerPeerMiss中，headerPeerMiss记录了每个peer明确不可用的区块，是的话放入skip以跳过，这个循环直到取到一个有效的head位置，然后记录from值到send。后续的逻辑就和reserveHeaders差不多，对于skip的再次放入headerTaskQueue，然后构造一个fetchRequest放入headerPendPool中。注意这个fetchRequest和前面的reserveHeaders最后构造的不太一样，这里没有传入Heads字段，而是写入了From字段，表示骨架中第一个有效的head，由于骨架是有规律的记录起始位置即可。</p>
+<h2 id="DeliverXxx"><a href="#DeliverXxx" class="headerlink" title="DeliverXxx"></a>DeliverXxx</h2><p>这也是一组方法，和ReserveXxx类似，都是在调用fetchParts时作为参数传入的，这组方法的作用是在数据下载完毕后被调用。有DeliverBodies、DeliverReceipts和DeliverReceipts三个，前两个都是直接调用了deliver方法<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(q *queue)</span> <span class="title">DeliverBodies</span><span class="params">(id <span class="keyword">string</span>, txLists [][]*types.Transaction, uncleLists [][]*types.Header)</span> <span class="params">(<span class="keyword">int</span>, error)</span></span> &#123;</span><br><span class="line">	q.lock.Lock()</span><br><span class="line">	<span class="keyword">defer</span> q.lock.Unlock()</span><br><span class="line"></span><br><span class="line">	reconstruct := <span class="function"><span class="keyword">func</span><span class="params">(header *types.Header, index <span class="keyword">int</span>, result *fetchResult)</span> <span class="title">error</span></span> &#123;</span><br><span class="line">		<span class="keyword">if</span> types.DeriveSha(types.Transactions(txLists[index])) != header.TxHash || types.CalcUncleHash(uncleLists[index]) != header.UncleHash &#123;</span><br><span class="line">			<span class="keyword">return</span> errInvalidBody</span><br><span class="line">		&#125;</span><br><span class="line">		result.Transactions = txLists[index]</span><br><span class="line">		result.Uncles = uncleLists[index]</span><br><span class="line">		<span class="keyword">return</span> <span class="literal">nil</span></span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">return</span> q.deliver(id, q.blockTaskPool, q.blockTaskQueue, q.blockPendPool, q.blockDonePool, bodyReqTimer, <span class="built_in">len</span>(txLists), reconstruct)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(q *queue)</span> <span class="title">DeliverReceipts</span><span class="params">(id <span class="keyword">string</span>, receiptList [][]*types.Receipt)</span> <span class="params">(<span class="keyword">int</span>, error)</span></span> &#123;</span><br><span class="line">	q.lock.Lock()</span><br><span class="line">	<span class="keyword">defer</span> q.lock.Unlock()</span><br><span class="line"></span><br><span class="line">	reconstruct := <span class="function"><span class="keyword">func</span><span class="params">(header *types.Header, index <span class="keyword">int</span>, result *fetchResult)</span> <span class="title">error</span></span> &#123;</span><br><span class="line">		<span class="keyword">if</span> types.DeriveSha(types.Receipts(receiptList[index])) != header.ReceiptHash &#123;</span><br><span class="line">			<span class="keyword">return</span> errInvalidReceipt</span><br><span class="line">		&#125;</span><br><span class="line">		result.Receipts = receiptList[index]</span><br><span class="line">		<span class="keyword">return</span> <span class="literal">nil</span></span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">return</span> q.deliver(id, q.receiptTaskPool, q.receiptTaskQueue, q.receiptPendPool, q.receiptDonePool, receiptReqTimer, <span class="built_in">len</span>(receiptList), reconstruct)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<h3 id="deliver"><a href="#deliver" class="headerlink" title="deliver"></a>deliver</h3><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(q *queue)</span> <span class="title">deliver</span><span class="params">(id <span class="keyword">string</span>, taskPool <span class="keyword">map</span>[common.Hash]*types.Header, taskQueue *prque.Prque,</span></span></span><br><span class="line"><span class="function"><span class="params">	pendPool <span class="keyword">map</span>[<span class="keyword">string</span>]*fetchRequest, donePool <span class="keyword">map</span>[common.Hash]<span class="keyword">struct</span>&#123;&#125;, reqTimer metrics.Timer,</span></span></span><br><span class="line"><span class="function"><span class="params">	results <span class="keyword">int</span>, reconstruct <span class="keyword">func</span>(header *types.Header, index <span class="keyword">int</span>, result *fetchResult)</span> <span class="title">error</span>) <span class="params">(<span class="keyword">int</span>, error)</span></span> &#123;</span><br><span class="line"></span><br><span class="line">	request := pendPool[id]</span><br><span class="line">	<span class="keyword">if</span> request == <span class="literal">nil</span> &#123;</span><br><span class="line">		<span class="keyword">return</span> <span class="number">0</span>, errNoFetchesPending</span><br><span class="line">	&#125;</span><br><span class="line">	reqTimer.UpdateSince(request.Time)</span><br><span class="line">	<span class="built_in">delete</span>(pendPool, id)</span><br><span class="line"></span><br><span class="line">	<span class="keyword">if</span> results == <span class="number">0</span> &#123;</span><br><span class="line">		<span class="keyword">for</span> _, header := <span class="keyword">range</span> request.Headers &#123;</span><br><span class="line">			request.Peer.MarkLacking(header.Hash())</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">var</span> (</span><br><span class="line">		accepted <span class="keyword">int</span></span><br><span class="line">		failure  error</span><br><span class="line">		useful   <span class="keyword">bool</span></span><br><span class="line">	)</span><br><span class="line">	<span class="keyword">for</span> i, header := <span class="keyword">range</span> request.Headers &#123;</span><br><span class="line">		<span class="keyword">if</span> i &gt;= results &#123;</span><br><span class="line">			<span class="keyword">break</span></span><br><span class="line">		&#125;</span><br><span class="line">		index := <span class="keyword">int</span>(header.Number.Int64() - <span class="keyword">int64</span>(q.resultOffset))</span><br><span class="line">		<span class="keyword">if</span> index &gt;= <span class="built_in">len</span>(q.resultCache) || index &lt; <span class="number">0</span> || q.resultCache[index] == <span class="literal">nil</span> &#123;</span><br><span class="line">			failure = errInvalidChain</span><br><span class="line">			<span class="keyword">break</span></span><br><span class="line">		&#125;</span><br><span class="line">		<span class="keyword">if</span> err := reconstruct(header, i, q.resultCache[index]); err != <span class="literal">nil</span> &#123;</span><br><span class="line">			failure = err</span><br><span class="line">			<span class="keyword">break</span></span><br><span class="line">		&#125;</span><br><span class="line">		hash := header.Hash()</span><br><span class="line"></span><br><span class="line">		donePool[hash] = <span class="keyword">struct</span>&#123;&#125;&#123;&#125;</span><br><span class="line">		q.resultCache[index].Pending--</span><br><span class="line">		useful = <span class="literal">true</span></span><br><span class="line">		accepted++</span><br><span class="line"></span><br><span class="line">		request.Headers[i] = <span class="literal">nil</span></span><br><span class="line">		<span class="built_in">delete</span>(taskPool, hash)</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">for</span> _, header := <span class="keyword">range</span> request.Headers &#123;</span><br><span class="line">		<span class="keyword">if</span> header != <span class="literal">nil</span> &#123;</span><br><span class="line">			taskQueue.Push(header, -<span class="keyword">int64</span>(header.Number.Uint64()))</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">if</span> accepted &gt; <span class="number">0</span> &#123;</span><br><span class="line">		q.active.Signal()</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">switch</span> &#123;</span><br><span class="line">	<span class="keyword">case</span> failure == <span class="literal">nil</span> || failure == errInvalidChain:</span><br><span class="line">		<span class="keyword">return</span> accepted, failure</span><br><span class="line">	<span class="keyword">case</span> useful:</span><br><span class="line">		<span class="keyword">return</span> accepted, fmt.Errorf(<span class="string">"partial failure: %v"</span>, failure)</span><br><span class="line">	<span class="keyword">default</span>:</span><br><span class="line">		<span class="keyword">return</span> accepted, errStaleDelivery</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>首先检测相应id是否在pendPool，pendPool是参数，对应DeliverBodies和DeliverReceipts分别是blockPendPool和receiptPendPool，他们分别在对应的ReserveXxx中被填充。如果没有则返回错误，有的话先从pendPool将其删除，表示已经结束。之后检查result的值，他表示DeliverXxx传入的List的长度，这个list表示检索到的数据集合，如果为0表示相应的head在该peer取不到，则调用MarkLacking将其添加到lacking中。</p>
+<p>接下来进入一个循环，变量最开始从pendPool取出的request的Headers，然后计算在resultCache的index，之后利用reconstruct构建，reconstruct是传入的参数，主要作用是补全fetchResult，如在DeliverReceipts中是补全Receipts字段，在DeliverBodies补全Transactions和Uncles字段。之后在donePool标记对应hash的任务已经完成，并且useful写为true，accepted自增一，清空request对应位置的数据，并且删除taskPool对应hash内容。</p>
+<p>循环结束后，由于刚才循环最后遍历results个，可能有剩余，将剩余的head放入对应taskQueue中。之后如果accept大于一，表示有任务真正完成了，同样调用active的Signal唤醒阻塞，和前面reserveHeaders类似。最后返回错误报告和accepted数量。</p>
+<h3 id="DeliverHeaders"><a href="#DeliverHeaders" class="headerlink" title="DeliverHeaders"></a>DeliverHeaders</h3><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(q *queue)</span> <span class="title">DeliverHeaders</span><span class="params">(id <span class="keyword">string</span>, headers []*types.Header, headerProcCh <span class="keyword">chan</span> []*types.Header)</span> <span class="params">(<span class="keyword">int</span>, error)</span></span> &#123;</span><br><span class="line">	q.lock.Lock()</span><br><span class="line">	<span class="keyword">defer</span> q.lock.Unlock()</span><br><span class="line"></span><br><span class="line">	request := q.headerPendPool[id]</span><br><span class="line">	<span class="keyword">if</span> request == <span class="literal">nil</span> &#123;</span><br><span class="line">		<span class="keyword">return</span> <span class="number">0</span>, errNoFetchesPending</span><br><span class="line">	&#125;</span><br><span class="line">	headerReqTimer.UpdateSince(request.Time)</span><br><span class="line">	<span class="built_in">delete</span>(q.headerPendPool, id)</span><br><span class="line"></span><br><span class="line">	target := q.headerTaskPool[request.From].Hash()</span><br><span class="line"></span><br><span class="line">	accepted := <span class="built_in">len</span>(headers) == MaxHeaderFetch</span><br><span class="line">	<span class="keyword">if</span> accepted &#123;</span><br><span class="line">		<span class="keyword">if</span> headers[<span class="number">0</span>].Number.Uint64() != request.From &#123;</span><br><span class="line">			log.Trace(<span class="string">"First header broke chain ordering"</span>, <span class="string">"peer"</span>, id, <span class="string">"number"</span>, headers[<span class="number">0</span>].Number, <span class="string">"hash"</span>, headers[<span class="number">0</span>].Hash(), request.From)</span><br><span class="line">			accepted = <span class="literal">false</span></span><br><span class="line">		&#125; <span class="keyword">else</span> <span class="keyword">if</span> headers[<span class="built_in">len</span>(headers)<span class="number">-1</span>].Hash() != target &#123;</span><br><span class="line">			log.Trace(<span class="string">"Last header broke skeleton structure "</span>, <span class="string">"peer"</span>, id, <span class="string">"number"</span>, headers[<span class="built_in">len</span>(headers)<span class="number">-1</span>].Number, <span class="string">"hash"</span>, headers[<span class="built_in">len</span>(headers)<span class="number">-1</span>].Hash(), <span class="string">"expected"</span>, target)</span><br><span class="line">			accepted = <span class="literal">false</span></span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">if</span> accepted &#123;</span><br><span class="line">		<span class="keyword">for</span> i, header := <span class="keyword">range</span> headers[<span class="number">1</span>:] &#123;</span><br><span class="line">			hash := header.Hash()</span><br><span class="line">			<span class="keyword">if</span> want := request.From + <span class="number">1</span> + <span class="keyword">uint64</span>(i); header.Number.Uint64() != want &#123;</span><br><span class="line">				log.Warn(<span class="string">"Header broke chain ordering"</span>, <span class="string">"peer"</span>, id, <span class="string">"number"</span>, header.Number, <span class="string">"hash"</span>, hash, <span class="string">"expected"</span>, want)</span><br><span class="line">				accepted = <span class="literal">false</span></span><br><span class="line">				<span class="keyword">break</span></span><br><span class="line">			&#125;</span><br><span class="line">			<span class="keyword">if</span> headers[i].Hash() != header.ParentHash &#123;</span><br><span class="line">				log.Warn(<span class="string">"Header broke chain ancestry"</span>, <span class="string">"peer"</span>, id, <span class="string">"number"</span>, header.Number, <span class="string">"hash"</span>, hash)</span><br><span class="line">				accepted = <span class="literal">false</span></span><br><span class="line">				<span class="keyword">break</span></span><br><span class="line">			&#125;</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">if</span> !accepted &#123;</span><br><span class="line">		log.Trace(<span class="string">"Skeleton filling not accepted"</span>, <span class="string">"peer"</span>, id, <span class="string">"from"</span>, request.From)</span><br><span class="line"></span><br><span class="line">		miss := q.headerPeerMiss[id]</span><br><span class="line">		<span class="keyword">if</span> miss == <span class="literal">nil</span> &#123;</span><br><span class="line">			q.headerPeerMiss[id] = <span class="built_in">make</span>(<span class="keyword">map</span>[<span class="keyword">uint64</span>]<span class="keyword">struct</span>&#123;&#125;)</span><br><span class="line">			miss = q.headerPeerMiss[id]</span><br><span class="line">		&#125;</span><br><span class="line">		miss[request.From] = <span class="keyword">struct</span>&#123;&#125;&#123;&#125;</span><br><span class="line"></span><br><span class="line">		q.headerTaskQueue.Push(request.From, -<span class="keyword">int64</span>(request.From))</span><br><span class="line">		<span class="keyword">return</span> <span class="number">0</span>, errors.New(<span class="string">"delivery not accepted"</span>)</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="built_in">copy</span>(q.headerResults[request.From-q.headerOffset:], headers)</span><br><span class="line">	<span class="built_in">delete</span>(q.headerTaskPool, request.From)</span><br><span class="line"></span><br><span class="line">	ready := <span class="number">0</span></span><br><span class="line">	<span class="keyword">for</span> q.headerProced+ready &lt; <span class="built_in">len</span>(q.headerResults) &amp;&amp; q.headerResults[q.headerProced+ready] != <span class="literal">nil</span> &#123;</span><br><span class="line">		ready += MaxHeaderFetch</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">if</span> ready &gt; <span class="number">0</span> &#123;</span><br><span class="line">		process := <span class="built_in">make</span>([]*types.Header, ready)</span><br><span class="line">		<span class="built_in">copy</span>(process, q.headerResults[q.headerProced:q.headerProced+ready])</span><br><span class="line"></span><br><span class="line">		<span class="keyword">select</span> &#123;</span><br><span class="line">		<span class="keyword">case</span> headerProcCh &lt;- process:</span><br><span class="line">			log.Trace(<span class="string">"Pre-scheduled new headers"</span>, <span class="string">"peer"</span>, id, <span class="string">"count"</span>, <span class="built_in">len</span>(process), <span class="string">"from"</span>, process[<span class="number">0</span>].Number)</span><br><span class="line">			q.headerProced += <span class="built_in">len</span>(process)</span><br><span class="line">		<span class="keyword">default</span>:</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">if</span> <span class="built_in">len</span>(q.headerTaskPool) == <span class="number">0</span> &#123;</span><br><span class="line">		q.headerContCh &lt;- <span class="literal">false</span></span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">return</span> <span class="built_in">len</span>(headers), <span class="literal">nil</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>大致逻辑和deliver类似，参数headers是收到的数据。先判断收到的消息是否符合我们要请求的。先从headerPendPool取出对应request，然后判断headers的长度是否为192，是的话验证headers中第一个是否是请求的起始位置，再验证最后一个是否符合要求，二者任何一个不合要求就将accepted置为false。接下来就是验证这一组head是否有关联，一个是序号上的一个是父hash是否对应。对于accepted为false时，在headerPeerMiss标记对应peer的相应head无效，并将相应再次放入headerTaskQueue中并返回错误。对于结果正确的情况，现将headers复制到headerResults，然后从headerTaskPool删除。接着计算已经准备好的head数ready，然后将其发送到headerProcCh触发downloader中processHeaders的相关逻辑。接着调整headerProced的值，它表示已经处理的head数量。</p>
+<h2 id="ExpireXxx"><a href="#ExpireXxx" class="headerlink" title="ExpireXxx"></a>ExpireXxx</h2><p>也是一组方法，用于在downloader的fetchParts使用，<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(q *queue)</span> <span class="title">ExpireHeaders</span><span class="params">(timeout time.Duration)</span> <span class="title">map</span>[<span class="title">string</span>]<span class="title">int</span></span> &#123;</span><br><span class="line">	q.lock.Lock()</span><br><span class="line">	<span class="keyword">defer</span> q.lock.Unlock()</span><br><span class="line"></span><br><span class="line">	<span class="keyword">return</span> q.expire(timeout, q.headerPendPool, q.headerTaskQueue, headerTimeoutMeter)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(q *queue)</span> <span class="title">ExpireBodies</span><span class="params">(timeout time.Duration)</span> <span class="title">map</span>[<span class="title">string</span>]<span class="title">int</span></span> &#123;</span><br><span class="line">	q.lock.Lock()</span><br><span class="line">	<span class="keyword">defer</span> q.lock.Unlock()</span><br><span class="line"></span><br><span class="line">	<span class="keyword">return</span> q.expire(timeout, q.blockPendPool, q.blockTaskQueue, bodyTimeoutMeter)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(q *queue)</span> <span class="title">ExpireReceipts</span><span class="params">(timeout time.Duration)</span> <span class="title">map</span>[<span class="title">string</span>]<span class="title">int</span></span> &#123;</span><br><span class="line">	q.lock.Lock()</span><br><span class="line">	<span class="keyword">defer</span> q.lock.Unlock()</span><br><span class="line"></span><br><span class="line">	<span class="keyword">return</span> q.expire(timeout, q.receiptPendPool, q.receiptTaskQueue, receiptTimeoutMeter)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>都是调用了expire方法<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(q *queue)</span> <span class="title">expire</span><span class="params">(timeout time.Duration, pendPool <span class="keyword">map</span>[<span class="keyword">string</span>]*fetchRequest, taskQueue *prque.Prque, timeoutMeter metrics.Meter)</span> <span class="title">map</span>[<span class="title">string</span>]<span class="title">int</span></span> &#123;</span><br><span class="line">	expiries := <span class="built_in">make</span>(<span class="keyword">map</span>[<span class="keyword">string</span>]<span class="keyword">int</span>)</span><br><span class="line">	<span class="keyword">for</span> id, request := <span class="keyword">range</span> pendPool &#123;</span><br><span class="line">		<span class="keyword">if</span> time.Since(request.Time) &gt; timeout &#123;</span><br><span class="line">			timeoutMeter.Mark(<span class="number">1</span>)</span><br><span class="line">l</span><br><span class="line">			<span class="keyword">if</span> request.From &gt; <span class="number">0</span> &#123;</span><br><span class="line">				taskQueue.Push(request.From, -<span class="keyword">int64</span>(request.From))</span><br><span class="line">			&#125;</span><br><span class="line">			<span class="keyword">for</span> _, header := <span class="keyword">range</span> request.Headers &#123;</span><br><span class="line">				taskQueue.Push(header, -<span class="keyword">int64</span>(header.Number.Uint64()))</span><br><span class="line">			&#125;</span><br><span class="line">			expiries[id] = <span class="built_in">len</span>(request.Headers)</span><br><span class="line"></span><br><span class="line">			<span class="built_in">delete</span>(pendPool, id)</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">return</span> expiries</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>主要是遍历pendPool，分别对应headerPendPool、blockPendPool和receiptPendPool，这些pool都保存着等待处理的request。遍历每个request看是否超时，对于超时的请求将其请求的head再次放入taskQueue等待后续处理，并按id将其请求的heads数存入expiries，然后将其从pendPool移除，最后返回expiries。</p>
+<h2 id="CancelXxx"><a href="#CancelXxx" class="headerlink" title="CancelXxx"></a>CancelXxx</h2><p>也是一组方法，用于在downloader的fetchParts使用，<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(q *queue)</span> <span class="title">CancelHeaders</span><span class="params">(request *fetchRequest)</span></span> &#123;</span><br><span class="line">	q.cancel(request, q.headerTaskQueue, q.headerPendPool)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(q *queue)</span> <span class="title">CancelBodies</span><span class="params">(request *fetchRequest)</span></span> &#123;</span><br><span class="line">	q.cancel(request, q.blockTaskQueue, q.blockPendPool)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(q *queue)</span> <span class="title">CancelReceipts</span><span class="params">(request *fetchRequest)</span></span> &#123;</span><br><span class="line">	q.cancel(request, q.receiptTaskQueue, q.receiptPendPool)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>都调用了cancel方法<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(q *queue)</span> <span class="title">cancel</span><span class="params">(request *fetchRequest, taskQueue *prque.Prque, pendPool <span class="keyword">map</span>[<span class="keyword">string</span>]*fetchRequest)</span></span> &#123;</span><br><span class="line">	q.lock.Lock()</span><br><span class="line">	<span class="keyword">defer</span> q.lock.Unlock()</span><br><span class="line"></span><br><span class="line">	<span class="keyword">if</span> request.From &gt; <span class="number">0</span> &#123;</span><br><span class="line">		taskQueue.Push(request.From, -<span class="keyword">int64</span>(request.From))</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">for</span> _, header := <span class="keyword">range</span> request.Headers &#123;</span><br><span class="line">		taskQueue.Push(header, -<span class="keyword">int64</span>(header.Number.Uint64()))</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="built_in">delete</span>(pendPool, request.Peer.id)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>主要主要是取消某个request，但是请求的head还要重新放入taskQueue等待下次处理，最后将其从pendPool移除。</p>
+<h2 id="RetrieveHeaders"><a href="#RetrieveHeaders" class="headerlink" title="RetrieveHeaders"></a>RetrieveHeaders</h2><p>这个方法出现在fillHeaderSkeleton最后，他返回结果重置状态为下一次ScheduleSkeleton做准备<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(q *queue)</span> <span class="title">RetrieveHeaders</span><span class="params">()</span> <span class="params">([]*types.Header, <span class="keyword">int</span>)</span></span> &#123;</span><br><span class="line">	q.lock.Lock()</span><br><span class="line">	<span class="keyword">defer</span> q.lock.Unlock()</span><br><span class="line"></span><br><span class="line">	headers, proced := q.headerResults, q.headerProced</span><br><span class="line">	q.headerResults, q.headerProced = <span class="literal">nil</span>, <span class="number">0</span></span><br><span class="line"></span><br><span class="line">	<span class="keyword">return</span> headers, proced</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<h1 id="statesync-go"><a href="#statesync-go" class="headerlink" title="statesync.go"></a>statesync.go</h1><p>主要是用来同步状态信息。第一次被创建是在downloader的processFastSyncContent方法中，调用了syncState方法<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(d *Downloader)</span> <span class="title">syncState</span><span class="params">(root common.Hash)</span> *<span class="title">stateSync</span></span> &#123;</span><br><span class="line">	s := newStateSync(d, root)</span><br><span class="line">	<span class="keyword">select</span> &#123;</span><br><span class="line">	<span class="keyword">case</span> d.stateSyncStart &lt;- s:</span><br><span class="line">	<span class="keyword">case</span> &lt;-d.quitCh:</span><br><span class="line">		s.err = errCancelStateFetch</span><br><span class="line">		<span class="built_in">close</span>(s.done)</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">return</span> s</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">newStateSync</span><span class="params">(d *Downloader, root common.Hash)</span> *<span class="title">stateSync</span></span> &#123;</span><br><span class="line">	<span class="keyword">return</span> &amp;stateSync&#123;</span><br><span class="line">		d:       d,</span><br><span class="line">		sched:   state.NewStateSync(root, d.stateDB),</span><br><span class="line">		keccak:  sha3.NewLegacyKeccak256(),</span><br><span class="line">		tasks:   <span class="built_in">make</span>(<span class="keyword">map</span>[common.Hash]*stateTask),</span><br><span class="line">		deliver: <span class="built_in">make</span>(<span class="keyword">chan</span> *stateReq),</span><br><span class="line">		cancel:  <span class="built_in">make</span>(<span class="keyword">chan</span> <span class="keyword">struct</span>&#123;&#125;),</span><br><span class="line">		done:    <span class="built_in">make</span>(<span class="keyword">chan</span> <span class="keyword">struct</span>&#123;&#125;),</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>创建过程中有一个sched成员，是一个trie.Sync对象，构造过程如下<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// go-ethereum\core\state\sync.go</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">NewStateSync</span><span class="params">(root common.Hash, database trie.DatabaseReader)</span> *<span class="title">trie</span>.<span class="title">Sync</span></span> &#123;</span><br><span class="line">	<span class="keyword">var</span> syncer *trie.Sync</span><br><span class="line">	callback := <span class="function"><span class="keyword">func</span><span class="params">(leaf []<span class="keyword">byte</span>, parent common.Hash)</span> <span class="title">error</span></span> &#123;</span><br><span class="line">		<span class="keyword">var</span> obj Account</span><br><span class="line">		<span class="keyword">if</span> err := rlp.Decode(bytes.NewReader(leaf), &amp;obj); err != <span class="literal">nil</span> &#123;</span><br><span class="line">			<span class="keyword">return</span> err</span><br><span class="line">		&#125;</span><br><span class="line">		syncer.AddSubTrie(obj.Root, <span class="number">64</span>, parent, <span class="literal">nil</span>)</span><br><span class="line">		syncer.AddRawEntry(common.BytesToHash(obj.CodeHash), <span class="number">64</span>, parent)</span><br><span class="line">		<span class="keyword">return</span> <span class="literal">nil</span></span><br><span class="line">	&#125;</span><br><span class="line">	syncer = trie.NewSync(root, database, callback)</span><br><span class="line">	<span class="keyword">return</span> syncer</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// go-ethereum\trie\sync.go</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">NewSync</span><span class="params">(root common.Hash, database DatabaseReader, callback LeafCallback)</span> *<span class="title">Sync</span></span> &#123;</span><br><span class="line">	ts := &amp;Sync&#123;</span><br><span class="line">		database: database,</span><br><span class="line">		membatch: newSyncMemBatch(),</span><br><span class="line">		requests: <span class="built_in">make</span>(<span class="keyword">map</span>[common.Hash]*request),</span><br><span class="line">		queue:    prque.New(<span class="literal">nil</span>),</span><br><span class="line">	&#125;</span><br><span class="line">	ts.AddSubTrie(root, <span class="number">0</span>, common.Hash&#123;&#125;, callback)</span><br><span class="line">	<span class="keyword">return</span> ts</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>最后调用trie的NewSync方法构造了一个Sync，Sync是用于同步状态树的。最后的AddSubTrie如下<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(s *Sync)</span> <span class="title">AddSubTrie</span><span class="params">(root common.Hash, depth <span class="keyword">int</span>, parent common.Hash, callback LeafCallback)</span></span> &#123;</span><br><span class="line">	<span class="keyword">if</span> root == emptyRoot &#123;</span><br><span class="line">		<span class="keyword">return</span></span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">if</span> _, ok := s.membatch.batch[root]; ok &#123;</span><br><span class="line">		<span class="keyword">return</span></span><br><span class="line">	&#125;</span><br><span class="line">	key := root.Bytes()</span><br><span class="line">	blob, _ := s.database.Get(key)</span><br><span class="line">	<span class="keyword">if</span> local, err := decodeNode(key, blob, <span class="number">0</span>); local != <span class="literal">nil</span> &amp;&amp; err == <span class="literal">nil</span> &#123;</span><br><span class="line">		<span class="keyword">return</span></span><br><span class="line">	&#125;</span><br><span class="line">	req := &amp;request&#123;</span><br><span class="line">		hash:     root,</span><br><span class="line">		depth:    depth,</span><br><span class="line">		callback: callback,</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">if</span> parent != (common.Hash&#123;&#125;) &#123;</span><br><span class="line">		ancestor := s.requests[parent]</span><br><span class="line">		<span class="keyword">if</span> ancestor == <span class="literal">nil</span> &#123;</span><br><span class="line">			<span class="built_in">panic</span>(fmt.Sprintf(<span class="string">"sub-trie ancestor not found: %x"</span>, parent))</span><br><span class="line">		&#125;</span><br><span class="line">		ancestor.deps++</span><br><span class="line">		req.parents = <span class="built_in">append</span>(req.parents, ancestor)</span><br><span class="line">	&#125;</span><br><span class="line">	s.schedule(req)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>在开始状态下构建了request，然后调用schedule<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(s *Sync)</span> <span class="title">schedule</span><span class="params">(req *request)</span></span> &#123;</span><br><span class="line">	<span class="keyword">if</span> old, ok := s.requests[req.hash]; ok &#123;</span><br><span class="line">		old.parents = <span class="built_in">append</span>(old.parents, req.parents...)</span><br><span class="line">		<span class="keyword">return</span></span><br><span class="line">	&#125;</span><br><span class="line">	s.queue.Push(req.hash, <span class="keyword">int64</span>(req.depth))</span><br><span class="line">	s.requests[req.hash] = req</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>也是通过将请求放入队列中进行调度工作。</p>
+<p>回到syncState，sched创建后就向stateSyncStart发送了消息，内容就是StateSync对象。</p>
+<h2 id="stateFetcher"><a href="#stateFetcher" class="headerlink" title="stateFetcher"></a>stateFetcher</h2><p>在downloader的New方法最后启动了两个goroutine方法，第二个就是stateFetcher方法。<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(d *Downloader)</span> <span class="title">stateFetcher</span><span class="params">()</span></span> &#123;</span><br><span class="line">	<span class="keyword">for</span> &#123;</span><br><span class="line">		<span class="keyword">select</span> &#123;</span><br><span class="line">		<span class="keyword">case</span> s := &lt;-d.stateSyncStart:</span><br><span class="line">			<span class="keyword">for</span> next := s; next != <span class="literal">nil</span>; &#123;</span><br><span class="line">				next = d.runStateSync(next)</span><br><span class="line">			&#125;</span><br><span class="line">		<span class="keyword">case</span> &lt;-d.stateCh:</span><br><span class="line">			<span class="comment">// Ignore state responses while no sync is running.</span></span><br><span class="line">		<span class="keyword">case</span> &lt;-d.quitCh:</span><br><span class="line">			<span class="keyword">return</span></span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>一个go-select结构，前面syncState中触发了这里的逻辑，调用了runStateSync方法</p>
+<h2 id="runStateSync"><a href="#runStateSync" class="headerlink" title="runStateSync"></a>runStateSync</h2><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(d *Downloader)</span> <span class="title">runStateSync</span><span class="params">(s *stateSync)</span> *<span class="title">stateSync</span></span> &#123;</span><br><span class="line">	<span class="keyword">var</span> (</span><br><span class="line">		active   = <span class="built_in">make</span>(<span class="keyword">map</span>[<span class="keyword">string</span>]*stateReq) <span class="comment">// Currently in-flight requests</span></span><br><span class="line">		finished []*stateReq                  <span class="comment">// Completed or failed requests</span></span><br><span class="line">		timeout  = <span class="built_in">make</span>(<span class="keyword">chan</span> *stateReq)       <span class="comment">// Timed out active requests</span></span><br><span class="line">	)</span><br><span class="line">	<span class="keyword">defer</span> <span class="function"><span class="keyword">func</span><span class="params">()</span></span> &#123;</span><br><span class="line">		<span class="keyword">for</span> _, req := <span class="keyword">range</span> active &#123;</span><br><span class="line">			req.timer.Stop()</span><br><span class="line">			req.peer.SetNodeDataIdle(<span class="built_in">len</span>(req.items))</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;()</span><br><span class="line">	<span class="keyword">go</span> s.run()</span><br><span class="line">	<span class="keyword">defer</span> s.Cancel()</span><br><span class="line"></span><br><span class="line">	peerDrop := <span class="built_in">make</span>(<span class="keyword">chan</span> *peerConnection, <span class="number">1024</span>)</span><br><span class="line">	peerSub := s.d.peers.SubscribePeerDrops(peerDrop)</span><br><span class="line">	<span class="keyword">defer</span> peerSub.Unsubscribe()</span><br><span class="line"></span><br><span class="line">	<span class="keyword">for</span> &#123;</span><br><span class="line">		<span class="keyword">var</span> (</span><br><span class="line">			deliverReq   *stateReq</span><br><span class="line">			deliverReqCh <span class="keyword">chan</span> *stateReq</span><br><span class="line">		)</span><br><span class="line">		<span class="keyword">if</span> <span class="built_in">len</span>(finished) &gt; <span class="number">0</span> &#123;</span><br><span class="line">			deliverReq = finished[<span class="number">0</span>]</span><br><span class="line">			deliverReqCh = s.deliver</span><br><span class="line">		&#125;</span><br><span class="line"></span><br><span class="line">		<span class="keyword">select</span> &#123;</span><br><span class="line">		<span class="keyword">case</span> next := &lt;-d.stateSyncStart:</span><br><span class="line">			<span class="keyword">return</span> next</span><br><span class="line"></span><br><span class="line">		<span class="keyword">case</span> &lt;-s.done:</span><br><span class="line">			<span class="keyword">return</span> <span class="literal">nil</span></span><br><span class="line"></span><br><span class="line">		<span class="keyword">case</span> deliverReqCh &lt;- deliverReq:</span><br><span class="line">			<span class="built_in">copy</span>(finished, finished[<span class="number">1</span>:])</span><br><span class="line">			finished[<span class="built_in">len</span>(finished)<span class="number">-1</span>] = <span class="literal">nil</span></span><br><span class="line">			finished = finished[:<span class="built_in">len</span>(finished)<span class="number">-1</span>]</span><br><span class="line"></span><br><span class="line">		<span class="keyword">case</span> pack := &lt;-d.stateCh:</span><br><span class="line">			req := active[pack.PeerId()]</span><br><span class="line">			<span class="keyword">if</span> req == <span class="literal">nil</span> &#123;</span><br><span class="line">				log.Debug(<span class="string">"Unrequested node data"</span>, <span class="string">"peer"</span>, pack.PeerId(), <span class="string">"len"</span>, pack.Items())</span><br><span class="line">				<span class="keyword">continue</span></span><br><span class="line">			&#125;</span><br><span class="line">			req.timer.Stop()</span><br><span class="line">			req.response = pack.(*statePack).states</span><br><span class="line"></span><br><span class="line">			finished = <span class="built_in">append</span>(finished, req)</span><br><span class="line">			<span class="built_in">delete</span>(active, pack.PeerId())</span><br><span class="line"></span><br><span class="line">		<span class="keyword">case</span> p := &lt;-peerDrop:</span><br><span class="line">			req := active[p.id]</span><br><span class="line">			<span class="keyword">if</span> req == <span class="literal">nil</span> &#123;</span><br><span class="line">				<span class="keyword">continue</span></span><br><span class="line">			&#125;</span><br><span class="line">			req.timer.Stop()</span><br><span class="line">			req.dropped = <span class="literal">true</span></span><br><span class="line"></span><br><span class="line">			finished = <span class="built_in">append</span>(finished, req)</span><br><span class="line">			<span class="built_in">delete</span>(active, p.id)</span><br><span class="line"></span><br><span class="line">		<span class="keyword">case</span> req := &lt;-timeout:</span><br><span class="line">			<span class="keyword">if</span> active[req.peer.id] != req &#123;</span><br><span class="line">				<span class="keyword">continue</span></span><br><span class="line">			&#125;</span><br><span class="line">			finished = <span class="built_in">append</span>(finished, req)</span><br><span class="line">			<span class="built_in">delete</span>(active, req.peer.id)</span><br><span class="line"></span><br><span class="line">		<span class="keyword">case</span> req := &lt;-d.trackStateReq:</span><br><span class="line">			<span class="keyword">if</span> old := active[req.peer.id]; old != <span class="literal">nil</span> &#123;</span><br><span class="line">				log.Warn(<span class="string">"Busy peer assigned new state fetch"</span>, <span class="string">"peer"</span>, old.peer.id)</span><br><span class="line"></span><br><span class="line">				<span class="comment">// Make sure the previous one doesn't get siletly lost</span></span><br><span class="line">				old.timer.Stop()</span><br><span class="line">				old.dropped = <span class="literal">true</span></span><br><span class="line"></span><br><span class="line">				finished = <span class="built_in">append</span>(finished, old)</span><br><span class="line">			&#125;</span><br><span class="line">			req.timer = time.AfterFunc(req.timeout, <span class="function"><span class="keyword">func</span><span class="params">()</span></span> &#123;</span><br><span class="line">				<span class="keyword">select</span> &#123;</span><br><span class="line">				<span class="keyword">case</span> timeout &lt;- req:</span><br><span class="line">				<span class="keyword">case</span> &lt;-s.done:</span><br><span class="line">				&#125;</span><br><span class="line">			&#125;)</span><br><span class="line">			active[req.peer.id] = req</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>这里直接调用了run方法，是在一个单独的goroutine中，随后有一个for-select结构等待逻辑触发。run内容如下<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(s *stateSync)</span> <span class="title">run</span><span class="params">()</span></span> &#123;</span><br><span class="line">	s.err = s.loop()</span><br><span class="line">	<span class="built_in">close</span>(s.done)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(s *stateSync)</span> <span class="title">loop</span><span class="params">()</span> <span class="params">(err error)</span></span> &#123;</span><br><span class="line">	newPeer := <span class="built_in">make</span>(<span class="keyword">chan</span> *peerConnection, <span class="number">1024</span>)</span><br><span class="line">	peerSub := s.d.peers.SubscribeNewPeers(newPeer)</span><br><span class="line">	<span class="keyword">defer</span> peerSub.Unsubscribe()</span><br><span class="line">	<span class="keyword">defer</span> <span class="function"><span class="keyword">func</span><span class="params">()</span></span> &#123;</span><br><span class="line">		cerr := s.commit(<span class="literal">true</span>)</span><br><span class="line">		<span class="keyword">if</span> err == <span class="literal">nil</span> &#123;</span><br><span class="line">			err = cerr</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;()</span><br><span class="line"></span><br><span class="line">	<span class="keyword">for</span> s.sched.Pending() &gt; <span class="number">0</span> &#123;</span><br><span class="line">		<span class="keyword">if</span> err = s.commit(<span class="literal">false</span>); err != <span class="literal">nil</span> &#123;</span><br><span class="line">			<span class="keyword">return</span> err</span><br><span class="line">		&#125;</span><br><span class="line">		s.assignTasks()</span><br><span class="line">		<span class="keyword">select</span> &#123;</span><br><span class="line">		<span class="keyword">case</span> &lt;-newPeer:</span><br><span class="line"></span><br><span class="line">		<span class="keyword">case</span> &lt;-s.cancel:</span><br><span class="line">			<span class="keyword">return</span> errCancelStateFetch</span><br><span class="line"></span><br><span class="line">		<span class="keyword">case</span> &lt;-s.d.cancelCh:</span><br><span class="line">			<span class="keyword">return</span> errCancelStateFetch</span><br><span class="line"></span><br><span class="line">		<span class="keyword">case</span> req := &lt;-s.deliver:</span><br><span class="line">			log.Trace(<span class="string">"Received node data response"</span>, <span class="string">"peer"</span>, req.peer.id, <span class="string">"count"</span>, <span class="built_in">len</span>(req.response), <span class="string">"dropped"</span>, req.dropped, <span class="string">"timeout"</span>, !req.dropped &amp;&amp; req.timedOut())</span><br><span class="line">			<span class="keyword">if</span> <span class="built_in">len</span>(req.items) &lt;= <span class="number">2</span> &amp;&amp; !req.dropped &amp;&amp; req.timedOut() &#123;</span><br><span class="line">				log.Warn(<span class="string">"Stalling state sync, dropping peer"</span>, <span class="string">"peer"</span>, req.peer.id)</span><br><span class="line">				s.d.dropPeer(req.peer.id)</span><br><span class="line">			&#125;</span><br><span class="line">			delivered, err := s.process(req)</span><br><span class="line">			<span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">				log.Warn(<span class="string">"Node data write error"</span>, <span class="string">"err"</span>, err)</span><br><span class="line">				<span class="keyword">return</span> err</span><br><span class="line">			&#125;</span><br><span class="line">			req.peer.SetNodeDataIdle(delivered)</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">return</span> <span class="literal">nil</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>先调用了sched的Pending方法，这个方法返回requests的长度，requests在schedule时被填充方法，如果大于0表示有等待调度的任务。之后进入循环，调用commit，最开始没有可以提交的，直接返回nil。接着调用assignTasks<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(s *stateSync)</span> <span class="title">assignTasks</span><span class="params">()</span></span> &#123;</span><br><span class="line">	peers, _ := s.d.peers.NodeDataIdlePeers()</span><br><span class="line">	<span class="keyword">for</span> _, p := <span class="keyword">range</span> peers &#123;</span><br><span class="line">		<span class="built_in">cap</span> := p.NodeDataCapacity(s.d.requestRTT())</span><br><span class="line">		req := &amp;stateReq&#123;peer: p, timeout: s.d.requestTTL()&#125;</span><br><span class="line">		s.fillTasks(<span class="built_in">cap</span>, req)</span><br><span class="line"></span><br><span class="line">		<span class="keyword">if</span> <span class="built_in">len</span>(req.items) &gt; <span class="number">0</span> &#123;</span><br><span class="line">			req.peer.log.Trace(<span class="string">"Requesting new batch of data"</span>, <span class="string">"type"</span>, <span class="string">"state"</span>, <span class="string">"count"</span>, <span class="built_in">len</span>(req.items))</span><br><span class="line">			<span class="keyword">select</span> &#123;</span><br><span class="line">			<span class="keyword">case</span> s.d.trackStateReq &lt;- req:</span><br><span class="line">				req.peer.FetchNodeData(req.items)</span><br><span class="line">			<span class="keyword">case</span> &lt;-s.cancel:</span><br><span class="line">			<span class="keyword">case</span> &lt;-s.d.cancelCh:</span><br><span class="line">			&#125;</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(s *stateSync)</span> <span class="title">fillTasks</span><span class="params">(n <span class="keyword">int</span>, req *stateReq)</span></span> &#123;</span><br><span class="line">	<span class="keyword">if</span> <span class="built_in">len</span>(s.tasks) &lt; n &#123;</span><br><span class="line">		<span class="built_in">new</span> := s.sched.Missing(n - <span class="built_in">len</span>(s.tasks))</span><br><span class="line">		<span class="keyword">for</span> _, hash := <span class="keyword">range</span> <span class="built_in">new</span> &#123;</span><br><span class="line">			s.tasks[hash] = &amp;stateTask&#123;<span class="built_in">make</span>(<span class="keyword">map</span>[<span class="keyword">string</span>]<span class="keyword">struct</span>&#123;&#125;)&#125;</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	req.items = <span class="built_in">make</span>([]common.Hash, <span class="number">0</span>, n)</span><br><span class="line">	req.tasks = <span class="built_in">make</span>(<span class="keyword">map</span>[common.Hash]*stateTask, n)</span><br><span class="line">	<span class="keyword">for</span> hash, t := <span class="keyword">range</span> s.tasks &#123;</span><br><span class="line">		<span class="keyword">if</span> <span class="built_in">len</span>(req.items) == n &#123;</span><br><span class="line">			<span class="keyword">break</span></span><br><span class="line">		&#125;</span><br><span class="line">		<span class="keyword">if</span> _, ok := t.attempts[req.peer.id]; ok &#123;</span><br><span class="line">			<span class="keyword">continue</span></span><br><span class="line">		&#125;</span><br><span class="line">		t.attempts[req.peer.id] = <span class="keyword">struct</span>&#123;&#125;&#123;&#125;</span><br><span class="line">		req.items = <span class="built_in">append</span>(req.items, hash)</span><br><span class="line">		req.tasks[hash] = t</span><br><span class="line">		<span class="built_in">delete</span>(s.tasks, hash)</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>NodeDataIdlePeers获取对应状态下空闲的peer，之后遍历所有idle的peer，然后构造请求，fillTasks中先调用了sched的Missing方法，这个方法将sched中schedule方法存入队列的请求取出。取出后将hash存入tasks，随后填充请求的items与tasks。一个请求构造完之后，在assignTasks的select结构中赋值给trackStateReq触发runStateSync里的逻辑。同时又调用了peer的FetchNodeData方法，FetchNodeData就是调用peer的RequestNodeData方法，发送GetNodeDataMsg方法。</p>
+<p>发送GetNodeDataMsg消息后，对方会回复NodeDataMsg消息，这是调用downloader的DeliverNodeData方法。这个方法只是将接收到的数据发送到destCh，也就是d.stateCh，同样触发runStateSyn里逻辑。</p>
+<p>由于刚才的run和loop都是再独立goroutine中运行的，所以runStateSync正常进入select结构阻塞。</p>
+<p>首先触发trackStateReq逻辑，这个是追踪请求的，首先看该peer是否请求过，没有的话设置一个定时器，并将该请求按id存入active中，同时也制定了超时的逻辑。</p>
+<p>其次触发的是d.stateCh，也是先检测是否是之前请求的，是的话停止定时器，然后填充请求的响应字段，然后向finished追加内容，一次循环结束，下一次循环开始时，取finished第一个内容，在select中触发deliverReqCh逻辑，由于deliverReqCh等于s.deliver，所以也触发loop中的逻辑，这里先调用process方法处理响应的内容。<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(s *stateSync)</span> <span class="title">process</span><span class="params">(req *stateReq)</span> <span class="params">(<span class="keyword">int</span>, error)</span></span> &#123;</span><br><span class="line">	duplicate, unexpected, successful := <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span></span><br><span class="line"></span><br><span class="line">	<span class="keyword">defer</span> <span class="function"><span class="keyword">func</span><span class="params">(start time.Time)</span></span> &#123;</span><br><span class="line">		<span class="keyword">if</span> duplicate &gt; <span class="number">0</span> || unexpected &gt; <span class="number">0</span> &#123;</span><br><span class="line">			s.updateStats(<span class="number">0</span>, duplicate, unexpected, time.Since(start))</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;(time.Now())</span><br><span class="line"></span><br><span class="line">	<span class="keyword">for</span> _, blob := <span class="keyword">range</span> req.response &#123;</span><br><span class="line">		_, hash, err := s.processNodeData(blob)</span><br><span class="line">		<span class="keyword">switch</span> err &#123;</span><br><span class="line">		<span class="keyword">case</span> <span class="literal">nil</span>:</span><br><span class="line">			s.numUncommitted++</span><br><span class="line">			s.bytesUncommitted += <span class="built_in">len</span>(blob)</span><br><span class="line">			successful++</span><br><span class="line">		<span class="keyword">case</span> trie.ErrNotRequested:</span><br><span class="line">			unexpected++</span><br><span class="line">		<span class="keyword">case</span> trie.ErrAlreadyProcessed:</span><br><span class="line">			duplicate++</span><br><span class="line">		<span class="keyword">default</span>:</span><br><span class="line">			<span class="keyword">return</span> successful, fmt.Errorf(<span class="string">"invalid state node %s: %v"</span>, hash.TerminalString(), err)</span><br><span class="line">		&#125;</span><br><span class="line">		<span class="keyword">if</span> _, ok := req.tasks[hash]; ok &#123;</span><br><span class="line">			<span class="built_in">delete</span>(req.tasks, hash)</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">	npeers := s.d.peers.Len()</span><br><span class="line">	<span class="keyword">for</span> hash, task := <span class="keyword">range</span> req.tasks &#123;</span><br><span class="line">		<span class="keyword">if</span> <span class="built_in">len</span>(req.response) &gt; <span class="number">0</span> || req.timedOut() &#123;</span><br><span class="line">			<span class="built_in">delete</span>(task.attempts, req.peer.id)</span><br><span class="line">		&#125;</span><br><span class="line">		<span class="keyword">if</span> <span class="built_in">len</span>(task.attempts) &gt;= npeers &#123;</span><br><span class="line">			<span class="keyword">return</span> successful, fmt.Errorf(<span class="string">"state node %s failed with all peers (%d tries, %d peers)"</span>, hash.TerminalString(), <span class="built_in">len</span>(task.attempts), npeers)</span><br><span class="line">		&#125;</span><br><span class="line">		s.tasks[hash] = task</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">return</span> successful, <span class="literal">nil</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(s *stateSync)</span> <span class="title">processNodeData</span><span class="params">(blob []<span class="keyword">byte</span>)</span> <span class="params">(<span class="keyword">bool</span>, common.Hash, error)</span></span> &#123;</span><br><span class="line">	res := trie.SyncResult&#123;Data: blob&#125;</span><br><span class="line">	s.keccak.Reset()</span><br><span class="line">	s.keccak.Write(blob)</span><br><span class="line">	s.keccak.Sum(res.Hash[:<span class="number">0</span>])</span><br><span class="line">	committed, _, err := s.sched.Process([]trie.SyncResult&#123;res&#125;)</span><br><span class="line">	<span class="keyword">return</span> committed, res.Hash, err</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>由于响应可能是多组数据，所以遍历每一组数据，调用processNodeData进行处理，processNodeData主要是构建SyncResult以便sched处理，sched的process方法主要就是将数据解析为树中节点，然后在递归的去请求节点的孩子，直到一棵树建立，请求的方法还是构建请求放入requests等待调度，这里不再详细说明。总之经过processNodeData一次响应的数据被处理，如果没有错误，numUncommitted和bytesUncommitted对应增加，然后将成功的请求从tasks中移除，未成功的放回队列等待下次请求。回到loop中对于逻辑，处理完之后，没有错的话修改对应peer状态信息。</p>
+<blockquote>
+<p>题图来自unsplash：<a href="https://unsplash.com/photos/3Xj6BntfsIU" target="_blank" rel="noopener">https://unsplash.com/photos/3Xj6BntfsIU</a></p>
+</blockquote>
+
+      
+    </div>
+
+    
+
+    
+    
+    
+
+    
+
+    
+      
+    
+    
+      <div>
+        <div style="padding: 10px 0; margin: 20px auto; width: 90%; text-align: center;">
+  <div>谢谢你请我吃糖</div>
+  <button id="rewardButton" disable="enable" onclick="var qr = document.getElementById('QR'); if (qr.style.display === 'none') {qr.style.display='block';} else {qr.style.display='none'}">
+    <span>打赏</span>
+  </button>
+  <div id="QR" style="display: none;">
+
+    
+      <div id="wechat" style="display: inline-block">
+        <img id="wechat_qr" src="/assets/img/wechatpay.jpg" alt="AmorFati 微信支付">
+        <p>微信支付</p>
+      </div>
+    
+
+    
+      <div id="alipay" style="display: inline-block">
+        <img id="alipay_qr" src="/assets/img/alipay.jpg" alt="AmorFati 支付宝">
+        <p>支付宝</p>
+      </div>
+    
+
+    
+
+  </div>
+</div>
+
+      </div>
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/go/" rel="tag"># go</a>
+          
+            <a href="/tags/区块链/" rel="tag"># 区块链</a>
+          
+            <a href="/tags/以太坊/" rel="tag"># 以太坊</a>
+          
+            <a href="/tags/go-ethereum/" rel="tag"># go-ethereum</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2019/05/16/go-ethereum中eth-downloader源码学习1/" rel="next" title="go-ethereum中eth-downloader源码学习（一）">
+                <i class="fa fa-chevron-left"></i> go-ethereum中eth-downloader源码学习（一）
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+  </div>
+
+
+          </div>
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image" src="/assets/img/icon.jpg" alt="AmorFati">
+            
+              <p class="site-author-name" itemprop="name">AmorFati</p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          
+            <nav class="site-state motion-element">
+              
+                <div class="site-state-item site-state-posts">
+                
+                  <a href="/archives/">
+                
+                    <span class="site-state-item-count">34</span>
+                    <span class="site-state-item-name">日志</span>
+                  </a>
+                </div>
+              
+
+              
+                
+                
+                <div class="site-state-item site-state-categories">
+                  <a href="/categories/index.html">
+                    
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">7</span>
+                    <span class="site-state-item-name">分类</span>
+                  </a>
+                </div>
+              
+
+              
+                
+                
+                <div class="site-state-item site-state-tags">
+                  <a href="/tags/index.html">
+                    
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">11</span>
+                    <span class="site-state-item-name">标签</span>
+                  </a>
+                </div>
+              
+            </nav>
+          
+
+          
+
+          
+            <div class="links-of-author motion-element">
+              
+                <span class="links-of-author-item">
+                  
+                  
+                    
+                  
+                  
+                    
+                  
+                  <a href="https://github.com/chenyaoyang" title="GitHub &rarr; https://github.com/chenyaoyang" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i>GitHub</a>
+                </span>
+              
+                <span class="links-of-author-item">
+                  
+                  
+                    
+                  
+                  
+                    
+                  
+                  <a href="mailto:chenyang4346@foxmail.com" title="E-Mail &rarr; mailto:chenyang4346@foxmail.com" rel="noopener" target="_blank"><i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+                </span>
+              
+                <span class="links-of-author-item">
+                  
+                  
+                    
+                  
+                  
+                    
+                  
+                  <a href="https://www.jianshu.com/u/52c1bec4559c" title="简书 &rarr; https://www.jianshu.com/u/52c1bec4559c" rel="noopener" target="_blank"><i class="fa fa-fw fa-globe"></i>简书</a>
+                </span>
+              
+            </div>
+          
+
+          
+
+          
+          
+
+          
+            
+          
+          
+
+        </div>
+      </div>
+
+      
+      <!--noindex-->
+        <div class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+            
+            
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#peer-go"><span class="nav-number">1.</span> <span class="nav-text">peer.go</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#register-amp-Unregister"><span class="nav-number">1.1.</span> <span class="nav-text">register &amp; Unregister</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#FetchXxx"><span class="nav-number">1.2.</span> <span class="nav-text">FetchXxx</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#SetXxxIdle"><span class="nav-number">1.3.</span> <span class="nav-text">SetXxxIdle</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#XxxCapacity"><span class="nav-number">1.4.</span> <span class="nav-text">XxxCapacity</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#XxxIdlePeers"><span class="nav-number">1.5.</span> <span class="nav-text">XxxIdlePeers</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Reset"><span class="nav-number">1.6.</span> <span class="nav-text">Reset</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#queue-go"><span class="nav-number">2.</span> <span class="nav-text">queue.go</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#Schedule"><span class="nav-number">2.1.</span> <span class="nav-text">Schedule</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#ScheduleSkeleton"><span class="nav-number">2.2.</span> <span class="nav-text">ScheduleSkeleton</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#ReserveXxx"><span class="nav-number">2.3.</span> <span class="nav-text">ReserveXxx</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#reserveHeaders"><span class="nav-number">2.3.1.</span> <span class="nav-text">reserveHeaders</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#ReserveHeaders"><span class="nav-number">2.3.2.</span> <span class="nav-text">ReserveHeaders</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#DeliverXxx"><span class="nav-number">2.4.</span> <span class="nav-text">DeliverXxx</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#deliver"><span class="nav-number">2.4.1.</span> <span class="nav-text">deliver</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#DeliverHeaders"><span class="nav-number">2.4.2.</span> <span class="nav-text">DeliverHeaders</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#ExpireXxx"><span class="nav-number">2.5.</span> <span class="nav-text">ExpireXxx</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#CancelXxx"><span class="nav-number">2.6.</span> <span class="nav-text">CancelXxx</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#RetrieveHeaders"><span class="nav-number">2.7.</span> <span class="nav-text">RetrieveHeaders</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#statesync-go"><span class="nav-number">3.</span> <span class="nav-text">statesync.go</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#stateFetcher"><span class="nav-number">3.1.</span> <span class="nav-text">stateFetcher</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#runStateSync"><span class="nav-number">3.2.</span> <span class="nav-text">runStateSync</span></a></li></ol></li></ol></div>
+            
+
+          </div>
+        </div>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; 2018 – <span itemprop="copyrightYear">2019</span>
+  <span class="with-love" id="animate">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">AmorFati</span>
+
+  
+
+  
+</div>
+
+
+  <div class="powered-by">由 <a href="https://hexo.io" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v3.8.0</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 – <a href="https://theme-next.org" class="theme-link" rel="noopener" target="_blank">NexT.Pisces</a> v6.6.0</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+    
+
+    
+  </div>
+
+  
+
+<script>
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+
+  
+
+
+  <script src="/js/src/utils.js?v=6.6.0"></script>
+
+  <script src="/js/src/motion.js?v=6.6.0"></script>
+
+
+
+  
+  
+
+
+  <script src="/js/src/affix.js?v=6.6.0"></script>
+
+  <script src="/js/src/schemes/pisces.js?v=6.6.0"></script>
+
+
+
+  
+  <script src="/js/src/scrollspy.js?v=6.6.0"></script>
+<script src="/js/src/post-details.js?v=6.6.0"></script>
+
+
+
+  
+
+
+  <script src="/js/src/bootstrap.js?v=6.6.0"></script>
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  <script>
+    // Popup Window;
+    var isfetched = false;
+    var isXml = true;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length === 0) {
+      search_path = "search.xml";
+    } else if (/json$/i.test(search_path)) {
+      isXml = false;
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    var onPopupClose = function (e) {
+      $('.popup').hide();
+      $('#local-search-input').val('');
+      $('.search-result-list').remove();
+      $('#no-result').remove();
+      $(".local-search-pop-overlay").remove();
+      $('body').css('overflow', '');
+    }
+
+    function proceedsearch() {
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay"></div>')
+        .css('overflow', 'hidden');
+      $('.search-popup-overlay').click(onPopupClose);
+      $('.popup').toggle();
+      var $localSearchInput = $('#local-search-input');
+      $localSearchInput.attr("autocapitalize", "none");
+      $localSearchInput.attr("autocorrect", "off");
+      $localSearchInput.focus();
+    }
+
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+      'use strict';
+
+      // start loading animation
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay">' +
+          '<div id="search-loading-icon">' +
+          '<i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>' +
+          '</div>' +
+          '</div>')
+        .css('overflow', 'hidden');
+      $("#search-loading-icon").css('margin', '20% auto 0 auto').css('text-align', 'center');
+
+      
+
+      $.ajax({
+        url: path,
+        dataType: isXml ? "xml" : "json",
+        async: true,
+        success: function(res) {
+          // get the contents from search data
+          isfetched = true;
+          $('.popup').detach().appendTo('.header-inner');
+          var datas = isXml ? $("entry", res).map(function() {
+            return {
+              title: $("title", this).text(),
+              content: $("content",this).text(),
+              url: $("url" , this).text()
+            };
+          }).get() : res;
+          var input = document.getElementById(search_id);
+          var resultContent = document.getElementById(content_id);
+          var inputEventFunction = function() {
+            var searchText = input.value.trim().toLowerCase();
+            var keywords = searchText.split(/[\s\-]+/);
+            if (keywords.length > 1) {
+              keywords.push(searchText);
+            }
+            var resultItems = [];
+            if (searchText.length > 0) {
+              // perform local searching
+              datas.forEach(function(data) {
+                var isMatch = false;
+                var hitCount = 0;
+                var searchTextCount = 0;
+                var title = data.title.trim();
+                var titleInLowerCase = title.toLowerCase();
+                var content = data.content.trim().replace(/<[^>]+>/g,"");
+                
+                var contentInLowerCase = content.toLowerCase();
+                var articleUrl = decodeURIComponent(data.url);
+                var indexOfTitle = [];
+                var indexOfContent = [];
+                // only match articles with not empty titles
+                if(title != '') {
+                  keywords.forEach(function(keyword) {
+                    function getIndexByWord(word, text, caseSensitive) {
+                      var wordLen = word.length;
+                      if (wordLen === 0) {
+                        return [];
+                      }
+                      var startPosition = 0, position = [], index = [];
+                      if (!caseSensitive) {
+                        text = text.toLowerCase();
+                        word = word.toLowerCase();
+                      }
+                      while ((position = text.indexOf(word, startPosition)) > -1) {
+                        index.push({position: position, word: word});
+                        startPosition = position + wordLen;
+                      }
+                      return index;
+                    }
+
+                    indexOfTitle = indexOfTitle.concat(getIndexByWord(keyword, titleInLowerCase, false));
+                    indexOfContent = indexOfContent.concat(getIndexByWord(keyword, contentInLowerCase, false));
+                  });
+                  if (indexOfTitle.length > 0 || indexOfContent.length > 0) {
+                    isMatch = true;
+                    hitCount = indexOfTitle.length + indexOfContent.length;
+                  }
+                }
+
+                // show search results
+
+                if (isMatch) {
+                  // sort index by position of keyword
+
+                  [indexOfTitle, indexOfContent].forEach(function (index) {
+                    index.sort(function (itemLeft, itemRight) {
+                      if (itemRight.position !== itemLeft.position) {
+                        return itemRight.position - itemLeft.position;
+                      } else {
+                        return itemLeft.word.length - itemRight.word.length;
+                      }
+                    });
+                  });
+
+                  // merge hits into slices
+
+                  function mergeIntoSlice(text, start, end, index) {
+                    var item = index[index.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    var hits = [];
+                    var searchTextCountInSlice = 0;
+                    while (position + word.length <= end && index.length != 0) {
+                      if (word === searchText) {
+                        searchTextCountInSlice++;
+                      }
+                      hits.push({position: position, length: word.length});
+                      var wordEnd = position + word.length;
+
+                      // move to next position of hit
+
+                      index.pop();
+                      while (index.length != 0) {
+                        item = index[index.length - 1];
+                        position = item.position;
+                        word = item.word;
+                        if (wordEnd > position) {
+                          index.pop();
+                        } else {
+                          break;
+                        }
+                      }
+                    }
+                    searchTextCount += searchTextCountInSlice;
+                    return {
+                      hits: hits,
+                      start: start,
+                      end: end,
+                      searchTextCount: searchTextCountInSlice
+                    };
+                  }
+
+                  var slicesOfTitle = [];
+                  if (indexOfTitle.length != 0) {
+                    slicesOfTitle.push(mergeIntoSlice(title, 0, title.length, indexOfTitle));
+                  }
+
+                  var slicesOfContent = [];
+                  while (indexOfContent.length != 0) {
+                    var item = indexOfContent[indexOfContent.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    // cut out 100 characters
+                    var start = position - 20;
+                    var end = position + 80;
+                    if(start < 0){
+                      start = 0;
+                    }
+                    if (end < position + word.length) {
+                      end = position + word.length;
+                    }
+                    if(end > content.length){
+                      end = content.length;
+                    }
+                    slicesOfContent.push(mergeIntoSlice(content, start, end, indexOfContent));
+                  }
+
+                  // sort slices in content by search text's count and hits' count
+
+                  slicesOfContent.sort(function (sliceLeft, sliceRight) {
+                    if (sliceLeft.searchTextCount !== sliceRight.searchTextCount) {
+                      return sliceRight.searchTextCount - sliceLeft.searchTextCount;
+                    } else if (sliceLeft.hits.length !== sliceRight.hits.length) {
+                      return sliceRight.hits.length - sliceLeft.hits.length;
+                    } else {
+                      return sliceLeft.start - sliceRight.start;
+                    }
+                  });
+
+                  // select top N slices in content
+
+                  var upperBound = parseInt('1');
+                  if (upperBound >= 0) {
+                    slicesOfContent = slicesOfContent.slice(0, upperBound);
+                  }
+
+                  // highlight title and content
+
+                  function highlightKeyword(text, slice) {
+                    var result = '';
+                    var prevEnd = slice.start;
+                    slice.hits.forEach(function (hit) {
+                      result += text.substring(prevEnd, hit.position);
+                      var end = hit.position + hit.length;
+                      result += '<b class="search-keyword">' + text.substring(hit.position, end) + '</b>';
+                      prevEnd = end;
+                    });
+                    result += text.substring(prevEnd, slice.end);
+                    return result;
+                  }
+
+                  var resultItem = '';
+
+                  if (slicesOfTitle.length != 0) {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + highlightKeyword(title, slicesOfTitle[0]) + "</a>";
+                  } else {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + title + "</a>";
+                  }
+
+                  slicesOfContent.forEach(function (slice) {
+                    resultItem += "<a href='" + articleUrl + "'>" +
+                      "<p class=\"search-result\">" + highlightKeyword(content, slice) +
+                      "...</p>" + "</a>";
+                  });
+
+                  resultItem += "</li>";
+                  resultItems.push({
+                    item: resultItem,
+                    searchTextCount: searchTextCount,
+                    hitCount: hitCount,
+                    id: resultItems.length
+                  });
+                }
+              })
+            };
+            if (keywords.length === 1 && keywords[0] === "") {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>'
+            } else if (resultItems.length === 0) {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>'
+            } else {
+              resultItems.sort(function (resultLeft, resultRight) {
+                if (resultLeft.searchTextCount !== resultRight.searchTextCount) {
+                  return resultRight.searchTextCount - resultLeft.searchTextCount;
+                } else if (resultLeft.hitCount !== resultRight.hitCount) {
+                  return resultRight.hitCount - resultLeft.hitCount;
+                } else {
+                  return resultRight.id - resultLeft.id;
+                }
+              });
+              var searchResultList = '<ul class=\"search-result-list\">';
+              resultItems.forEach(function (result) {
+                searchResultList += result.item;
+              })
+              searchResultList += "</ul>";
+              resultContent.innerHTML = searchResultList;
+            }
+          }
+
+          if ('auto' === 'auto') {
+            input.addEventListener('input', inputEventFunction);
+          } else {
+            $('.search-icon').click(inputEventFunction);
+            input.addEventListener('keypress', function (event) {
+              if (event.keyCode === 13) {
+                inputEventFunction();
+              }
+            });
+          }
+
+          // remove loading animation
+          $(".local-search-pop-overlay").remove();
+          $('body').css('overflow', '');
+
+          proceedsearch();
+        }
+      });
+    }
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched === false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+    });
+
+    $('.popup-btn-close').click(onPopupClose);
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+    $(document).on('keyup', function (event) {
+      var shouldDismissSearchPopup = event.which === 27 &&
+        $('.search-popup').is(':visible');
+      if (shouldDismissSearchPopup) {
+        onPopupClose();
+      }
+    });
+  </script>
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+  
+
+  
+
+
+  
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>
