@@ -1,0 +1,1401 @@
+<!DOCTYPE html>
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+<html class="theme-next pisces use-motion" lang="zh-CN">
+<head><meta name="generator" content="Hexo 3.8.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+    
+      
+    
+
+    
+  
+
+  
+
+  
+    
+      
+    
+
+    
+  
+
+  
+    
+      
+    
+
+    
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Monda:300,300italic,400,400italic,700,700italic|Roboto Slab:300,300italic,400,400italic,700,700italic|Dancing Script:300,300italic,400,400italic,700,700italic|Consolas:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css">
+
+<link href="/css/main.css?v=6.6.0" rel="stylesheet" type="text/css">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=6.6.0">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=6.6.0">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=6.6.0">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=6.6.0" color="#222">
+
+
+
+
+
+
+
+
+
+<script id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    version: '6.6.0',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: false,
+    fastclick: false,
+    lazyload: false,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+  
+
+
+
+
+  <meta name="keywords" content="go,区块链,以太坊,go-ethereum">
+<meta property="og:type" content="article">
+<meta property="og:title" content="go-ethereum中core-state源码学习">
+<meta property="og:url" content="http://yoursite.com/2019/05/17/go-ethereum中core-state源码学习/index.html">
+<meta property="og:site_name" content="AmorFati">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:image" content="https://raw.githubusercontent.com/chenyaoyang/blog-pic/master/head/v2osk-116514-unsplash.jpg">
+<meta property="og:updated_time" content="2019-05-17T05:26:07.718Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="go-ethereum中core-state源码学习">
+<meta name="twitter:image" content="https://raw.githubusercontent.com/chenyaoyang/blog-pic/master/head/v2osk-116514-unsplash.jpg">
+
+
+
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2019/05/17/go-ethereum中core-state源码学习/">
+
+
+
+<script id="page.configurations">
+  CONFIG.page = {
+    sidebar: "",
+  };
+</script>
+
+  <title>go-ethereum中core-state源码学习 | AmorFati</title>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  <noscript>
+  <style>
+    .use-motion .motion-element,
+    .use-motion .brand,
+    .use-motion .menu-item,
+    .sidebar-inner,
+    .use-motion .post-block,
+    .use-motion .pagination,
+    .use-motion .comments,
+    .use-motion .post-header,
+    .use-motion .post-body,
+    .use-motion .collection-title { opacity: initial; }
+
+    .use-motion .logo,
+    .use-motion .site-title,
+    .use-motion .site-subtitle {
+      opacity: initial;
+      top: initial;
+    }
+
+    .use-motion .logo-line-before i { left: initial; }
+    .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope="" itemtype="http://schema.org/WebPage" lang="zh-CN">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope="" itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">AmorFati</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+    
+      
+        <p class="site-subtitle">风吹过窗前的书，又翻过一页</p>
+      
+    
+    
+  </div>
+
+  <div class="site-nav-toggle">
+    <button aria-label="切换导航栏">
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  
+    <ul id="menu" class="menu">
+      
+        
+        
+        
+          
+          <li class="menu-item menu-item-home">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/" rel="section"><i class="menu-item-icon fa fa-fw fa-home"></i> <br>首页</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-about">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/about/" rel="section"><i class="menu-item-icon fa fa-fw fa-user"></i> <br>关于</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-tags">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/tags/" rel="section"><i class="menu-item-icon fa fa-fw fa-tags"></i> <br>标签</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-categories">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/categories/" rel="section"><i class="menu-item-icon fa fa-fw fa-th"></i> <br>分类</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-archives">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/archives/" rel="section"><i class="menu-item-icon fa fa-fw fa-archive"></i> <br>归档</a>
+
+  </li>
+
+      
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br>搜索</a>
+        </li>
+      
+    </ul>
+  
+
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup search-popup local-search-popup">
+  <div class="local-search-header clearfix">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+    <div class="local-search-input-wrapper">
+      <input autocomplete="off" placeholder="搜索..." spellcheck="false" type="text" id="local-search-input">
+    </div>
+  </div>
+  <div id="local-search-result"></div>
+</div>
+
+
+
+    </div>
+  
+</nav>
+
+
+
+  
+
+
+
+</div>
+    </header>
+
+    
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+            
+
+          
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  
+
+  <article class="post post-type-normal" itemscope="" itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/05/17/go-ethereum中core-state源码学习/">
+
+    <span hidden itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="AmorFati">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/assets/img/icon.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope="" itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="AmorFati">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">go-ethereum中core-state源码学习
+
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+
+            
+            
+            
+
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+
+              
+                
+              
+
+              <time title="创建时间：2019-05-17 13:24:12 / 修改时间：13:26:07" itemprop="dateCreated datePublished" datetime="2019-05-17T13:24:12+08:00">2019-05-17</time>
+            
+
+            
+              
+
+              
+            
+          </span>
+
+          
+            <span class="post-category">
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope="" itemtype="http://schema.org/Thing"><a href="/categories/go-ethereum源码学习/" itemprop="url" rel="index"><span itemprop="name">go-ethereum源码学习</span></a></span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p><img src="https://raw.githubusercontent.com/chenyaoyang/blog-pic/master/head/v2osk-116514-unsplash.jpg" alt=""><br><a id="more"></a><br>core里的state包提供了账户状态的管理，包括状态转换以及回滚等操作。</p>
+<h1 id="datebase-go"><a href="#datebase-go" class="headerlink" title="datebase.go"></a>datebase.go</h1><p>首先提供了数据库的抽象，定义了一个接口：<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">type</span> Database <span class="keyword">interface</span> &#123;</span><br><span class="line">	OpenTrie(root common.Hash) (Trie, error)</span><br><span class="line"></span><br><span class="line">	OpenStorageTrie(addrHash, root common.Hash) (Trie, error)</span><br><span class="line"></span><br><span class="line">	CopyTrie(Trie) Trie</span><br><span class="line"></span><br><span class="line">	ContractCode(addrHash, codeHash common.Hash) ([]<span class="keyword">byte</span>, error)</span><br><span class="line"></span><br><span class="line">	ContractCodeSize(addrHash, codeHash common.Hash) (<span class="keyword">int</span>, error)</span><br><span class="line"></span><br><span class="line">	TrieDB() *trie.Database</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>OpenTrie是打开主账号的树，OpenStorageTrie是打开某个账号的数，CopyTrie就是复制，ContractCode是访问合约代码，ContractCodeSize获取合约大小，TrieDB访问底层数据库</p>
+<h2 id="new"><a href="#new" class="headerlink" title="new"></a>new</h2><p>提供了两个创建该数据库的方法，NewDatabase和NewDatabaseWithCache就是一个带缓冲一个不带缓冲<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">NewDatabase</span><span class="params">(db ethdb.Database)</span> <span class="title">Database</span></span> &#123;</span><br><span class="line">	<span class="keyword">return</span> NewDatabaseWithCache(db, <span class="number">0</span>)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">NewDatabaseWithCache</span><span class="params">(db ethdb.Database, cache <span class="keyword">int</span>)</span> <span class="title">Database</span></span> &#123;</span><br><span class="line">	csc, _ := lru.New(codeSizeCacheSize)</span><br><span class="line">	<span class="keyword">return</span> &amp;cachingDB&#123;</span><br><span class="line">		db:trie.NewDatabaseWithCache(db, cache), </span><br><span class="line">		codeSizeCache: csc,</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>构建了一个cachingDB对象，其中有一个实际的数据库用的是trie的NewDatabaseWithCache方法创建的<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// go-ethereum\trie\database.go</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">NewDatabaseWithCache</span><span class="params">(diskdb ethdb.Database, cache <span class="keyword">int</span>)</span> *<span class="title">Database</span></span> &#123;</span><br><span class="line">	<span class="keyword">var</span> cleans *bigcache.BigCache</span><br><span class="line">	<span class="keyword">if</span> cache &gt; <span class="number">0</span> &#123;</span><br><span class="line">		cleans, _ = bigcache.NewBigCache(bigcache.Config&#123;</span><br><span class="line">			Shards:             <span class="number">1024</span>,</span><br><span class="line">			LifeWindow:         time.Hour,</span><br><span class="line">			MaxEntriesInWindow: cache * <span class="number">1024</span>,</span><br><span class="line">			MaxEntrySize:       <span class="number">512</span>,</span><br><span class="line">			HardMaxCacheSize:   cache,</span><br><span class="line">		&#125;)</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">return</span> &amp;Database&#123;</span><br><span class="line">		diskdb:    diskdb,</span><br><span class="line">		cleans:    cleans,</span><br><span class="line">		dirties:   <span class="keyword">map</span>[common.Hash]*cachedNode&#123;&#123;&#125;: &#123;&#125;&#125;,</span><br><span class="line">		preimages: <span class="built_in">make</span>(<span class="keyword">map</span>[common.Hash][]<span class="keyword">byte</span>),</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<h2 id="OpenTrie"><a href="#OpenTrie" class="headerlink" title="OpenTrie"></a>OpenTrie</h2><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(db *cachingDB)</span> <span class="title">OpenTrie</span><span class="params">(root common.Hash)</span> <span class="params">(Trie, error)</span></span> &#123;</span><br><span class="line">	db.mu.Lock()</span><br><span class="line">	<span class="keyword">defer</span> db.mu.Unlock()</span><br><span class="line"></span><br><span class="line">	<span class="keyword">for</span> i := <span class="built_in">len</span>(db.pastTries) - <span class="number">1</span>; i &gt;= <span class="number">0</span>; i-- &#123;</span><br><span class="line">		<span class="keyword">if</span> db.pastTries[i].Hash() == root &#123;</span><br><span class="line">			<span class="keyword">return</span> cachedTrie&#123;db.pastTries[i].Copy(), db&#125;, <span class="literal">nil</span></span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">	tr, err := trie.NewSecure(root, db.db, MaxTrieCacheGen)</span><br><span class="line">	<span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">		<span class="keyword">return</span> <span class="literal">nil</span>, err</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">return</span> cachedTrie&#123;tr, db&#125;, <span class="literal">nil</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>前面说过这个方法是打开主账户的树，这里首先从pastTries中查找，有的话用一个cachedTrie对象包装后返回，没有的话调用NewSecure区创建一个，创建的是一个SecureTrie类型的数，前面我们分析trie源码时听到过，SecureTrie就是trie的包装。前面没有详细分析SecureTrie源码，这里来看一下：<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">NewSecure</span><span class="params">(root common.Hash, db *Database, cachelimit <span class="keyword">uint16</span>)</span> <span class="params">(*SecureTrie, error)</span></span> &#123;</span><br><span class="line">	<span class="keyword">if</span> db == <span class="literal">nil</span> &#123;</span><br><span class="line">		<span class="built_in">panic</span>(<span class="string">"trie.NewSecure called without a database"</span>)</span><br><span class="line">	&#125;</span><br><span class="line">	trie, err := New(root, db)</span><br><span class="line">	<span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">		<span class="keyword">return</span> <span class="literal">nil</span>, err</span><br><span class="line">	&#125;</span><br><span class="line">	trie.SetCacheLimit(cachelimit)</span><br><span class="line">	<span class="keyword">return</span> &amp;SecureTrie&#123;trie: *trie&#125;, <span class="literal">nil</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>创建很简单，就是用New方法创建一个普通的树，然后构造出一个SecureTrie对象。OpenTrie方法最后返回的是一个cachedTrie对象，里面包装了SecureTrie和cachingDB。</p>
+<h2 id="OpenStorageTrie"><a href="#OpenStorageTrie" class="headerlink" title="OpenStorageTrie"></a>OpenStorageTrie</h2><p>这个很简单直接创建一个SecureTrie<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(db *cachingDB)</span> <span class="title">OpenStorageTrie</span><span class="params">(addrHash, root common.Hash)</span> <span class="params">(Trie, error)</span></span> &#123;</span><br><span class="line">	<span class="keyword">return</span> trie.NewSecure(root, db.db, <span class="number">0</span>)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<h2 id="ContractCode-amp-ContractCodeSize"><a href="#ContractCode-amp-ContractCodeSize" class="headerlink" title="ContractCode &amp; ContractCodeSize"></a>ContractCode &amp; ContractCodeSize</h2><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(db *cachingDB)</span> <span class="title">ContractCode</span><span class="params">(addrHash, codeHash common.Hash)</span> <span class="params">([]<span class="keyword">byte</span>, error)</span></span> &#123;</span><br><span class="line">	code, err := db.db.Node(codeHash)</span><br><span class="line">	<span class="keyword">if</span> err == <span class="literal">nil</span> &#123;</span><br><span class="line">		db.codeSizeCache.Add(codeHash, <span class="built_in">len</span>(code))</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">return</span> code, err</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>Node实际上就根据hash从数据库中取值，取值完成后我们会将其放入前面创建的缓存中，这是一个lru缓存，便于下次取。<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(db *cachingDB)</span> <span class="title">ContractCodeSize</span><span class="params">(addrHash, codeHash common.Hash)</span> <span class="params">(<span class="keyword">int</span>, error)</span></span> &#123;</span><br><span class="line">	<span class="keyword">if</span> cached, ok := db.codeSizeCache.Get(codeHash); ok &#123;</span><br><span class="line">		<span class="keyword">return</span> cached.(<span class="keyword">int</span>), <span class="literal">nil</span></span><br><span class="line">	&#125;</span><br><span class="line">	code, err := db.ContractCode(addrHash, codeHash)</span><br><span class="line">	<span class="keyword">return</span> <span class="built_in">len</span>(code), err</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>也是一个先取后计算长度的过程</p>
+<h2 id="Commit"><a href="#Commit" class="headerlink" title="Commit"></a>Commit</h2><p>Commit就是将树缓存起来<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(m cachedTrie)</span> <span class="title">Commit</span><span class="params">(onleaf trie.LeafCallback)</span> <span class="params">(common.Hash, error)</span></span> &#123;</span><br><span class="line">	root, err := m.SecureTrie.Commit(onleaf)</span><br><span class="line">	<span class="keyword">if</span> err == <span class="literal">nil</span> &#123;</span><br><span class="line">		m.db.pushTrie(m.SecureTrie)</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">return</span> root, err</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>首先调用了SecureTrie的Commit方法，检查源码实际上调用了其包装的trie的commit方法，之前分析过trie源码，Commit是序列化方法，是将一颗树存储到数据库中，返回的是树根的hash。在cachedTrie的Commit方法中，如果没有错首先将原来的树缓存到pastTries中，然后返回提交的结果。</p>
+<h1 id="journal-go"><a href="#journal-go" class="headerlink" title="journal.go"></a>journal.go</h1><p>先看数据结构<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">type</span> journal <span class="keyword">struct</span> &#123;</span><br><span class="line">	entries []journalEntry         <span class="comment">// Current changes tracked by the journal</span></span><br><span class="line">	dirties <span class="keyword">map</span>[common.Address]<span class="keyword">int</span> <span class="comment">// Dirty accounts and the number of changes</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>包含了一个journalEntry数组和一个map，journalEntry相当于一条日志，dirties记录了某个账户改动次数。journalEntry是一个接口，如下定义<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">type</span> journalEntry <span class="keyword">interface</span> &#123;</span><br><span class="line">	revert(*StateDB)</span><br><span class="line"></span><br><span class="line">	dirtied() *common.Address</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>revert是用于撤销操作的，dirtied返回对应的账户地址。对应接口定义了大量的journalEntry类型对象<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">type</span> (</span><br><span class="line">	createObjectChange <span class="keyword">struct</span> &#123;</span><br><span class="line">		account *common.Address</span><br><span class="line">	&#125;</span><br><span class="line">	resetObjectChange <span class="keyword">struct</span> &#123;</span><br><span class="line">		prev *stateObject</span><br><span class="line">	&#125;</span><br><span class="line">	suicideChange <span class="keyword">struct</span> &#123;</span><br><span class="line">		account     *common.Address</span><br><span class="line">		prev        <span class="keyword">bool</span> <span class="comment">// whether account had already suicided</span></span><br><span class="line">		prevbalance *big.Int</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	balanceChange <span class="keyword">struct</span> &#123;</span><br><span class="line">		account *common.Address</span><br><span class="line">		prev    *big.Int</span><br><span class="line">	&#125;</span><br><span class="line">	nonceChange <span class="keyword">struct</span> &#123;</span><br><span class="line">		account *common.Address</span><br><span class="line">		prev    <span class="keyword">uint64</span></span><br><span class="line">	&#125;</span><br><span class="line">	storageChange <span class="keyword">struct</span> &#123;</span><br><span class="line">		account       *common.Address</span><br><span class="line">		key, prevalue common.Hash</span><br><span class="line">	&#125;</span><br><span class="line">	codeChange <span class="keyword">struct</span> &#123;</span><br><span class="line">		account            *common.Address</span><br><span class="line">		prevcode, prevhash []<span class="keyword">byte</span></span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	refundChange <span class="keyword">struct</span> &#123;</span><br><span class="line">		prev <span class="keyword">uint64</span></span><br><span class="line">	&#125;</span><br><span class="line">	addLogChange <span class="keyword">struct</span> &#123;</span><br><span class="line">		txhash common.Hash</span><br><span class="line">	&#125;</span><br><span class="line">	addPreimageChange <span class="keyword">struct</span> &#123;</span><br><span class="line">		hash common.Hash</span><br><span class="line">	&#125;</span><br><span class="line">	touchChange <span class="keyword">struct</span> &#123;</span><br><span class="line">		account   *common.Address</span><br><span class="line">		prev      <span class="keyword">bool</span></span><br><span class="line">		prevDirty <span class="keyword">bool</span></span><br><span class="line">	&#125;</span><br><span class="line">)</span><br></pre></td></tr></table></figure></p>
+<p>每种struct都对应了不同的事件日志。当然种都有revert和dirtied方法我们后面具体遇到了在分析。</p>
+<h1 id="state-object-go"><a href="#state-object-go" class="headerlink" title="state_object.go"></a>state_object.go</h1><p>stateObject代表了正在修改的以太坊账户，数据结构如下<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">type</span> stateObject <span class="keyword">struct</span> &#123;</span><br><span class="line">	address  common.Address</span><br><span class="line">	addrHash common.Hash </span><br><span class="line">	data     Account</span><br><span class="line">	db       *StateDB</span><br><span class="line"></span><br><span class="line">	dbErr error</span><br><span class="line"></span><br><span class="line">	trie Trie </span><br><span class="line">	code Code </span><br><span class="line"></span><br><span class="line">	originStorage Storage </span><br><span class="line">	dirtyStorage  Storage </span><br><span class="line"></span><br><span class="line"></span><br><span class="line">	dirtyCode <span class="keyword">bool</span> <span class="comment">// true if the code was updated</span></span><br><span class="line">	suicided  <span class="keyword">bool</span></span><br><span class="line">	deleted   <span class="keyword">bool</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>根据源码注释，要想修改账户，需要首先获取stateObject，然后通过这个对象访问修改，最后提交进行持久化存储。</p>
+<h2 id="new-1"><a href="#new-1" class="headerlink" title="new"></a>new</h2><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">newObject</span><span class="params">(db *StateDB, address common.Address, data Account)</span> *<span class="title">stateObject</span></span> &#123;</span><br><span class="line">	<span class="keyword">if</span> data.Balance == <span class="literal">nil</span> &#123;</span><br><span class="line">		data.Balance = <span class="built_in">new</span>(big.Int)</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">if</span> data.CodeHash == <span class="literal">nil</span> &#123;</span><br><span class="line">		data.CodeHash = emptyCodeHash</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">return</span> &amp;stateObject&#123;</span><br><span class="line">		db:            db,</span><br><span class="line">		address:       address,</span><br><span class="line">		addrHash:      crypto.Keccak256Hash(address[:]),</span><br><span class="line">		data:          data,</span><br><span class="line">		originStorage: <span class="built_in">make</span>(Storage),</span><br><span class="line">		dirtyStorage:  <span class="built_in">make</span>(Storage),</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>需要传入地址和账户的对象才能构造一个stateObject对象。</p>
+<h2 id="SetState"><a href="#SetState" class="headerlink" title="SetState"></a>SetState</h2><p>SetState是更新账户存储中的某个值<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(self *stateObject)</span> <span class="title">SetState</span><span class="params">(db Database, key, value common.Hash)</span></span> &#123;</span><br><span class="line">	prev := self.GetState(db, key)</span><br><span class="line">	<span class="keyword">if</span> prev == value &#123;</span><br><span class="line">		<span class="keyword">return</span></span><br><span class="line">	&#125;</span><br><span class="line">	self.db.journal.<span class="built_in">append</span>(storageChange&#123;</span><br><span class="line">		account:  &amp;self.address,</span><br><span class="line">		key:      key,</span><br><span class="line">		prevalue: prev,</span><br><span class="line">	&#125;)</span><br><span class="line">	self.setState(key, value)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(self *stateObject)</span> <span class="title">GetState</span><span class="params">(db Database, key common.Hash)</span> <span class="title">common</span>.<span class="title">Hash</span></span> &#123;</span><br><span class="line">	value, dirty := self.dirtyStorage[key]</span><br><span class="line">	<span class="keyword">if</span> dirty &#123;</span><br><span class="line">		<span class="keyword">return</span> value</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">return</span> self.GetCommittedState(db, key)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(self *stateObject)</span> <span class="title">GetCommittedState</span><span class="params">(db Database, key common.Hash)</span> <span class="title">common</span>.<span class="title">Hash</span></span> &#123;</span><br><span class="line">	value, cached := self.originStorage[key]</span><br><span class="line">	<span class="keyword">if</span> cached &#123;</span><br><span class="line">		<span class="keyword">return</span> value</span><br><span class="line">	&#125;</span><br><span class="line">	enc, err := self.getTrie(db).TryGet(key[:])</span><br><span class="line">	<span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">		self.setError(err)</span><br><span class="line">		<span class="keyword">return</span> common.Hash&#123;&#125;</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">if</span> <span class="built_in">len</span>(enc) &gt; <span class="number">0</span> &#123;</span><br><span class="line">		_, content, _, err := rlp.Split(enc)</span><br><span class="line">		<span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">			self.setError(err)</span><br><span class="line">		&#125;</span><br><span class="line">		value.SetBytes(content)</span><br><span class="line">	&#125;</span><br><span class="line">	self.originStorage[key] = value</span><br><span class="line">	<span class="keyword">return</span> value</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(c *stateObject)</span> <span class="title">getTrie</span><span class="params">(db Database)</span> <span class="title">Trie</span></span> &#123;</span><br><span class="line">	<span class="keyword">if</span> c.trie == <span class="literal">nil</span> &#123;</span><br><span class="line">		<span class="keyword">var</span> err error</span><br><span class="line">		c.trie, err = db.OpenStorageTrie(c.addrHash, c.data.Root)</span><br><span class="line">		<span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">			c.trie, _ = db.OpenStorageTrie(c.addrHash, common.Hash&#123;&#125;)</span><br><span class="line">			c.setError(fmt.Errorf(<span class="string">"can't create storage trie: %v"</span>, err))</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">return</span> c.trie</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>首先用了GetState方法去取旧的值，GetState方法中先访问dirtyStorage，这也是一个缓存机制，取不到的话调用GetCommittedState，GetCommittedState也是先访问originStorage这个缓存，originStorage与dirtyStorage的区别是，originStorage是已经持久化过的，dirtyStorage而是未持久化的。还找不到的话就需要访问本地数据库了，调用getTrie获取树。GetCommittedState方法如果是从数据库取值的话就向originStorage从缓存一份。</p>
+<p>回到SetState中，如果旧值和新值一样，就直接返回，否则新建一个storageChange类型的journalEntry放入journal的entries中，最后调用setState方法，setState主要是向dirtyStorage中缓存。我们顺便看一下storageChange<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">storageChange <span class="keyword">struct</span> &#123;</span><br><span class="line">	account       *common.Address</span><br><span class="line">	key, prevalue common.Hash</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(ch storageChange)</span> <span class="title">revert</span><span class="params">(s *StateDB)</span></span> &#123;</span><br><span class="line">	s.getStateObject(*ch.account).setState(ch.key, ch.prevalue)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(ch storageChange)</span> <span class="title">dirtied</span><span class="params">()</span> *<span class="title">common</span>.<span class="title">Address</span></span> &#123;</span><br><span class="line">	<span class="keyword">return</span> ch.account</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>storageChange主要存储了状态改变前后的新旧值和对应地址。所以revert方法就是取对应状态恢复到旧值</p>
+<h2 id="SetBalance"><a href="#SetBalance" class="headerlink" title="SetBalance"></a>SetBalance</h2><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(self *stateObject)</span> <span class="title">SetBalance</span><span class="params">(amount *big.Int)</span></span> &#123;</span><br><span class="line">	self.db.journal.<span class="built_in">append</span>(balanceChange&#123;</span><br><span class="line">		account: &amp;self.address,</span><br><span class="line">		prev:    <span class="built_in">new</span>(big.Int).Set(self.data.Balance),</span><br><span class="line">	&#125;)</span><br><span class="line">	self.setBalance(amount)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(self *stateObject)</span> <span class="title">setBalance</span><span class="params">(amount *big.Int)</span></span> &#123;</span><br><span class="line">	self.data.Balance = amount</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>就是修改账户的余额，给日志添加了balanceChange，还有两个加减方法<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(c *stateObject)</span> <span class="title">AddBalance</span><span class="params">(amount *big.Int)</span></span> &#123;</span><br><span class="line">	<span class="keyword">if</span> amount.Sign() == <span class="number">0</span> &#123;</span><br><span class="line">		<span class="keyword">if</span> c.empty() &#123;</span><br><span class="line">			c.touch()</span><br><span class="line">		&#125;</span><br><span class="line"></span><br><span class="line">		<span class="keyword">return</span></span><br><span class="line">	&#125;</span><br><span class="line">	c.SetBalance(<span class="built_in">new</span>(big.Int).Add(c.Balance(), amount))</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(c *stateObject)</span> <span class="title">SubBalance</span><span class="params">(amount *big.Int)</span></span> &#123;</span><br><span class="line">	<span class="keyword">if</span> amount.Sign() == <span class="number">0</span> &#123;</span><br><span class="line">		<span class="keyword">return</span></span><br><span class="line">	&#125;</span><br><span class="line">	c.SetBalance(<span class="built_in">new</span>(big.Int).Sub(c.Balance(), amount))</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>都要首先判断加减值是否为0，对于加的情况，如果值为0而且账户也为空（即nonce为0，余额为0,，账户代码也为空）则调用touch方法，touch方法个日志添加了touchChange操作。</p>
+<p>下面我们先看一下balanceChange。touchChange没有实际操作<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">balanceChange <span class="keyword">struct</span> &#123;</span><br><span class="line">	account *common.Address</span><br><span class="line">	prev    *big.Int</span><br><span class="line">&#125;</span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(ch balanceChange)</span> <span class="title">revert</span><span class="params">(s *StateDB)</span></span> &#123;</span><br><span class="line">	s.getStateObject(*ch.account).setBalance(ch.prev)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(ch balanceChange)</span> <span class="title">dirtied</span><span class="params">()</span> *<span class="title">common</span>.<span class="title">Address</span></span> &#123;</span><br><span class="line">	<span class="keyword">return</span> ch.account</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>也很简单，就是存储了先前的值，然后回滚时设置余额为之前的值。</p>
+<h2 id="SetCode"><a href="#SetCode" class="headerlink" title="SetCode"></a>SetCode</h2><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(self *stateObject)</span> <span class="title">SetCode</span><span class="params">(codeHash common.Hash, code []<span class="keyword">byte</span>)</span></span> &#123;</span><br><span class="line">	prevcode := self.Code(self.db.db)</span><br><span class="line">	self.db.journal.<span class="built_in">append</span>(codeChange&#123;</span><br><span class="line">		account:  &amp;self.address,</span><br><span class="line">		prevhash: self.CodeHash(),</span><br><span class="line">		prevcode: prevcode,</span><br><span class="line">	&#125;)</span><br><span class="line">	self.setCode(codeHash, code)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(self *stateObject)</span> <span class="title">Code</span><span class="params">(db Database)</span> []<span class="title">byte</span></span> &#123;</span><br><span class="line">	<span class="keyword">if</span> self.code != <span class="literal">nil</span> &#123;</span><br><span class="line">		<span class="keyword">return</span> self.code</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">if</span> bytes.Equal(self.CodeHash(), emptyCodeHash) &#123;</span><br><span class="line">		<span class="keyword">return</span> <span class="literal">nil</span></span><br><span class="line">	&#125;</span><br><span class="line">	code, err := db.ContractCode(self.addrHash, common.BytesToHash(self.CodeHash()))</span><br><span class="line">	<span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">		self.setError(fmt.Errorf(<span class="string">"can't load code hash %x: %v"</span>, self.CodeHash(), err))</span><br><span class="line">	&#125;</span><br><span class="line">	self.code = code</span><br><span class="line">	<span class="keyword">return</span> code</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(self *stateObject)</span> <span class="title">setCode</span><span class="params">(codeHash common.Hash, code []<span class="keyword">byte</span>)</span></span> &#123;</span><br><span class="line">	self.code = code</span><br><span class="line">	self.data.CodeHash = codeHash[:]</span><br><span class="line">	self.dirtyCode = <span class="literal">true</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>首先取之前的code，取得方法还是先从缓存取，取不到再去数据库取，有两集缓存，一级是stateObject的code字段，每次set都会更新，；另一级是Database的ContractCode取的时候会坚持codeSizeCache缓存，都没有再从数据库取。设置code时，也给日志添加了codeChange。<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">codeChange <span class="keyword">struct</span> &#123;</span><br><span class="line">	account            *common.Address</span><br><span class="line">	prevcode, prevhash []<span class="keyword">byte</span></span><br><span class="line">&#125;</span><br><span class="line">	</span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(ch codeChange)</span> <span class="title">revert</span><span class="params">(s *StateDB)</span></span> &#123;</span><br><span class="line">	s.getStateObject(*ch.account).setCode(common.BytesToHash(ch.prevhash), ch.prevcode)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(ch codeChange)</span> <span class="title">dirtied</span><span class="params">()</span> *<span class="title">common</span>.<span class="title">Address</span></span> &#123;</span><br><span class="line">	<span class="keyword">return</span> ch.account</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>和storageChange逻辑类似</p>
+<h2 id="SetNonce"><a href="#SetNonce" class="headerlink" title="SetNonce"></a>SetNonce</h2><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(self *stateObject)</span> <span class="title">SetNonce</span><span class="params">(nonce <span class="keyword">uint64</span>)</span></span> &#123;</span><br><span class="line">	self.db.journal.<span class="built_in">append</span>(nonceChange&#123;</span><br><span class="line">		account: &amp;self.address,</span><br><span class="line">		prev:    self.data.Nonce,</span><br><span class="line">	&#125;)</span><br><span class="line">	self.setNonce(nonce)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(self *stateObject)</span> <span class="title">setNonce</span><span class="params">(nonce <span class="keyword">uint64</span>)</span></span> &#123;</span><br><span class="line">	self.data.Nonce = nonce</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">nonceChange <span class="keyword">struct</span> &#123;</span><br><span class="line">	account *common.Address</span><br><span class="line">	prev    <span class="keyword">uint64</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(ch nonceChange)</span> <span class="title">revert</span><span class="params">(s *StateDB)</span></span> &#123;</span><br><span class="line">	s.getStateObject(*ch.account).setNonce(ch.prev)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(ch nonceChange)</span> <span class="title">dirtied</span><span class="params">()</span> *<span class="title">common</span>.<span class="title">Address</span></span> &#123;</span><br><span class="line">	<span class="keyword">return</span> ch.account</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>和balance一样的逻辑，不在多说</p>
+<h2 id="CommitTrie"><a href="#CommitTrie" class="headerlink" title="CommitTrie"></a>CommitTrie</h2><p>刚才的set方法都只是改变了stateObject的值，没有实际的持久化，要持久化需要这个方法<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(self *stateObject)</span> <span class="title">CommitTrie</span><span class="params">(db Database)</span> <span class="title">error</span></span> &#123;</span><br><span class="line">	self.updateTrie(db)</span><br><span class="line">	<span class="keyword">if</span> self.dbErr != <span class="literal">nil</span> &#123;</span><br><span class="line">		<span class="keyword">return</span> self.dbErr</span><br><span class="line">	&#125;</span><br><span class="line">	root, err := self.trie.Commit(<span class="literal">nil</span>)</span><br><span class="line">	<span class="keyword">if</span> err == <span class="literal">nil</span> &#123;</span><br><span class="line">		self.data.Root = root</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">return</span> err</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(self *stateObject)</span> <span class="title">updateTrie</span><span class="params">(db Database)</span> <span class="title">Trie</span></span> &#123;</span><br><span class="line">	tr := self.getTrie(db)</span><br><span class="line">	<span class="keyword">for</span> key, value := <span class="keyword">range</span> self.dirtyStorage &#123;</span><br><span class="line">		<span class="built_in">delete</span>(self.dirtyStorage, key)</span><br><span class="line"></span><br><span class="line">		<span class="keyword">if</span> value == self.originStorage[key] &#123;</span><br><span class="line">			<span class="keyword">continue</span></span><br><span class="line">		&#125;</span><br><span class="line">		self.originStorage[key] = value</span><br><span class="line"></span><br><span class="line">		<span class="keyword">if</span> (value == common.Hash&#123;&#125;) &#123;</span><br><span class="line">			self.setError(tr.TryDelete(key[:]))</span><br><span class="line">			<span class="keyword">continue</span></span><br><span class="line">		&#125;</span><br><span class="line">		v, _ := rlp.EncodeToBytes(bytes.TrimLeft(value[:], <span class="string">"\x00"</span>))</span><br><span class="line">		self.setError(tr.TryUpdate(key[:], v))</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">return</span> tr</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>首先调用updateTrie更新树，updateTrie中现获取了树，随后遍历了dirtyStorage，前面说过这是未持久化的值，取出的每个值先和originStorage中的比较，一样的就不操作，随后对于空值记录一个错误，最后先rlp编码，最后调用TryUpdate更新，TryUpdate是SecureTrie中的方法：<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(t *SecureTrie)</span> <span class="title">TryUpdate</span><span class="params">(key, value []<span class="keyword">byte</span>)</span> <span class="title">error</span></span> &#123;</span><br><span class="line">	hk := t.hashKey(key)</span><br><span class="line">	err := t.trie.TryUpdate(hk, value)</span><br><span class="line">	<span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">		<span class="keyword">return</span> err</span><br><span class="line">	&#125;</span><br><span class="line">	t.getSecKeyCache()[<span class="keyword">string</span>(hk)] = common.CopyBytes(key)</span><br><span class="line">	<span class="keyword">return</span> <span class="literal">nil</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>还是调用trie的TryUpdate方法，TryUpdate方法之前分析trie源码时没有将，不过也很简单<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(t *Trie)</span> <span class="title">TryUpdate</span><span class="params">(key, value []<span class="keyword">byte</span>)</span> <span class="title">error</span></span> &#123;</span><br><span class="line">	k := keybytesToHex(key)</span><br><span class="line">	<span class="keyword">if</span> <span class="built_in">len</span>(value) != <span class="number">0</span> &#123;</span><br><span class="line">		_, n, err := t.insert(t.root, <span class="literal">nil</span>, k, valueNode(value))</span><br><span class="line">		<span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">			<span class="keyword">return</span> err</span><br><span class="line">		&#125;</span><br><span class="line">		t.root = n</span><br><span class="line">	&#125; <span class="keyword">else</span> &#123;</span><br><span class="line">		_, n, err := t.<span class="built_in">delete</span>(t.root, <span class="literal">nil</span>, k)</span><br><span class="line">		<span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">			<span class="keyword">return</span> err</span><br><span class="line">		&#125;</span><br><span class="line">		t.root = n</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">return</span> <span class="literal">nil</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>首先对于key长度不为0的话就进行插入来更新，否则执行删除逻辑。回到stateobject中，在更新完毕后，如果没错，就调用commit方法持久化存储。</p>
+<h1 id="statedb-go"><a href="#statedb-go" class="headerlink" title="statedb.go"></a>statedb.go</h1><p>StateDB负责缓存和存储嵌套状态。主要用于检索合约和账户。<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">type</span> StateDB <span class="keyword">struct</span> &#123;</span><br><span class="line">	db   Database</span><br><span class="line">	trie Trie</span><br><span class="line"></span><br><span class="line">	stateObjects      <span class="keyword">map</span>[common.Address]*stateObject</span><br><span class="line">	stateObjectsDirty <span class="keyword">map</span>[common.Address]<span class="keyword">struct</span>&#123;&#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">	dbErr error</span><br><span class="line"></span><br><span class="line">	refund <span class="keyword">uint64</span></span><br><span class="line"></span><br><span class="line">	thash, bhash common.Hash</span><br><span class="line">	txIndex      <span class="keyword">int</span></span><br><span class="line">	logs         <span class="keyword">map</span>[common.Hash][]*types.Log</span><br><span class="line">	logSize      <span class="keyword">uint</span></span><br><span class="line"></span><br><span class="line">	preimages <span class="keyword">map</span>[common.Hash][]<span class="keyword">byte</span></span><br><span class="line"></span><br><span class="line">	journal        *journal</span><br><span class="line">	validRevisions []revision</span><br><span class="line">	nextRevisionId <span class="keyword">int</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>基本包含了前面分析的三种结构体。</p>
+<h2 id="new-2"><a href="#new-2" class="headerlink" title="new"></a>new</h2><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">New</span><span class="params">(root common.Hash, db Database)</span> <span class="params">(*StateDB, error)</span></span> &#123;</span><br><span class="line">	tr, err := db.OpenTrie(root)</span><br><span class="line">	<span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">		<span class="keyword">return</span> <span class="literal">nil</span>, err</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">return</span> &amp;StateDB&#123;</span><br><span class="line">		db:                db,</span><br><span class="line">		trie:              tr,</span><br><span class="line">		stateObjects:      <span class="built_in">make</span>(<span class="keyword">map</span>[common.Address]*stateObject),</span><br><span class="line">		stateObjectsDirty: <span class="built_in">make</span>(<span class="keyword">map</span>[common.Address]<span class="keyword">struct</span>&#123;&#125;),</span><br><span class="line">		logs:              <span class="built_in">make</span>(<span class="keyword">map</span>[common.Hash][]*types.Log),</span><br><span class="line">		preimages:         <span class="built_in">make</span>(<span class="keyword">map</span>[common.Hash][]<span class="keyword">byte</span>),</span><br><span class="line">		journal:           newJournal(),</span><br><span class="line">	&#125;, <span class="literal">nil</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>首先调用了OpenTrie打开主账户的树，然后构造了StateDB对象。</p>
+<h2 id="AddLog"><a href="#AddLog" class="headerlink" title="AddLog"></a>AddLog</h2><p>这个log并不是程序log，它代表合约的log事件<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(self *StateDB)</span> <span class="title">AddLog</span><span class="params">(log *types.Log)</span></span> &#123;</span><br><span class="line">	self.journal.<span class="built_in">append</span>(addLogChange&#123;txhash: self.thash&#125;)</span><br><span class="line"></span><br><span class="line">	log.TxHash = self.thash</span><br><span class="line">	log.BlockHash = self.bhash</span><br><span class="line">	log.TxIndex = <span class="keyword">uint</span>(self.txIndex)</span><br><span class="line">	log.Index = self.logSize</span><br><span class="line">	self.logs[self.thash] = <span class="built_in">append</span>(self.logs[self.thash], log)</span><br><span class="line">	self.logSize++</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>首先补全log信息，然后按交易hash放到logs中，关于thash和bhash是在Prepare中设置的<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(self *StateDB)</span> <span class="title">Prepare</span><span class="params">(thash, bhash common.Hash, ti <span class="keyword">int</span>)</span></span> &#123;</span><br><span class="line">	self.thash = thash</span><br><span class="line">	self.bhash = bhash</span><br><span class="line">	self.txIndex = ti</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>在AddLog开始的时候还向journal添加了addLogChange<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">addLogChange <span class="keyword">struct</span> &#123;</span><br><span class="line">	txhash common.Hash</span><br><span class="line">&#125;</span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(ch addLogChange)</span> <span class="title">revert</span><span class="params">(s *StateDB)</span></span> &#123;</span><br><span class="line">	logs := s.logs[ch.txhash]</span><br><span class="line">	<span class="keyword">if</span> <span class="built_in">len</span>(logs) == <span class="number">1</span> &#123;</span><br><span class="line">		<span class="built_in">delete</span>(s.logs, ch.txhash)</span><br><span class="line">	&#125; <span class="keyword">else</span> &#123;</span><br><span class="line">		s.logs[ch.txhash] = logs[:<span class="built_in">len</span>(logs)<span class="number">-1</span>]</span><br><span class="line">	&#125;</span><br><span class="line">	s.logSize--</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(ch addLogChange)</span> <span class="title">dirtied</span><span class="params">()</span> *<span class="title">common</span>.<span class="title">Address</span></span> &#123;</span><br><span class="line">	<span class="keyword">return</span> <span class="literal">nil</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>addLogChange只有一个字段，它的回滚就是将最后的log删除。此外关于log还有两个方法，都是取的<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(self *StateDB)</span> <span class="title">GetLogs</span><span class="params">(hash common.Hash)</span> []*<span class="title">types</span>.<span class="title">Log</span></span> &#123;</span><br><span class="line">	<span class="keyword">return</span> self.logs[hash]</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(self *StateDB)</span> <span class="title">Logs</span><span class="params">()</span> []*<span class="title">types</span>.<span class="title">Log</span></span> &#123;</span><br><span class="line">	<span class="keyword">var</span> logs []*types.Log</span><br><span class="line">	<span class="keyword">for</span> _, lgs := <span class="keyword">range</span> self.logs &#123;</span><br><span class="line">		logs = <span class="built_in">append</span>(logs, lgs...)</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">return</span> logs</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<h2 id="GetXxx-amp-SetXxx"><a href="#GetXxx-amp-SetXxx" class="headerlink" title="GetXxx &amp; SetXxx"></a>GetXxx &amp; SetXxx</h2><p>有一系列get和set方法，也就体现了statedb作为对外开放接口的作用<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(self *StateDB)</span> <span class="title">GetBalance</span><span class="params">(addr common.Address)</span> *<span class="title">big</span>.<span class="title">Int</span></span> &#123;</span><br><span class="line">	stateObject := self.getStateObject(addr)</span><br><span class="line">	<span class="keyword">if</span> stateObject != <span class="literal">nil</span> &#123;</span><br><span class="line">		<span class="keyword">return</span> stateObject.Balance()</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">return</span> common.Big0</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(self *StateDB)</span> <span class="title">GetNonce</span><span class="params">(addr common.Address)</span> <span class="title">uint64</span></span> &#123;</span><br><span class="line">	stateObject := self.getStateObject(addr)</span><br><span class="line">	<span class="keyword">if</span> stateObject != <span class="literal">nil</span> &#123;</span><br><span class="line">		<span class="keyword">return</span> stateObject.Nonce()</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">return</span> <span class="number">0</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(self *StateDB)</span> <span class="title">GetCode</span><span class="params">(addr common.Address)</span> []<span class="title">byte</span></span> &#123;</span><br><span class="line">	stateObject := self.getStateObject(addr)</span><br><span class="line">	<span class="keyword">if</span> stateObject != <span class="literal">nil</span> &#123;</span><br><span class="line">		<span class="keyword">return</span> stateObject.Code(self.db)</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">return</span> <span class="literal">nil</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(self *StateDB)</span> <span class="title">GetCodeSize</span><span class="params">(addr common.Address)</span> <span class="title">int</span></span> &#123;</span><br><span class="line">	stateObject := self.getStateObject(addr)</span><br><span class="line">	<span class="keyword">if</span> stateObject == <span class="literal">nil</span> &#123;</span><br><span class="line">		<span class="keyword">return</span> <span class="number">0</span></span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">if</span> stateObject.code != <span class="literal">nil</span> &#123;</span><br><span class="line">		<span class="keyword">return</span> <span class="built_in">len</span>(stateObject.code)</span><br><span class="line">	&#125;</span><br><span class="line">	size, err := self.db.ContractCodeSize(stateObject.addrHash, common.BytesToHash(stateObject.CodeHash()))</span><br><span class="line">	<span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">		self.setError(err)</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">return</span> size</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(self *StateDB)</span> <span class="title">GetCodeHash</span><span class="params">(addr common.Address)</span> <span class="title">common</span>.<span class="title">Hash</span></span> &#123;</span><br><span class="line">	stateObject := self.getStateObject(addr)</span><br><span class="line">	<span class="keyword">if</span> stateObject == <span class="literal">nil</span> &#123;</span><br><span class="line">		<span class="keyword">return</span> common.Hash&#123;&#125;</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">return</span> common.BytesToHash(stateObject.CodeHash())</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(self *StateDB)</span> <span class="title">GetState</span><span class="params">(addr common.Address, hash common.Hash)</span> <span class="title">common</span>.<span class="title">Hash</span></span> &#123;</span><br><span class="line">	stateObject := self.getStateObject(addr)</span><br><span class="line">	<span class="keyword">if</span> stateObject != <span class="literal">nil</span> &#123;</span><br><span class="line">		<span class="keyword">return</span> stateObject.GetState(self.db, hash)</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">return</span> common.Hash&#123;&#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(self *StateDB)</span> <span class="title">GetCommittedState</span><span class="params">(addr common.Address, hash common.Hash)</span> <span class="title">common</span>.<span class="title">Hash</span></span> &#123;</span><br><span class="line">	stateObject := self.getStateObject(addr)</span><br><span class="line">	<span class="keyword">if</span> stateObject != <span class="literal">nil</span> &#123;</span><br><span class="line">		<span class="keyword">return</span> stateObject.GetCommittedState(self.db, hash)</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">return</span> common.Hash&#123;&#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(self *StateDB)</span> <span class="title">StorageTrie</span><span class="params">(addr common.Address)</span> <span class="title">Trie</span></span> &#123;</span><br><span class="line">	stateObject := self.getStateObject(addr)</span><br><span class="line">	<span class="keyword">if</span> stateObject == <span class="literal">nil</span> &#123;</span><br><span class="line">		<span class="keyword">return</span> <span class="literal">nil</span></span><br><span class="line">	&#125;</span><br><span class="line">	cpy := stateObject.deepCopy(self)</span><br><span class="line">	<span class="keyword">return</span> cpy.updateTrie(self.db)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(self *StateDB)</span> <span class="title">HasSuicided</span><span class="params">(addr common.Address)</span> <span class="title">bool</span></span> &#123;</span><br><span class="line">	stateObject := self.getStateObject(addr)</span><br><span class="line">	<span class="keyword">if</span> stateObject != <span class="literal">nil</span> &#123;</span><br><span class="line">		<span class="keyword">return</span> stateObject.suicided</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">return</span> <span class="literal">false</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>set类方法如下<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(self *StateDB)</span> <span class="title">AddBalance</span><span class="params">(addr common.Address, amount *big.Int)</span></span> &#123;</span><br><span class="line">	stateObject := self.GetOrNewStateObject(addr)</span><br><span class="line">	<span class="keyword">if</span> stateObject != <span class="literal">nil</span> &#123;</span><br><span class="line">		stateObject.AddBalance(amount)</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(self *StateDB)</span> <span class="title">SubBalance</span><span class="params">(addr common.Address, amount *big.Int)</span></span> &#123;</span><br><span class="line">	stateObject := self.GetOrNewStateObject(addr)</span><br><span class="line">	<span class="keyword">if</span> stateObject != <span class="literal">nil</span> &#123;</span><br><span class="line">		stateObject.SubBalance(amount)</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(self *StateDB)</span> <span class="title">SetBalance</span><span class="params">(addr common.Address, amount *big.Int)</span></span> &#123;</span><br><span class="line">	stateObject := self.GetOrNewStateObject(addr)</span><br><span class="line">	<span class="keyword">if</span> stateObject != <span class="literal">nil</span> &#123;</span><br><span class="line">		stateObject.SetBalance(amount)</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(self *StateDB)</span> <span class="title">SetNonce</span><span class="params">(addr common.Address, nonce <span class="keyword">uint64</span>)</span></span> &#123;</span><br><span class="line">	stateObject := self.GetOrNewStateObject(addr)</span><br><span class="line">	<span class="keyword">if</span> stateObject != <span class="literal">nil</span> &#123;</span><br><span class="line">		stateObject.SetNonce(nonce)</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(self *StateDB)</span> <span class="title">SetCode</span><span class="params">(addr common.Address, code []<span class="keyword">byte</span>)</span></span> &#123;</span><br><span class="line">	stateObject := self.GetOrNewStateObject(addr)</span><br><span class="line">	<span class="keyword">if</span> stateObject != <span class="literal">nil</span> &#123;</span><br><span class="line">		stateObject.SetCode(crypto.Keccak256Hash(code), code)</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(self *StateDB)</span> <span class="title">SetState</span><span class="params">(addr common.Address, key, value common.Hash)</span></span> &#123;</span><br><span class="line">	stateObject := self.GetOrNewStateObject(addr)</span><br><span class="line">	<span class="keyword">if</span> stateObject != <span class="literal">nil</span> &#123;</span><br><span class="line">		stateObject.SetState(self.db, key, value)</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(self *StateDB)</span> <span class="title">Suicide</span><span class="params">(addr common.Address)</span> <span class="title">bool</span></span> &#123;</span><br><span class="line">	stateObject := self.getStateObject(addr)</span><br><span class="line">	<span class="keyword">if</span> stateObject == <span class="literal">nil</span> &#123;</span><br><span class="line">		<span class="keyword">return</span> <span class="literal">false</span></span><br><span class="line">	&#125;</span><br><span class="line">	self.journal.<span class="built_in">append</span>(suicideChange&#123;</span><br><span class="line">		account:     &amp;addr,</span><br><span class="line">		prev:        stateObject.suicided,</span><br><span class="line">		prevbalance: <span class="built_in">new</span>(big.Int).Set(stateObject.Balance()),</span><br><span class="line">	&#125;)</span><br><span class="line">	stateObject.markSuicided()</span><br><span class="line">	stateObject.data.Balance = <span class="built_in">new</span>(big.Int)</span><br><span class="line"></span><br><span class="line">	<span class="keyword">return</span> <span class="literal">true</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>基本上都是通过getStateObject先获取stateObject，前面说过stateObject代表正在修改的以太坊账户，通过他也就可以访问各项内容</p>
+<h2 id="操作StateObject"><a href="#操作StateObject" class="headerlink" title="操作StateObject"></a>操作StateObject</h2><p>get方法：<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(self *StateDB)</span> <span class="title">getStateObject</span><span class="params">(addr common.Address)</span> <span class="params">(stateObject *stateObject)</span></span> &#123;</span><br><span class="line">	<span class="keyword">if</span> obj := self.stateObjects[addr]; obj != <span class="literal">nil</span> &#123;</span><br><span class="line">		<span class="keyword">if</span> obj.deleted &#123;</span><br><span class="line">			<span class="keyword">return</span> <span class="literal">nil</span></span><br><span class="line">		&#125;</span><br><span class="line">		<span class="keyword">return</span> obj</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	enc, err := self.trie.TryGet(addr[:])</span><br><span class="line">	<span class="keyword">if</span> <span class="built_in">len</span>(enc) == <span class="number">0</span> &#123;</span><br><span class="line">		self.setError(err)</span><br><span class="line">		<span class="keyword">return</span> <span class="literal">nil</span></span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">var</span> data Account</span><br><span class="line">	<span class="keyword">if</span> err := rlp.DecodeBytes(enc, &amp;data); err != <span class="literal">nil</span> &#123;</span><br><span class="line">		log.Error(<span class="string">"Failed to decode state object"</span>, <span class="string">"addr"</span>, addr, <span class="string">"err"</span>, err)</span><br><span class="line">		<span class="keyword">return</span> <span class="literal">nil</span></span><br><span class="line">	&#125;</span><br><span class="line">	obj := newObject(self, addr, data)</span><br><span class="line">	self.setStateObject(obj)</span><br><span class="line">	<span class="keyword">return</span> obj</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(self *StateDB)</span> <span class="title">deleteStateObject</span><span class="params">(stateObject *stateObject)</span></span> &#123;</span><br><span class="line">	stateObject.deleted = <span class="literal">true</span></span><br><span class="line">	addr := stateObject.Address()</span><br><span class="line">	self.setError(self.trie.TryDelete(addr[:]))</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(self *StateDB)</span> <span class="title">updateStateObject</span><span class="params">(stateObject *stateObject)</span></span> &#123;</span><br><span class="line">	addr := stateObject.Address()</span><br><span class="line">	data, err := rlp.EncodeToBytes(stateObject)</span><br><span class="line">	<span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">		<span class="built_in">panic</span>(fmt.Errorf(<span class="string">"can't encode object at %x: %v"</span>, addr[:], err))</span><br><span class="line">	&#125;</span><br><span class="line">	self.setError(self.trie.TryUpdate(addr[:], data))</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(self *StateDB)</span> <span class="title">setStateObject</span><span class="params">(object *stateObject)</span></span> &#123;</span><br><span class="line">	self.stateObjects[object.Address()] = object</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(self *StateDB)</span> <span class="title">GetOrNewStateObject</span><span class="params">(addr common.Address)</span> *<span class="title">stateObject</span></span> &#123;</span><br><span class="line">	stateObject := self.getStateObject(addr)</span><br><span class="line">	<span class="keyword">if</span> stateObject == <span class="literal">nil</span> || stateObject.deleted &#123;</span><br><span class="line">		stateObject, _ = self.createObject(addr)</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">return</span> stateObject</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(self *StateDB)</span> <span class="title">createObject</span><span class="params">(addr common.Address)</span> <span class="params">(newobj, prev *stateObject)</span></span> &#123;</span><br><span class="line">	prev = self.getStateObject(addr)</span><br><span class="line">	newobj = newObject(self, addr, Account&#123;&#125;)</span><br><span class="line">	newobj.setNonce(<span class="number">0</span>) <span class="comment">// sets the object to dirty</span></span><br><span class="line">	<span class="keyword">if</span> prev == <span class="literal">nil</span> &#123;</span><br><span class="line">		self.journal.<span class="built_in">append</span>(createObjectChange&#123;account: &amp;addr&#125;)</span><br><span class="line">	&#125; <span class="keyword">else</span> &#123;</span><br><span class="line">		self.journal.<span class="built_in">append</span>(resetObjectChange&#123;prev: prev&#125;)</span><br><span class="line">	&#125;</span><br><span class="line">	self.setStateObject(newobj)</span><br><span class="line">	<span class="keyword">return</span> newobj, prev</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>首先尝试stateObjects回去，没有的话用newObject构造一个，同时存入setStateObject中。</p>
+<h2 id="快照"><a href="#快照" class="headerlink" title="快照"></a>快照</h2><p>Snapshot可以创建一个快照，然后通过RevertToSnapshot可以回滚到哪个状态，这个功能是通过journal来做到的。<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(self *StateDB)</span> <span class="title">Snapshot</span><span class="params">()</span> <span class="title">int</span></span> &#123;</span><br><span class="line">	id := self.nextRevisionId</span><br><span class="line">	self.nextRevisionId++</span><br><span class="line">	self.validRevisions = <span class="built_in">append</span>(self.validRevisions, revision&#123;id, self.journal.length()&#125;)</span><br><span class="line">	<span class="keyword">return</span> id</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(self *StateDB)</span> <span class="title">RevertToSnapshot</span><span class="params">(revid <span class="keyword">int</span>)</span></span> &#123;</span><br><span class="line">	idx := sort.Search(<span class="built_in">len</span>(self.validRevisions), <span class="function"><span class="keyword">func</span><span class="params">(i <span class="keyword">int</span>)</span> <span class="title">bool</span></span> &#123;</span><br><span class="line">		<span class="keyword">return</span> self.validRevisions[i].id &gt;= revid</span><br><span class="line">	&#125;)</span><br><span class="line">	<span class="keyword">if</span> idx == <span class="built_in">len</span>(self.validRevisions) || self.validRevisions[idx].id != revid &#123;</span><br><span class="line">		<span class="built_in">panic</span>(fmt.Errorf(<span class="string">"revision id %v cannot be reverted"</span>, revid))</span><br><span class="line">	&#125;</span><br><span class="line">	snapshot := self.validRevisions[idx].journalIndex</span><br><span class="line"></span><br><span class="line">	self.journal.revert(self, snapshot)</span><br><span class="line">	self.validRevisions = self.validRevisions[:idx]</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(j *journal)</span> <span class="title">revert</span><span class="params">(statedb *StateDB, snapshot <span class="keyword">int</span>)</span></span> &#123;</span><br><span class="line">	<span class="keyword">for</span> i := <span class="built_in">len</span>(j.entries) - <span class="number">1</span>; i &gt;= snapshot; i-- &#123;</span><br><span class="line">		j.entries[i].revert(statedb)</span><br><span class="line"></span><br><span class="line">		<span class="keyword">if</span> addr := j.entries[i].dirtied(); addr != <span class="literal">nil</span> &#123;</span><br><span class="line">			<span class="keyword">if</span> j.dirties[*addr]--; j.dirties[*addr] == <span class="number">0</span> &#123;</span><br><span class="line">				<span class="built_in">delete</span>(j.dirties, *addr)</span><br><span class="line">			&#125;</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">	j.entries = j.entries[:snapshot]</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>可见创建快照是记录了RevisionId和journal中日志数量。恢复则是确定该位置的journal中日志数量snapshot，然后调用revert，将日志集合中snapshot之后的事件全部执行回滚。</p>
+<h2 id="commit"><a href="#commit" class="headerlink" title="commit"></a>commit</h2><p>commit用于提交更改<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(s *StateDB)</span> <span class="title">Commit</span><span class="params">(deleteEmptyObjects <span class="keyword">bool</span>)</span> <span class="params">(root common.Hash, err error)</span></span> &#123;</span><br><span class="line">	<span class="keyword">defer</span> s.clearJournalAndRefund()</span><br><span class="line"></span><br><span class="line">	<span class="keyword">for</span> addr := <span class="keyword">range</span> s.journal.dirties &#123;</span><br><span class="line">		s.stateObjectsDirty[addr] = <span class="keyword">struct</span>&#123;&#125;&#123;&#125;</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">for</span> addr, stateObject := <span class="keyword">range</span> s.stateObjects &#123;</span><br><span class="line">		_, isDirty := s.stateObjectsDirty[addr]</span><br><span class="line">		<span class="keyword">switch</span> &#123;</span><br><span class="line">		<span class="keyword">case</span> stateObject.suicided || (isDirty &amp;&amp; deleteEmptyObjects &amp;&amp; stateObject.empty()):</span><br><span class="line">			s.deleteStateObject(stateObject)</span><br><span class="line">		<span class="keyword">case</span> isDirty:</span><br><span class="line">			<span class="keyword">if</span> stateObject.code != <span class="literal">nil</span> &amp;&amp; stateObject.dirtyCode &#123;</span><br><span class="line">				s.db.TrieDB().InsertBlob(common.BytesToHash(stateObject.CodeHash()), stateObject.code)</span><br><span class="line">				stateObject.dirtyCode = <span class="literal">false</span></span><br><span class="line">			&#125;</span><br><span class="line">			<span class="keyword">if</span> err := stateObject.CommitTrie(s.db); err != <span class="literal">nil</span> &#123;</span><br><span class="line">				<span class="keyword">return</span> common.Hash&#123;&#125;, err</span><br><span class="line">			&#125;</span><br><span class="line">			s.updateStateObject(stateObject)</span><br><span class="line">		&#125;</span><br><span class="line">		<span class="built_in">delete</span>(s.stateObjectsDirty, addr)</span><br><span class="line">	&#125;</span><br><span class="line">	root, err = s.trie.Commit(<span class="function"><span class="keyword">func</span><span class="params">(leaf []<span class="keyword">byte</span>, parent common.Hash)</span> <span class="title">error</span></span> &#123;</span><br><span class="line">		<span class="keyword">var</span> account Account</span><br><span class="line">		<span class="keyword">if</span> err := rlp.DecodeBytes(leaf, &amp;account); err != <span class="literal">nil</span> &#123;</span><br><span class="line">			<span class="keyword">return</span> <span class="literal">nil</span></span><br><span class="line">		&#125;</span><br><span class="line">		<span class="keyword">if</span> account.Root != emptyState &#123;</span><br><span class="line">			s.db.TrieDB().Reference(account.Root, parent)</span><br><span class="line">		&#125;</span><br><span class="line">		code := common.BytesToHash(account.CodeHash)</span><br><span class="line">		<span class="keyword">if</span> code != emptyCode &#123;</span><br><span class="line">			s.db.TrieDB().Reference(code, parent)</span><br><span class="line">		&#125;</span><br><span class="line">		<span class="keyword">return</span> <span class="literal">nil</span></span><br><span class="line">	&#125;)</span><br><span class="line">	log.Debug(<span class="string">"Trie cache stats after commit"</span>, <span class="string">"misses"</span>, trie.CacheMisses(), <span class="string">"unloads"</span>, trie.CacheUnloads())</span><br><span class="line">	<span class="keyword">return</span> root, err</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(s *StateDB)</span> <span class="title">clearJournalAndRefund</span><span class="params">()</span></span> &#123;</span><br><span class="line">	s.journal = newJournal()</span><br><span class="line">	s.validRevisions = s.validRevisions[:<span class="number">0</span>]</span><br><span class="line">	s.refund = <span class="number">0</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>首先遍历了journal.dirties，他存储着每个地址操作的次数，然后在stateObjectsDirty进行记录，表示相应地址有改动。随后遍历stateObjects，他保存着各个地址的stateObject。</p>
+<p>如果某个地址有过操作，首先处理code，如果code有更新则调用InsertBlob进行插入。随后调用stateObject的CommitTrie提交这个签名分析过，最终结果是将树写入数据库，之后更新了StateObject。注意前面只是提交各个stateObject的树，回顾stateObject源码，stateObject成员中的树是通过OpenStorageTrie获取的，其中的root参数是通过StateDB的树种获取的，而StateDB成员中的树是通过OpenTrie获取的。stateObject只是代表一个个以太坊账户，所以还要对StateDB的树进行提交。</p>
+<blockquote>
+<p>题图来自unsplash：<a href="https://unsplash.com/photos/1Z2niiBPg5A" target="_blank" rel="noopener">https://unsplash.com/photos/1Z2niiBPg5A</a></p>
+</blockquote>
+
+      
+    </div>
+
+    
+
+    
+    
+    
+
+    
+
+    
+      
+    
+    
+      <div>
+        <div style="padding: 10px 0; margin: 20px auto; width: 90%; text-align: center;">
+  <div>谢谢你请我吃糖</div>
+  <button id="rewardButton" disable="enable" onclick="var qr = document.getElementById('QR'); if (qr.style.display === 'none') {qr.style.display='block';} else {qr.style.display='none'}">
+    <span>打赏</span>
+  </button>
+  <div id="QR" style="display: none;">
+
+    
+      <div id="wechat" style="display: inline-block">
+        <img id="wechat_qr" src="/assets/img/wechatpay.jpg" alt="AmorFati 微信支付">
+        <p>微信支付</p>
+      </div>
+    
+
+    
+      <div id="alipay" style="display: inline-block">
+        <img id="alipay_qr" src="/assets/img/alipay.jpg" alt="AmorFati 支付宝">
+        <p>支付宝</p>
+      </div>
+    
+
+    
+
+  </div>
+</div>
+
+      </div>
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/go/" rel="tag"># go</a>
+          
+            <a href="/tags/区块链/" rel="tag"># 区块链</a>
+          
+            <a href="/tags/以太坊/" rel="tag"># 以太坊</a>
+          
+            <a href="/tags/go-ethereum/" rel="tag"># go-ethereum</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2019/05/16/go-ethereum中eth-downloader源码学习2/" rel="next" title="go-ethereum中eth-downloader源码学习（二）">
+                <i class="fa fa-chevron-left"></i> go-ethereum中eth-downloader源码学习（二）
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+  </div>
+
+
+          </div>
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image" src="/assets/img/icon.jpg" alt="AmorFati">
+            
+              <p class="site-author-name" itemprop="name">AmorFati</p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          
+            <nav class="site-state motion-element">
+              
+                <div class="site-state-item site-state-posts">
+                
+                  <a href="/archives/">
+                
+                    <span class="site-state-item-count">35</span>
+                    <span class="site-state-item-name">日志</span>
+                  </a>
+                </div>
+              
+
+              
+                
+                
+                <div class="site-state-item site-state-categories">
+                  <a href="/categories/index.html">
+                    
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">7</span>
+                    <span class="site-state-item-name">分类</span>
+                  </a>
+                </div>
+              
+
+              
+                
+                
+                <div class="site-state-item site-state-tags">
+                  <a href="/tags/index.html">
+                    
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">11</span>
+                    <span class="site-state-item-name">标签</span>
+                  </a>
+                </div>
+              
+            </nav>
+          
+
+          
+
+          
+            <div class="links-of-author motion-element">
+              
+                <span class="links-of-author-item">
+                  
+                  
+                    
+                  
+                  
+                    
+                  
+                  <a href="https://github.com/chenyaoyang" title="GitHub &rarr; https://github.com/chenyaoyang" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i>GitHub</a>
+                </span>
+              
+                <span class="links-of-author-item">
+                  
+                  
+                    
+                  
+                  
+                    
+                  
+                  <a href="mailto:chenyang4346@foxmail.com" title="E-Mail &rarr; mailto:chenyang4346@foxmail.com" rel="noopener" target="_blank"><i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+                </span>
+              
+                <span class="links-of-author-item">
+                  
+                  
+                    
+                  
+                  
+                    
+                  
+                  <a href="https://www.jianshu.com/u/52c1bec4559c" title="简书 &rarr; https://www.jianshu.com/u/52c1bec4559c" rel="noopener" target="_blank"><i class="fa fa-fw fa-globe"></i>简书</a>
+                </span>
+              
+            </div>
+          
+
+          
+
+          
+          
+
+          
+            
+          
+          
+
+        </div>
+      </div>
+
+      
+      <!--noindex-->
+        <div class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+            
+            
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#datebase-go"><span class="nav-number">1.</span> <span class="nav-text">datebase.go</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#new"><span class="nav-number">1.1.</span> <span class="nav-text">new</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#OpenTrie"><span class="nav-number">1.2.</span> <span class="nav-text">OpenTrie</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#OpenStorageTrie"><span class="nav-number">1.3.</span> <span class="nav-text">OpenStorageTrie</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#ContractCode-amp-ContractCodeSize"><span class="nav-number">1.4.</span> <span class="nav-text">ContractCode &amp; ContractCodeSize</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Commit"><span class="nav-number">1.5.</span> <span class="nav-text">Commit</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#journal-go"><span class="nav-number">2.</span> <span class="nav-text">journal.go</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#state-object-go"><span class="nav-number">3.</span> <span class="nav-text">state_object.go</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#new-1"><span class="nav-number">3.1.</span> <span class="nav-text">new</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#SetState"><span class="nav-number">3.2.</span> <span class="nav-text">SetState</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#SetBalance"><span class="nav-number">3.3.</span> <span class="nav-text">SetBalance</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#SetCode"><span class="nav-number">3.4.</span> <span class="nav-text">SetCode</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#SetNonce"><span class="nav-number">3.5.</span> <span class="nav-text">SetNonce</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#CommitTrie"><span class="nav-number">3.6.</span> <span class="nav-text">CommitTrie</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#statedb-go"><span class="nav-number">4.</span> <span class="nav-text">statedb.go</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#new-2"><span class="nav-number">4.1.</span> <span class="nav-text">new</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#AddLog"><span class="nav-number">4.2.</span> <span class="nav-text">AddLog</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#GetXxx-amp-SetXxx"><span class="nav-number">4.3.</span> <span class="nav-text">GetXxx &amp; SetXxx</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#操作StateObject"><span class="nav-number">4.4.</span> <span class="nav-text">操作StateObject</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#快照"><span class="nav-number">4.5.</span> <span class="nav-text">快照</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#commit"><span class="nav-number">4.6.</span> <span class="nav-text">commit</span></a></li></ol></li></ol></div>
+            
+
+          </div>
+        </div>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; 2018 – <span itemprop="copyrightYear">2019</span>
+  <span class="with-love" id="animate">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">AmorFati</span>
+
+  
+
+  
+</div>
+
+
+  <div class="powered-by">由 <a href="https://hexo.io" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v3.8.0</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 – <a href="https://theme-next.org" class="theme-link" rel="noopener" target="_blank">NexT.Pisces</a> v6.6.0</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+    
+
+    
+  </div>
+
+  
+
+<script>
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+
+  
+
+
+  <script src="/js/src/utils.js?v=6.6.0"></script>
+
+  <script src="/js/src/motion.js?v=6.6.0"></script>
+
+
+
+  
+  
+
+
+  <script src="/js/src/affix.js?v=6.6.0"></script>
+
+  <script src="/js/src/schemes/pisces.js?v=6.6.0"></script>
+
+
+
+  
+  <script src="/js/src/scrollspy.js?v=6.6.0"></script>
+<script src="/js/src/post-details.js?v=6.6.0"></script>
+
+
+
+  
+
+
+  <script src="/js/src/bootstrap.js?v=6.6.0"></script>
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  <script>
+    // Popup Window;
+    var isfetched = false;
+    var isXml = true;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length === 0) {
+      search_path = "search.xml";
+    } else if (/json$/i.test(search_path)) {
+      isXml = false;
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    var onPopupClose = function (e) {
+      $('.popup').hide();
+      $('#local-search-input').val('');
+      $('.search-result-list').remove();
+      $('#no-result').remove();
+      $(".local-search-pop-overlay").remove();
+      $('body').css('overflow', '');
+    }
+
+    function proceedsearch() {
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay"></div>')
+        .css('overflow', 'hidden');
+      $('.search-popup-overlay').click(onPopupClose);
+      $('.popup').toggle();
+      var $localSearchInput = $('#local-search-input');
+      $localSearchInput.attr("autocapitalize", "none");
+      $localSearchInput.attr("autocorrect", "off");
+      $localSearchInput.focus();
+    }
+
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+      'use strict';
+
+      // start loading animation
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay">' +
+          '<div id="search-loading-icon">' +
+          '<i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>' +
+          '</div>' +
+          '</div>')
+        .css('overflow', 'hidden');
+      $("#search-loading-icon").css('margin', '20% auto 0 auto').css('text-align', 'center');
+
+      
+
+      $.ajax({
+        url: path,
+        dataType: isXml ? "xml" : "json",
+        async: true,
+        success: function(res) {
+          // get the contents from search data
+          isfetched = true;
+          $('.popup').detach().appendTo('.header-inner');
+          var datas = isXml ? $("entry", res).map(function() {
+            return {
+              title: $("title", this).text(),
+              content: $("content",this).text(),
+              url: $("url" , this).text()
+            };
+          }).get() : res;
+          var input = document.getElementById(search_id);
+          var resultContent = document.getElementById(content_id);
+          var inputEventFunction = function() {
+            var searchText = input.value.trim().toLowerCase();
+            var keywords = searchText.split(/[\s\-]+/);
+            if (keywords.length > 1) {
+              keywords.push(searchText);
+            }
+            var resultItems = [];
+            if (searchText.length > 0) {
+              // perform local searching
+              datas.forEach(function(data) {
+                var isMatch = false;
+                var hitCount = 0;
+                var searchTextCount = 0;
+                var title = data.title.trim();
+                var titleInLowerCase = title.toLowerCase();
+                var content = data.content.trim().replace(/<[^>]+>/g,"");
+                
+                var contentInLowerCase = content.toLowerCase();
+                var articleUrl = decodeURIComponent(data.url);
+                var indexOfTitle = [];
+                var indexOfContent = [];
+                // only match articles with not empty titles
+                if(title != '') {
+                  keywords.forEach(function(keyword) {
+                    function getIndexByWord(word, text, caseSensitive) {
+                      var wordLen = word.length;
+                      if (wordLen === 0) {
+                        return [];
+                      }
+                      var startPosition = 0, position = [], index = [];
+                      if (!caseSensitive) {
+                        text = text.toLowerCase();
+                        word = word.toLowerCase();
+                      }
+                      while ((position = text.indexOf(word, startPosition)) > -1) {
+                        index.push({position: position, word: word});
+                        startPosition = position + wordLen;
+                      }
+                      return index;
+                    }
+
+                    indexOfTitle = indexOfTitle.concat(getIndexByWord(keyword, titleInLowerCase, false));
+                    indexOfContent = indexOfContent.concat(getIndexByWord(keyword, contentInLowerCase, false));
+                  });
+                  if (indexOfTitle.length > 0 || indexOfContent.length > 0) {
+                    isMatch = true;
+                    hitCount = indexOfTitle.length + indexOfContent.length;
+                  }
+                }
+
+                // show search results
+
+                if (isMatch) {
+                  // sort index by position of keyword
+
+                  [indexOfTitle, indexOfContent].forEach(function (index) {
+                    index.sort(function (itemLeft, itemRight) {
+                      if (itemRight.position !== itemLeft.position) {
+                        return itemRight.position - itemLeft.position;
+                      } else {
+                        return itemLeft.word.length - itemRight.word.length;
+                      }
+                    });
+                  });
+
+                  // merge hits into slices
+
+                  function mergeIntoSlice(text, start, end, index) {
+                    var item = index[index.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    var hits = [];
+                    var searchTextCountInSlice = 0;
+                    while (position + word.length <= end && index.length != 0) {
+                      if (word === searchText) {
+                        searchTextCountInSlice++;
+                      }
+                      hits.push({position: position, length: word.length});
+                      var wordEnd = position + word.length;
+
+                      // move to next position of hit
+
+                      index.pop();
+                      while (index.length != 0) {
+                        item = index[index.length - 1];
+                        position = item.position;
+                        word = item.word;
+                        if (wordEnd > position) {
+                          index.pop();
+                        } else {
+                          break;
+                        }
+                      }
+                    }
+                    searchTextCount += searchTextCountInSlice;
+                    return {
+                      hits: hits,
+                      start: start,
+                      end: end,
+                      searchTextCount: searchTextCountInSlice
+                    };
+                  }
+
+                  var slicesOfTitle = [];
+                  if (indexOfTitle.length != 0) {
+                    slicesOfTitle.push(mergeIntoSlice(title, 0, title.length, indexOfTitle));
+                  }
+
+                  var slicesOfContent = [];
+                  while (indexOfContent.length != 0) {
+                    var item = indexOfContent[indexOfContent.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    // cut out 100 characters
+                    var start = position - 20;
+                    var end = position + 80;
+                    if(start < 0){
+                      start = 0;
+                    }
+                    if (end < position + word.length) {
+                      end = position + word.length;
+                    }
+                    if(end > content.length){
+                      end = content.length;
+                    }
+                    slicesOfContent.push(mergeIntoSlice(content, start, end, indexOfContent));
+                  }
+
+                  // sort slices in content by search text's count and hits' count
+
+                  slicesOfContent.sort(function (sliceLeft, sliceRight) {
+                    if (sliceLeft.searchTextCount !== sliceRight.searchTextCount) {
+                      return sliceRight.searchTextCount - sliceLeft.searchTextCount;
+                    } else if (sliceLeft.hits.length !== sliceRight.hits.length) {
+                      return sliceRight.hits.length - sliceLeft.hits.length;
+                    } else {
+                      return sliceLeft.start - sliceRight.start;
+                    }
+                  });
+
+                  // select top N slices in content
+
+                  var upperBound = parseInt('1');
+                  if (upperBound >= 0) {
+                    slicesOfContent = slicesOfContent.slice(0, upperBound);
+                  }
+
+                  // highlight title and content
+
+                  function highlightKeyword(text, slice) {
+                    var result = '';
+                    var prevEnd = slice.start;
+                    slice.hits.forEach(function (hit) {
+                      result += text.substring(prevEnd, hit.position);
+                      var end = hit.position + hit.length;
+                      result += '<b class="search-keyword">' + text.substring(hit.position, end) + '</b>';
+                      prevEnd = end;
+                    });
+                    result += text.substring(prevEnd, slice.end);
+                    return result;
+                  }
+
+                  var resultItem = '';
+
+                  if (slicesOfTitle.length != 0) {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + highlightKeyword(title, slicesOfTitle[0]) + "</a>";
+                  } else {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + title + "</a>";
+                  }
+
+                  slicesOfContent.forEach(function (slice) {
+                    resultItem += "<a href='" + articleUrl + "'>" +
+                      "<p class=\"search-result\">" + highlightKeyword(content, slice) +
+                      "...</p>" + "</a>";
+                  });
+
+                  resultItem += "</li>";
+                  resultItems.push({
+                    item: resultItem,
+                    searchTextCount: searchTextCount,
+                    hitCount: hitCount,
+                    id: resultItems.length
+                  });
+                }
+              })
+            };
+            if (keywords.length === 1 && keywords[0] === "") {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>'
+            } else if (resultItems.length === 0) {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>'
+            } else {
+              resultItems.sort(function (resultLeft, resultRight) {
+                if (resultLeft.searchTextCount !== resultRight.searchTextCount) {
+                  return resultRight.searchTextCount - resultLeft.searchTextCount;
+                } else if (resultLeft.hitCount !== resultRight.hitCount) {
+                  return resultRight.hitCount - resultLeft.hitCount;
+                } else {
+                  return resultRight.id - resultLeft.id;
+                }
+              });
+              var searchResultList = '<ul class=\"search-result-list\">';
+              resultItems.forEach(function (result) {
+                searchResultList += result.item;
+              })
+              searchResultList += "</ul>";
+              resultContent.innerHTML = searchResultList;
+            }
+          }
+
+          if ('auto' === 'auto') {
+            input.addEventListener('input', inputEventFunction);
+          } else {
+            $('.search-icon').click(inputEventFunction);
+            input.addEventListener('keypress', function (event) {
+              if (event.keyCode === 13) {
+                inputEventFunction();
+              }
+            });
+          }
+
+          // remove loading animation
+          $(".local-search-pop-overlay").remove();
+          $('body').css('overflow', '');
+
+          proceedsearch();
+        }
+      });
+    }
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched === false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+    });
+
+    $('.popup-btn-close').click(onPopupClose);
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+    $(document).on('keyup', function (event) {
+      var shouldDismissSearchPopup = event.which === 27 &&
+        $('.search-popup').is(':visible');
+      if (shouldDismissSearchPopup) {
+        onPopupClose();
+      }
+    });
+  </script>
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+  
+
+  
+
+
+  
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>
