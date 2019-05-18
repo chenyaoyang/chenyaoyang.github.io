@@ -1,0 +1,1375 @@
+<!DOCTYPE html>
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+<html class="theme-next pisces use-motion" lang="zh-CN">
+<head><meta name="generator" content="Hexo 3.8.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+    
+      
+    
+
+    
+  
+
+  
+
+  
+    
+      
+    
+
+    
+  
+
+  
+    
+      
+    
+
+    
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Monda:300,300italic,400,400italic,700,700italic|Roboto Slab:300,300italic,400,400italic,700,700italic|Dancing Script:300,300italic,400,400italic,700,700italic|Consolas:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css">
+
+<link href="/css/main.css?v=6.6.0" rel="stylesheet" type="text/css">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=6.6.0">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=6.6.0">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=6.6.0">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=6.6.0" color="#222">
+
+
+
+
+
+
+
+
+
+<script id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    version: '6.6.0',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: false,
+    fastclick: false,
+    lazyload: false,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+  
+
+
+
+
+  <meta name="keywords" content="go,区块链,以太坊,go-ethereum">
+<meta property="og:type" content="article">
+<meta property="og:title" content="go-ethereum中core-genesis源码学习">
+<meta property="og:url" content="http://yoursite.com/2019/05/18/go-ethereum中core-genesis源码学习/index.html">
+<meta property="og:site_name" content="AmorFati">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:image" content="https://raw.githubusercontent.com/chenyaoyang/blog-pic/master/head/francesco-ungaro-1597436-unsplash.jpg">
+<meta property="og:updated_time" content="2019-05-18T05:33:39.958Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="go-ethereum中core-genesis源码学习">
+<meta name="twitter:image" content="https://raw.githubusercontent.com/chenyaoyang/blog-pic/master/head/francesco-ungaro-1597436-unsplash.jpg">
+
+
+
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2019/05/18/go-ethereum中core-genesis源码学习/">
+
+
+
+<script id="page.configurations">
+  CONFIG.page = {
+    sidebar: "",
+  };
+</script>
+
+  <title>go-ethereum中core-genesis源码学习 | AmorFati</title>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  <noscript>
+  <style>
+    .use-motion .motion-element,
+    .use-motion .brand,
+    .use-motion .menu-item,
+    .sidebar-inner,
+    .use-motion .post-block,
+    .use-motion .pagination,
+    .use-motion .comments,
+    .use-motion .post-header,
+    .use-motion .post-body,
+    .use-motion .collection-title { opacity: initial; }
+
+    .use-motion .logo,
+    .use-motion .site-title,
+    .use-motion .site-subtitle {
+      opacity: initial;
+      top: initial;
+    }
+
+    .use-motion .logo-line-before i { left: initial; }
+    .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope="" itemtype="http://schema.org/WebPage" lang="zh-CN">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope="" itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">AmorFati</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+    
+      
+        <p class="site-subtitle">风吹过窗前的书，又翻过一页</p>
+      
+    
+    
+  </div>
+
+  <div class="site-nav-toggle">
+    <button aria-label="切换导航栏">
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  
+    <ul id="menu" class="menu">
+      
+        
+        
+        
+          
+          <li class="menu-item menu-item-home">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/" rel="section"><i class="menu-item-icon fa fa-fw fa-home"></i> <br>首页</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-about">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/about/" rel="section"><i class="menu-item-icon fa fa-fw fa-user"></i> <br>关于</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-tags">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/tags/" rel="section"><i class="menu-item-icon fa fa-fw fa-tags"></i> <br>标签</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-categories">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/categories/" rel="section"><i class="menu-item-icon fa fa-fw fa-th"></i> <br>分类</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-archives">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/archives/" rel="section"><i class="menu-item-icon fa fa-fw fa-archive"></i> <br>归档</a>
+
+  </li>
+
+      
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br>搜索</a>
+        </li>
+      
+    </ul>
+  
+
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup search-popup local-search-popup">
+  <div class="local-search-header clearfix">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+    <div class="local-search-input-wrapper">
+      <input autocomplete="off" placeholder="搜索..." spellcheck="false" type="text" id="local-search-input">
+    </div>
+  </div>
+  <div id="local-search-result"></div>
+</div>
+
+
+
+    </div>
+  
+</nav>
+
+
+
+  
+
+
+
+</div>
+    </header>
+
+    
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+            
+
+          
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  
+
+  <article class="post post-type-normal" itemscope="" itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/05/18/go-ethereum中core-genesis源码学习/">
+
+    <span hidden itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="AmorFati">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/assets/img/icon.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope="" itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="AmorFati">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">go-ethereum中core-genesis源码学习
+
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+
+            
+            
+            
+
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+
+              
+                
+              
+
+              <time title="创建时间：2019-05-18 13:31:30 / 修改时间：13:33:39" itemprop="dateCreated datePublished" datetime="2019-05-18T13:31:30+08:00">2019-05-18</time>
+            
+
+            
+              
+
+              
+            
+          </span>
+
+          
+            <span class="post-category">
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope="" itemtype="http://schema.org/Thing"><a href="/categories/go-ethereum源码学习/" itemprop="url" rel="index"><span itemprop="name">go-ethereum源码学习</span></a></span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p><img src="https://raw.githubusercontent.com/chenyaoyang/blog-pic/master/head/francesco-ungaro-1597436-unsplash.jpg" alt=""><br><a id="more"></a><br>genesis就是创世区块，我们在运行一个区块链节点时都要使用创世区块的配置文件对区块链进行初始化，不同的网络又不同的创世区块。</p>
+<h1 id="数据结构"><a href="#数据结构" class="headerlink" title="数据结构"></a>数据结构</h1><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">type</span> Genesis <span class="keyword">struct</span> &#123;</span><br><span class="line">	Config     *params.ChainConfig <span class="string">`json:"config"`</span></span><br><span class="line">	Nonce      <span class="keyword">uint64</span>              <span class="string">`json:"nonce"`</span></span><br><span class="line">	Timestamp  <span class="keyword">uint64</span>              <span class="string">`json:"timestamp"`</span></span><br><span class="line">	ExtraData  []<span class="keyword">byte</span>              <span class="string">`json:"extraData"`</span></span><br><span class="line">	GasLimit   <span class="keyword">uint64</span>              <span class="string">`json:"gasLimit"   gencodec:"required"`</span></span><br><span class="line">	Difficulty *big.Int            <span class="string">`json:"difficulty" gencodec:"required"`</span></span><br><span class="line">	Mixhash    common.Hash         <span class="string">`json:"mixHash"`</span></span><br><span class="line">	Coinbase   common.Address      <span class="string">`json:"coinbase"`</span></span><br><span class="line">	Alloc      GenesisAlloc        <span class="string">`json:"alloc"      gencodec:"required"`</span></span><br><span class="line"></span><br><span class="line">	<span class="comment">// These fields are used for consensus tests. Please don't use them</span></span><br><span class="line">	<span class="comment">// in actual genesis blocks.</span></span><br><span class="line">	Number     <span class="keyword">uint64</span>      <span class="string">`json:"number"`</span></span><br><span class="line">	GasUsed    <span class="keyword">uint64</span>      <span class="string">`json:"gasUsed"`</span></span><br><span class="line">	ParentHash common.Hash <span class="string">`json:"parentHash"`</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">type</span> GenesisAlloc <span class="keyword">map</span>[common.Address]GenesisAccount</span><br><span class="line"></span><br><span class="line"><span class="keyword">type</span> GenesisAccount <span class="keyword">struct</span> &#123;</span><br><span class="line">	Code       []<span class="keyword">byte</span>                      <span class="string">`json:"code,omitempty"`</span></span><br><span class="line">	Storage    <span class="keyword">map</span>[common.Hash]common.Hash <span class="string">`json:"storage,omitempty"`</span></span><br><span class="line">	Balance    *big.Int                    <span class="string">`json:"balance" gencodec:"required"`</span></span><br><span class="line">	Nonce      <span class="keyword">uint64</span>                      <span class="string">`json:"nonce,omitempty"`</span></span><br><span class="line">	PrivateKey []<span class="keyword">byte</span>                      <span class="string">`json:"secretKey,omitempty"`</span> </span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">type</span> ChainConfig <span class="keyword">struct</span> &#123;</span><br><span class="line">	ChainID *big.Int <span class="string">`json:"chainId"`</span> </span><br><span class="line"></span><br><span class="line">	HomesteadBlock *big.Int <span class="string">`json:"homesteadBlock,omitempty"`</span> </span><br><span class="line"></span><br><span class="line">	DAOForkBlock   *big.Int <span class="string">`json:"daoForkBlock,omitempty"`</span>   </span><br><span class="line">	DAOForkSupport <span class="keyword">bool</span>     <span class="string">`json:"daoForkSupport,omitempty"`</span> </span><br><span class="line"></span><br><span class="line"></span><br><span class="line">	EIP150Block *big.Int    <span class="string">`json:"eip150Block,omitempty"`</span> </span><br><span class="line">	EIP150Hash  common.Hash <span class="string">`json:"eip150Hash,omitempty"`</span>  </span><br><span class="line"></span><br><span class="line">	EIP155Block *big.Int <span class="string">`json:"eip155Block,omitempty"`</span> </span><br><span class="line">	EIP158Block *big.Int <span class="string">`json:"eip158Block,omitempty"`</span> </span><br><span class="line"></span><br><span class="line">	ByzantiumBlock      *big.Int <span class="string">`json:"byzantiumBlock,omitempty"`</span>      </span><br><span class="line">	ConstantinopleBlock *big.Int <span class="string">`json:"constantinopleBlock,omitempty"`</span> </span><br><span class="line">	PetersburgBlock     *big.Int <span class="string">`json:"petersburgBlock,omitempty"`</span>     </span><br><span class="line">	EWASMBlock          *big.Int <span class="string">`json:"ewasmBlock,omitempty"`</span>          </span><br><span class="line"></span><br><span class="line">	Ethash *EthashConfig <span class="string">`json:"ethash,omitempty"`</span></span><br><span class="line">	Clique *CliqueConfig <span class="string">`json:"clique,omitempty"`</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">type</span> EthashConfig <span class="keyword">struct</span>&#123;&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">type</span> CliqueConfig <span class="keyword">struct</span> &#123;</span><br><span class="line">	Period <span class="keyword">uint64</span> <span class="string">`json:"period"`</span> </span><br><span class="line">	Epoch  <span class="keyword">uint64</span> <span class="string">`json:"epoch"`</span>  </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>上面给出了创世区块的完整定义，每个字段后面都有json标签，说明可以进行json的序列化和反序列化操作，事实上我们在指定一个创世区块时就是通过json文件配置的，官网给出了一个创世区块json文件的例子<br><figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">  <span class="attr">"config"</span>: &#123;</span><br><span class="line">        <span class="attr">"chainId"</span>: <span class="number">0</span>,</span><br><span class="line">        <span class="attr">"homesteadBlock"</span>: <span class="number">0</span>,</span><br><span class="line">        <span class="attr">"eip155Block"</span>: <span class="number">0</span>,</span><br><span class="line">        <span class="attr">"eip158Block"</span>: <span class="number">0</span></span><br><span class="line">    &#125;,</span><br><span class="line">  <span class="attr">"alloc"</span>: &#123;</span><br><span class="line">        <span class="attr">"0x0000000000000000000000000000000000000001"</span>: &#123;<span class="attr">"balance"</span>: <span class="string">"111111111"</span>&#125;,</span><br><span class="line">        <span class="attr">"0x0000000000000000000000000000000000000002"</span>: &#123;<span class="attr">"balance"</span>: <span class="string">"222222222"</span>&#125;</span><br><span class="line">    &#125;,</span><br><span class="line">  <span class="attr">"coinbase"</span>   : <span class="string">"0x0000000000000000000000000000000000000000"</span>,</span><br><span class="line">  <span class="attr">"difficulty"</span> : <span class="string">"0x20000"</span>,</span><br><span class="line">  <span class="attr">"extraData"</span>  : <span class="string">""</span>,</span><br><span class="line">  <span class="attr">"gasLimit"</span>   : <span class="string">"0x2fefd8"</span>,</span><br><span class="line">  <span class="attr">"nonce"</span>      : <span class="string">"0x0000000000000042"</span>,</span><br><span class="line">  <span class="attr">"mixhash"</span>    : <span class="string">"0x0000000000000000000000000000000000000000000000000000000000000000"</span>,</span><br><span class="line">  <span class="attr">"parentHash"</span> : <span class="string">"0x0000000000000000000000000000000000000000000000000000000000000000"</span>,</span><br><span class="line">  <span class="attr">"timestamp"</span>  : <span class="string">"0x00"</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>其中，config中的chainId是网络标识，注意1表示以太坊主网；homesteadBlock、eip155Block和eip158Block是表示几个版本升级时硬分叉的高度，为nil表示不分叉。剩余的基本就是区块中一些固定的内容。</p>
+<h1 id="SetupGenesisBlock"><a href="#SetupGenesisBlock" class="headerlink" title="SetupGenesisBlock"></a>SetupGenesisBlock</h1><p>在初始化区块链的时候就是调用这个方法来配置创世区块<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">SetupGenesisBlock</span><span class="params">(db ethdb.Database, genesis *Genesis)</span> <span class="params">(*params.ChainConfig, common.Hash, error)</span></span> &#123;</span><br><span class="line">	<span class="keyword">return</span> SetupGenesisBlockWithOverride(db, genesis, <span class="literal">nil</span>)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">SetupGenesisBlockWithOverride</span><span class="params">(db ethdb.Database, genesis *Genesis, constantinopleOverride *big.Int)</span> <span class="params">(*params.ChainConfig, common.Hash, error)</span></span> &#123;</span><br><span class="line">	<span class="keyword">if</span> genesis != <span class="literal">nil</span> &amp;&amp; genesis.Config == <span class="literal">nil</span> &#123; </span><br><span class="line">		<span class="keyword">return</span> params.AllEthashProtocolChanges, common.Hash&#123;&#125;, errGenesisNoConfig</span><br><span class="line">	&#125;</span><br><span class="line">	</span><br><span class="line">	stored := rawdb.ReadCanonicalHash(db, <span class="number">0</span>) </span><br><span class="line"></span><br><span class="line">	<span class="keyword">if</span> (stored == common.Hash&#123;&#125;) &#123; </span><br><span class="line">		<span class="keyword">if</span> genesis == <span class="literal">nil</span> &#123;</span><br><span class="line">			log.Info(<span class="string">"Writing default main-net genesis block"</span>)</span><br><span class="line">			genesis = DefaultGenesisBlock()</span><br><span class="line">		&#125; <span class="keyword">else</span> &#123;</span><br><span class="line">			log.Info(<span class="string">"Writing custom genesis block"</span>)</span><br><span class="line">		&#125;</span><br><span class="line">		block, err := genesis.Commit(db)</span><br><span class="line">		<span class="keyword">return</span> genesis.Config, block.Hash(), err</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">if</span> genesis != <span class="literal">nil</span> &#123;</span><br><span class="line">		hash := genesis.ToBlock(<span class="literal">nil</span>).Hash()</span><br><span class="line">		<span class="keyword">if</span> hash != stored &#123;</span><br><span class="line">			<span class="keyword">return</span> genesis.Config, hash, &amp;GenesisMismatchError&#123;stored, hash&#125;</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	newcfg := genesis.configOrDefault(stored)</span><br><span class="line">	<span class="keyword">if</span> constantinopleOverride != <span class="literal">nil</span> &#123;</span><br><span class="line">		newcfg.ConstantinopleBlock = constantinopleOverride</span><br><span class="line">		newcfg.PetersburgBlock = constantinopleOverride</span><br><span class="line">	&#125;</span><br><span class="line">	storedcfg := rawdb.ReadChainConfig(db, stored)</span><br><span class="line">	<span class="keyword">if</span> storedcfg == <span class="literal">nil</span> &#123;</span><br><span class="line">		log.Warn(<span class="string">"Found genesis block without chain config"</span>)</span><br><span class="line">		rawdb.WriteChainConfig(db, stored, newcfg)</span><br><span class="line">		<span class="keyword">return</span> newcfg, stored, <span class="literal">nil</span></span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">if</span> genesis == <span class="literal">nil</span> &amp;&amp; stored != params.MainnetGenesisHash &#123;</span><br><span class="line">		<span class="keyword">return</span> storedcfg, stored, <span class="literal">nil</span></span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	height := rawdb.ReadHeaderNumber(db, rawdb.ReadHeadHeaderHash(db))</span><br><span class="line">	<span class="keyword">if</span> height == <span class="literal">nil</span> &#123;</span><br><span class="line">		<span class="keyword">return</span> newcfg, stored, fmt.Errorf(<span class="string">"missing block number for head header hash"</span>)</span><br><span class="line">	&#125;</span><br><span class="line">	compatErr := storedcfg.CheckCompatible(newcfg, *height)</span><br><span class="line">	<span class="keyword">if</span> compatErr != <span class="literal">nil</span> &amp;&amp; *height != <span class="number">0</span> &amp;&amp; compatErr.RewindTo != <span class="number">0</span> &#123;</span><br><span class="line">		<span class="keyword">return</span> newcfg, stored, compatErr</span><br><span class="line">	&#125;</span><br><span class="line">	rawdb.WriteChainConfig(db, stored, newcfg)</span><br><span class="line">	<span class="keyword">return</span> newcfg, stored, <span class="literal">nil</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>传入的参数就是一个已经解析过的Genesis对象。首先判断config字段是否为空，因为这里面至少定义了一个网络ID。接下来调用了ReadCanonicalHash方法，ReadCanonicalHash实际上就是ethdb的get方法封装，这里读取了编号为0的区块hash，也就是尝试从数据库中读取创世区块。</p>
+<p>接下来分四种情况，在源码开头已经给出了：<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//                          genesis == nil       genesis != nil</span></span><br><span class="line"><span class="comment">//                       +------------------------------------------</span></span><br><span class="line"><span class="comment">//     db has no genesis |  main-net default  |  genesis</span></span><br><span class="line"><span class="comment">//     db has genesis    |  from DB           |  genesis (if compatible)</span></span><br><span class="line"><span class="comment">//</span></span><br></pre></td></tr></table></figure></p>
+<h2 id="情况一：外部genesis与数据库中genesis都为空"><a href="#情况一：外部genesis与数据库中genesis都为空" class="headerlink" title="情况一：外部genesis与数据库中genesis都为空"></a>情况一：外部genesis与数据库中genesis都为空</h2><p>首先如果读取到的为空表示没有初始化过。接下来如果传入的genesis对象也为为空时，符合注释中的第一种情况，就调用DefaultGenesisBlock配置默认的创世区块，也就是主网下创世区块。这一般在默认连接主网时出现<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">DefaultGenesisBlock</span><span class="params">()</span> *<span class="title">Genesis</span></span> &#123;</span><br><span class="line">	<span class="keyword">return</span> &amp;Genesis&#123;</span><br><span class="line">		Config:     params.MainnetChainConfig,</span><br><span class="line">		Nonce:      <span class="number">66</span>,</span><br><span class="line">		ExtraData:  hexutil.MustDecode(<span class="string">"0x11bbe8db4e347b4e8c937c1c8370e4b5ed33adb3db69cbdb7a38e1e50b1b82fa"</span>),</span><br><span class="line">		GasLimit:   <span class="number">5000</span>,</span><br><span class="line">		Difficulty: big.NewInt(<span class="number">17179869184</span>),</span><br><span class="line">		Alloc:      decodePrealloc(mainnetAllocData),</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">	MainnetChainConfig = &amp;ChainConfig&#123;</span><br><span class="line">		ChainID:             big.NewInt(<span class="number">1</span>),</span><br><span class="line">		HomesteadBlock:      big.NewInt(<span class="number">1150000</span>),</span><br><span class="line">		DAOForkBlock:        big.NewInt(<span class="number">1920000</span>),</span><br><span class="line">		DAOForkSupport:      <span class="literal">true</span>,</span><br><span class="line">		EIP150Block:         big.NewInt(<span class="number">2463000</span>),</span><br><span class="line">		EIP150Hash:          common.HexToHash(<span class="string">"0x2086799aeebeae135c246c65021c82b4e15a2c451340993aacfd2751886514f0"</span>),</span><br><span class="line">		EIP155Block:         big.NewInt(<span class="number">2675000</span>),</span><br><span class="line">		EIP158Block:         big.NewInt(<span class="number">2675000</span>),</span><br><span class="line">		ByzantiumBlock:      big.NewInt(<span class="number">4370000</span>),</span><br><span class="line">		ConstantinopleBlock: big.NewInt(<span class="number">7280000</span>),</span><br><span class="line">		PetersburgBlock:     big.NewInt(<span class="number">7280000</span>),</span><br><span class="line">		Ethash:              <span class="built_in">new</span>(EthashConfig),</span><br><span class="line">	&#125;</span><br></pre></td></tr></table></figure></p>
+<p>主网的创世区块配置中的Alloc字段是在core/genesis_alloc.go中写的。另外可以看到主网的ID是1，还有几次硬分叉的高度。</p>
+<h2 id="情况二：只有数据库中的genesis为空"><a href="#情况二：只有数据库中的genesis为空" class="headerlink" title="情况二：只有数据库中的genesis为空"></a>情况二：只有数据库中的genesis为空</h2><p>回到SetupGenesisBlock中，如果我们传来的创世区块不为空，但是本地数据库中没有存储过创世区块的话，这一般在指定配置文件时第一次初始化出现，则调用commit方法将我们指定的genesis提交到数据库，commit方法后面再介绍</p>
+<h2 id="情况三：外部genesis与数据库中genesis都不为空"><a href="#情况三：外部genesis与数据库中genesis都不为空" class="headerlink" title="情况三：外部genesis与数据库中genesis都不为空"></a>情况三：外部genesis与数据库中genesis都不为空</h2><p>如果本地数据库存的有genesis数据，外部指定的也有genesis数据，先对二者的区块进行比较，就是对hash比较，不一样的报错返回。只有在一样的情况下继续执行，这时先通过configOrDefault获取我们指定的配置信息，然后利用ReadChainConfig从数据库读取旧的配置信息，然后在获取区块链高度，之后进行兼容性判断，兼容的话利用WriteChainConfig把我们指定的配置信息写入数据库</p>
+<h2 id="情况四：只有外部的genesis为空"><a href="#情况四：只有外部的genesis为空" class="headerlink" title="情况四：只有外部的genesis为空"></a>情况四：只有外部的genesis为空</h2><p>对应这种情况，也是先通过configOrDefault根据本地存储的创世区块hash值获取某个预制的配置信息，在获取的配置信息不是主网配置信息的情况下不做任何改变，也就是说是其他配置信息的话就和有外部Genesis一样进行兼容性检测人后写入。</p>
+<h2 id="configOrDefault"><a href="#configOrDefault" class="headerlink" title="configOrDefault"></a>configOrDefault</h2><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(g *Genesis)</span> <span class="title">configOrDefault</span><span class="params">(ghash common.Hash)</span> *<span class="title">params</span>.<span class="title">ChainConfig</span></span> &#123;</span><br><span class="line">	<span class="keyword">switch</span> &#123;</span><br><span class="line">	<span class="keyword">case</span> g != <span class="literal">nil</span>:</span><br><span class="line">		<span class="keyword">return</span> g.Config</span><br><span class="line">	<span class="keyword">case</span> ghash == params.MainnetGenesisHash:</span><br><span class="line">		<span class="keyword">return</span> params.MainnetChainConfig</span><br><span class="line">	<span class="keyword">case</span> ghash == params.TestnetGenesisHash:</span><br><span class="line">		<span class="keyword">return</span> params.TestnetChainConfig</span><br><span class="line">	<span class="keyword">default</span>:</span><br><span class="line">		<span class="keyword">return</span> params.AllEthashProtocolChanges</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h1 id="commit"><a href="#commit" class="headerlink" title="commit"></a>commit</h1><p>commit方法是将我们指定的创世区块写入数据库<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(g *Genesis)</span> <span class="title">Commit</span><span class="params">(db ethdb.Database)</span> <span class="params">(*types.Block, error)</span></span> &#123;</span><br><span class="line">	block := g.ToBlock(db)</span><br><span class="line">	<span class="keyword">if</span> block.Number().Sign() != <span class="number">0</span> &#123;</span><br><span class="line">		<span class="keyword">return</span> <span class="literal">nil</span>, fmt.Errorf(<span class="string">"can't commit genesis block with number &gt; 0"</span>)</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	rawdb.WriteTd(db, block.Hash(), block.NumberU64(), g.Difficulty)</span><br><span class="line">	rawdb.WriteBlock(db, block)</span><br><span class="line">	rawdb.WriteReceipts(db, block.Hash(), block.NumberU64(), <span class="literal">nil</span>)</span><br><span class="line">	rawdb.WriteCanonicalHash(db, block.Hash(), block.NumberU64())</span><br><span class="line">	rawdb.WriteHeadBlockHash(db, block.Hash())</span><br><span class="line">	rawdb.WriteHeadHeaderHash(db, block.Hash())</span><br><span class="line"></span><br><span class="line">	config := g.Config</span><br><span class="line">	<span class="keyword">if</span> config == <span class="literal">nil</span> &#123;</span><br><span class="line">		config = params.AllEthashProtocolChanges</span><br><span class="line">	&#125;</span><br><span class="line">	rawdb.WriteChainConfig(db, block.Hash(), config)</span><br><span class="line">	<span class="keyword">return</span> block, <span class="literal">nil</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<h2 id="ToBlock"><a href="#ToBlock" class="headerlink" title="ToBlock"></a>ToBlock</h2><p>首先调用了ToBlock方法创建了一个区块<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(g *Genesis)</span> <span class="title">ToBlock</span><span class="params">(db ethdb.Database)</span> *<span class="title">types</span>.<span class="title">Block</span></span> &#123;</span><br><span class="line">	<span class="keyword">if</span> db == <span class="literal">nil</span> &#123; </span><br><span class="line">		db = ethdb.NewMemDatabase()</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	statedb, _ := state.New(common.Hash&#123;&#125;, state.NewDatabase(db))</span><br><span class="line"></span><br><span class="line">	<span class="keyword">for</span> addr, account := <span class="keyword">range</span> g.Alloc &#123; </span><br><span class="line">		statedb.AddBalance(addr, account.Balance)</span><br><span class="line">		statedb.SetCode(addr, account.Code)</span><br><span class="line">		statedb.SetNonce(addr, account.Nonce)</span><br><span class="line">		<span class="keyword">for</span> key, value := <span class="keyword">range</span> account.Storage &#123;</span><br><span class="line">			statedb.SetState(addr, key, value)</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">	root := statedb.IntermediateRoot(<span class="literal">false</span>)</span><br><span class="line">	head := &amp;types.Header&#123; </span><br><span class="line">		Number:     <span class="built_in">new</span>(big.Int).SetUint64(g.Number),</span><br><span class="line">		Nonce:      types.EncodeNonce(g.Nonce),</span><br><span class="line">		Time:       <span class="built_in">new</span>(big.Int).SetUint64(g.Timestamp),</span><br><span class="line">		ParentHash: g.ParentHash,</span><br><span class="line">		Extra:      g.ExtraData,</span><br><span class="line">		GasLimit:   g.GasLimit,</span><br><span class="line">		GasUsed:    g.GasUsed,</span><br><span class="line">		Difficulty: g.Difficulty,</span><br><span class="line">		MixDigest:  g.Mixhash,</span><br><span class="line">		Coinbase:   g.Coinbase,</span><br><span class="line">		Root:       root,</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">if</span> g.GasLimit == <span class="number">0</span> &#123;</span><br><span class="line">		head.GasLimit = params.GenesisGasLimit <span class="comment">//默认为4712388  go-ethereum\params\protocol_params.go</span></span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">if</span> g.Difficulty == <span class="literal">nil</span> &#123;</span><br><span class="line">		head.Difficulty = params.GenesisDifficulty <span class="comment">//默认为131072</span></span><br><span class="line">	&#125;</span><br><span class="line">	statedb.Commit(<span class="literal">false</span>)</span><br><span class="line">	statedb.Database().TrieDB().Commit(root, <span class="literal">true</span>)</span><br><span class="line"></span><br><span class="line">	<span class="keyword">return</span> types.NewBlock(head, <span class="literal">nil</span>, <span class="literal">nil</span>, <span class="literal">nil</span>)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>在ToBlock，如果传入的数据库对象为空，则建立一个内存数据库，这个我们在分析ethdb源码时分析过，随后调用了state.New方法，关于state见这篇<a href="https://blog.grapefruit.tk/2019/05/17/go-ethereum%E4%B8%ADcore-state%E6%BA%90%E7%A0%81%E5%AD%A6%E4%B9%A0/" target="_blank" rel="noopener">文章</a>,这里返回的StateDB用于操作账户。随后遍历了alloc字段，这是预分配余额，对于每个账户都写入相应的余额、代码、随机数和存储的数据。之后调用IntermediateRoot获取临时的根hash，接着构建了区块头，填入了头部的各项信息，基本都是按照创世区块来的。随后调用statedb.Commit把前面statedb所做的变动进行提交，注意IntermediateRoot只是暂时算出当前状态树的根并没有持久化到数据库。</p>
+<p>接着又调用了statedb.Database().TrieDB().Commit(root, true)，我们一段一段分析，statedb.Database()是获取的StateDB的db对象，这个变量我们前面在创建statedb时通过state.NewDatabase方法构建，他返回一个cachingDB对象，而cachingDB的TrieDB返回它自己的db对象，这是一个trie包里的Database对象，这个对象保存了我们最初传入的ethdb.Database对象。它的Commit方法实际上就是将树最后写入数据库中，关于这一部分见前面tire源码分析</p>
+<p>回到ToBlock，最后调用NewBlock构建了一个区块对象<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">NewBlock</span><span class="params">(header *Header, txs []*Transaction, uncles []*Header, receipts []*Receipt)</span> *<span class="title">Block</span></span> &#123;</span><br><span class="line">	b := &amp;Block&#123;header: CopyHeader(header), td: <span class="built_in">new</span>(big.Int)&#125;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">if</span> <span class="built_in">len</span>(txs) == <span class="number">0</span> &#123;</span><br><span class="line">		b.header.TxHash = EmptyRootHash</span><br><span class="line">	&#125; <span class="keyword">else</span> &#123;</span><br><span class="line">		b.header.TxHash = DeriveSha(Transactions(txs))</span><br><span class="line">		b.transactions = <span class="built_in">make</span>(Transactions, <span class="built_in">len</span>(txs))</span><br><span class="line">		<span class="built_in">copy</span>(b.transactions, txs)</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">if</span> <span class="built_in">len</span>(receipts) == <span class="number">0</span> &#123;</span><br><span class="line">		b.header.ReceiptHash = EmptyRootHash</span><br><span class="line">	&#125; <span class="keyword">else</span> &#123;</span><br><span class="line">		b.header.ReceiptHash = DeriveSha(Receipts(receipts))</span><br><span class="line">		b.header.Bloom = CreateBloom(receipts)</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">if</span> <span class="built_in">len</span>(uncles) == <span class="number">0</span> &#123;</span><br><span class="line">		b.header.UncleHash = EmptyUncleHash</span><br><span class="line">	&#125; <span class="keyword">else</span> &#123;</span><br><span class="line">		b.header.UncleHash = CalcUncleHash(uncles)</span><br><span class="line">		b.uncles = <span class="built_in">make</span>([]*Header, <span class="built_in">len</span>(uncles))</span><br><span class="line">		<span class="keyword">for</span> i := <span class="keyword">range</span> uncles &#123;</span><br><span class="line">			b.uncles[i] = CopyHeader(uncles[i])</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">return</span> b</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>传入的参数有区块头，交易集合、叔块头和收据，我们在这里还要补全交易树和收据树的根，我们看一下根hash如何计算<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// go-ethereum\core\types\derive_sha.go</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">DeriveSha</span><span class="params">(list DerivableList)</span> <span class="title">common</span>.<span class="title">Hash</span></span> &#123;</span><br><span class="line">	keybuf := <span class="built_in">new</span>(bytes.Buffer)</span><br><span class="line">	trie := <span class="built_in">new</span>(trie.Trie)</span><br><span class="line">	<span class="keyword">for</span> i := <span class="number">0</span>; i &lt; list.Len(); i++ &#123;</span><br><span class="line">		keybuf.Reset()</span><br><span class="line">		rlp.Encode(keybuf, <span class="keyword">uint</span>(i))</span><br><span class="line">		trie.Update(keybuf.Bytes(), list.GetRlp(i))</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">return</span> trie.Hash()</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(s Transactions)</span> <span class="title">GetRlp</span><span class="params">(i <span class="keyword">int</span>)</span> []<span class="title">byte</span></span> &#123;</span><br><span class="line">	enc, _ := rlp.EncodeToBytes(s[i])</span><br><span class="line">	<span class="keyword">return</span> enc</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>首先新建一棵树，要插入的key就是其所在集合中的编号，值时经过rlp编码的数据，最后计算树的根hash即可。</p>
+<p>对于叔块的hash计算如下：<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">CalcUncleHash</span><span class="params">(uncles []*Header)</span> <span class="title">common</span>.<span class="title">Hash</span></span> &#123;</span><br><span class="line">	<span class="keyword">return</span> rlpHash(uncles)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">rlpHash</span><span class="params">(x <span class="keyword">interface</span>&#123;&#125;)</span> <span class="params">(h common.Hash)</span></span> &#123;</span><br><span class="line">	hw := sha3.NewLegacyKeccak256()</span><br><span class="line">	rlp.Encode(hw, x)</span><br><span class="line">	hw.Sum(h[:<span class="number">0</span>])</span><br><span class="line">	<span class="keyword">return</span> h</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>首先进行rlp编码然后计算sha3-256的值即可。</p>
+<h2 id="写数据库"><a href="#写数据库" class="headerlink" title="写数据库"></a>写数据库</h2><p>回到Genesis中，ToBlock返回了一个区块对象也就是创世区块，接下来调用了rawdb包中的许多方法，rawdb实际上就是一个包装类，封装了一些操作数据库的方法，底层还是使用ethdb的相关方法。首先写入了总难度<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">WriteTd</span><span class="params">(db DatabaseWriter, hash common.Hash, number <span class="keyword">uint64</span>, td *big.Int)</span></span> &#123;</span><br><span class="line">	data, err := rlp.EncodeToBytes(td)</span><br><span class="line">	<span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">		log.Crit(<span class="string">"Failed to RLP encode block total difficulty"</span>, <span class="string">"err"</span>, err)</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">if</span> err := db.Put(headerTDKey(number, hash), data); err != <span class="literal">nil</span> &#123;</span><br><span class="line">		log.Crit(<span class="string">"Failed to store block total difficulty"</span>, <span class="string">"err"</span>, err)</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">headerTDKey</span><span class="params">(number <span class="keyword">uint64</span>, hash common.Hash)</span> []<span class="title">byte</span></span> &#123;</span><br><span class="line">	<span class="keyword">return</span> <span class="built_in">append</span>(headerKey(number, hash), headerTDSuffix...)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">headerKey</span><span class="params">(number <span class="keyword">uint64</span>, hash common.Hash)</span> []<span class="title">byte</span></span> &#123;</span><br><span class="line">	<span class="keyword">return</span> <span class="built_in">append</span>(<span class="built_in">append</span>(headerPrefix, encodeBlockNumber(number)...), hash.Bytes()...)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">headerPrefix  = []<span class="keyword">byte</span>(<span class="string">"h"</span>)</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">encodeBlockNumber</span><span class="params">(number <span class="keyword">uint64</span>)</span> []<span class="title">byte</span></span> &#123;</span><br><span class="line">	enc := <span class="built_in">make</span>([]<span class="keyword">byte</span>, <span class="number">8</span>)</span><br><span class="line">	binary.BigEndian.PutUint64(enc, number)</span><br><span class="line">	<span class="keyword">return</span> enc</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>向数据库中写入总难度时，先对key进行了构造:<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">byte(&apos;h&apos;) + 区块编号的大端表示（长度8字节） + 区块hash + byte(&apos;t&apos;)</span><br></pre></td></tr></table></figure></p>
+<p>之后开始写入区块<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">WriteBlock</span><span class="params">(db DatabaseWriter, block *types.Block)</span></span> &#123;</span><br><span class="line">	WriteBody(db, block.Hash(), block.NumberU64(), block.Body())</span><br><span class="line">	WriteHeader(db, block.Header())</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>先写区块体<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(b *Block)</span> <span class="title">Body</span><span class="params">()</span> *<span class="title">Body</span></span> &#123; <span class="keyword">return</span> &amp;Body&#123;b.transactions, b.uncles&#125; &#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">WriteBody</span><span class="params">(db DatabaseWriter, hash common.Hash, number <span class="keyword">uint64</span>, body *types.Body)</span></span> &#123;</span><br><span class="line">	data, err := rlp.EncodeToBytes(body)</span><br><span class="line">	<span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">		log.Crit(<span class="string">"Failed to RLP encode body"</span>, <span class="string">"err"</span>, err)</span><br><span class="line">	&#125;</span><br><span class="line">	WriteBodyRLP(db, hash, number, data)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">WriteBodyRLP</span><span class="params">(db DatabaseWriter, hash common.Hash, number <span class="keyword">uint64</span>, rlp rlp.RawValue)</span></span> &#123;</span><br><span class="line">	<span class="keyword">if</span> err := db.Put(blockBodyKey(number, hash), rlp); err != <span class="literal">nil</span> &#123;</span><br><span class="line">		log.Crit(<span class="string">"Failed to store block body"</span>, <span class="string">"err"</span>, err)</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">blockBodyKey</span><span class="params">(number <span class="keyword">uint64</span>, hash common.Hash)</span> []<span class="title">byte</span></span> &#123;</span><br><span class="line">	<span class="keyword">return</span> <span class="built_in">append</span>(<span class="built_in">append</span>(blockBodyPrefix, encodeBlockNumber(number)...), hash.Bytes()...)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">blockBodyPrefix     = []<span class="keyword">byte</span>(<span class="string">"b"</span>)</span><br></pre></td></tr></table></figure></p>
+<p>首先所谓的区块体就是一个只包含交易和叔块头的结构体，存储时先对其进行rlp编码，然后存入数据库，存入的key如下构成<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">byte</span>(<span class="string">'b'</span>) + 区块编号的大端表示（长度<span class="number">8</span>字节） + 区块hash</span><br></pre></td></tr></table></figure></p>
+<p>写入完区块体后写入区块头<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">WriteHeader</span><span class="params">(db DatabaseWriter, header *types.Header)</span></span> &#123;</span><br><span class="line">	<span class="keyword">var</span> (</span><br><span class="line">		hash    = header.Hash()</span><br><span class="line">		number  = header.Number.Uint64()</span><br><span class="line">		encoded = encodeBlockNumber(number)</span><br><span class="line">	)</span><br><span class="line">	key := headerNumberKey(hash)</span><br><span class="line">	<span class="keyword">if</span> err := db.Put(key, encoded); err != <span class="literal">nil</span> &#123;</span><br><span class="line">		log.Crit(<span class="string">"Failed to store hash to number mapping"</span>, <span class="string">"err"</span>, err)</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	data, err := rlp.EncodeToBytes(header)</span><br><span class="line">	<span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">		log.Crit(<span class="string">"Failed to RLP encode header"</span>, <span class="string">"err"</span>, err)</span><br><span class="line">	&#125;</span><br><span class="line">	key = headerKey(number, hash)</span><br><span class="line">	<span class="keyword">if</span> err := db.Put(key, data); err != <span class="literal">nil</span> &#123;</span><br><span class="line">		log.Crit(<span class="string">"Failed to store header"</span>, <span class="string">"err"</span>, err)</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">headerNumberKey</span><span class="params">(hash common.Hash)</span> []<span class="title">byte</span></span> &#123;</span><br><span class="line">	<span class="keyword">return</span> <span class="built_in">append</span>(headerNumberPrefix, hash.Bytes()...)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">headerNumberPrefix = []<span class="keyword">byte</span>(<span class="string">"H"</span>)</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">headerKey</span><span class="params">(number <span class="keyword">uint64</span>, hash common.Hash)</span> []<span class="title">byte</span></span> &#123;</span><br><span class="line">	<span class="keyword">return</span> <span class="built_in">append</span>(<span class="built_in">append</span>(headerPrefix, encodeBlockNumber(number)...), hash.Bytes()...)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>这里首先存储区块编号，构建的key结构如下<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">byte(&apos;H&apos;) + 区块头hash</span><br></pre></td></tr></table></figure></p>
+<p>之后再存储区块头，先进行rlp编码，再构建key，结构如下<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">byte(&apos;h&apos;) + 区块编号的大端表示（长度8字节） + 区块头hash</span><br></pre></td></tr></table></figure></p>
+<p>接着又存储了收据信息，区块hash，当前区块（区块头顶部区块）hash以及当前区块头hash。还要写入配置信息，不过如果配置为空则加载一个默认配置<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">AllEthashProtocolChanges = &amp;ChainConfig&#123;big.NewInt(<span class="number">1337</span>), big.NewInt(<span class="number">0</span>), <span class="literal">nil</span>, <span class="literal">false</span>, big.NewInt(<span class="number">0</span>), common.Hash&#123;&#125;, big.NewInt(<span class="number">0</span>), big.NewInt(<span class="number">0</span>), big.NewInt(<span class="number">0</span>), big.NewInt(<span class="number">0</span>), big.NewInt(<span class="number">0</span>), <span class="literal">nil</span>, <span class="built_in">new</span>(EthashConfig), <span class="literal">nil</span>&#125;</span><br></pre></td></tr></table></figure></p>
+<p>最后commit方法返回开始创建的区块对象。回到SetupGenesisBlock中，此时创世区块配置完毕返回其配置和区块hash。</p>
+<blockquote>
+<p>题图来自unsplash：<a href="https://unsplash.com/photos/_aASE0L1I1g" target="_blank" rel="noopener">https://unsplash.com/photos/_aASE0L1I1g</a></p>
+</blockquote>
+
+      
+    </div>
+
+    
+
+    
+    
+    
+
+    
+
+    
+      
+    
+    
+      <div>
+        <div style="padding: 10px 0; margin: 20px auto; width: 90%; text-align: center;">
+  <div>谢谢你请我吃糖</div>
+  <button id="rewardButton" disable="enable" onclick="var qr = document.getElementById('QR'); if (qr.style.display === 'none') {qr.style.display='block';} else {qr.style.display='none'}">
+    <span>打赏</span>
+  </button>
+  <div id="QR" style="display: none;">
+
+    
+      <div id="wechat" style="display: inline-block">
+        <img id="wechat_qr" src="/assets/img/wechatpay.jpg" alt="AmorFati 微信支付">
+        <p>微信支付</p>
+      </div>
+    
+
+    
+      <div id="alipay" style="display: inline-block">
+        <img id="alipay_qr" src="/assets/img/alipay.jpg" alt="AmorFati 支付宝">
+        <p>支付宝</p>
+      </div>
+    
+
+    
+
+  </div>
+</div>
+
+      </div>
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/go/" rel="tag"># go</a>
+          
+            <a href="/tags/区块链/" rel="tag"># 区块链</a>
+          
+            <a href="/tags/以太坊/" rel="tag"># 以太坊</a>
+          
+            <a href="/tags/go-ethereum/" rel="tag"># go-ethereum</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2019/05/17/go-ethereum中core-state源码学习/" rel="next" title="go-ethereum中core-state源码学习">
+                <i class="fa fa-chevron-left"></i> go-ethereum中core-state源码学习
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+  </div>
+
+
+          </div>
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image" src="/assets/img/icon.jpg" alt="AmorFati">
+            
+              <p class="site-author-name" itemprop="name">AmorFati</p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          
+            <nav class="site-state motion-element">
+              
+                <div class="site-state-item site-state-posts">
+                
+                  <a href="/archives/">
+                
+                    <span class="site-state-item-count">36</span>
+                    <span class="site-state-item-name">日志</span>
+                  </a>
+                </div>
+              
+
+              
+                
+                
+                <div class="site-state-item site-state-categories">
+                  <a href="/categories/index.html">
+                    
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">7</span>
+                    <span class="site-state-item-name">分类</span>
+                  </a>
+                </div>
+              
+
+              
+                
+                
+                <div class="site-state-item site-state-tags">
+                  <a href="/tags/index.html">
+                    
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">11</span>
+                    <span class="site-state-item-name">标签</span>
+                  </a>
+                </div>
+              
+            </nav>
+          
+
+          
+
+          
+            <div class="links-of-author motion-element">
+              
+                <span class="links-of-author-item">
+                  
+                  
+                    
+                  
+                  
+                    
+                  
+                  <a href="https://github.com/chenyaoyang" title="GitHub &rarr; https://github.com/chenyaoyang" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i>GitHub</a>
+                </span>
+              
+                <span class="links-of-author-item">
+                  
+                  
+                    
+                  
+                  
+                    
+                  
+                  <a href="mailto:chenyang4346@foxmail.com" title="E-Mail &rarr; mailto:chenyang4346@foxmail.com" rel="noopener" target="_blank"><i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+                </span>
+              
+                <span class="links-of-author-item">
+                  
+                  
+                    
+                  
+                  
+                    
+                  
+                  <a href="https://www.jianshu.com/u/52c1bec4559c" title="简书 &rarr; https://www.jianshu.com/u/52c1bec4559c" rel="noopener" target="_blank"><i class="fa fa-fw fa-globe"></i>简书</a>
+                </span>
+              
+            </div>
+          
+
+          
+
+          
+          
+
+          
+            
+          
+          
+
+        </div>
+      </div>
+
+      
+      <!--noindex-->
+        <div class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+            
+            
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#数据结构"><span class="nav-number">1.</span> <span class="nav-text">数据结构</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#SetupGenesisBlock"><span class="nav-number">2.</span> <span class="nav-text">SetupGenesisBlock</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#情况一：外部genesis与数据库中genesis都为空"><span class="nav-number">2.1.</span> <span class="nav-text">情况一：外部genesis与数据库中genesis都为空</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#情况二：只有数据库中的genesis为空"><span class="nav-number">2.2.</span> <span class="nav-text">情况二：只有数据库中的genesis为空</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#情况三：外部genesis与数据库中genesis都不为空"><span class="nav-number">2.3.</span> <span class="nav-text">情况三：外部genesis与数据库中genesis都不为空</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#情况四：只有外部的genesis为空"><span class="nav-number">2.4.</span> <span class="nav-text">情况四：只有外部的genesis为空</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#configOrDefault"><span class="nav-number">2.5.</span> <span class="nav-text">configOrDefault</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#commit"><span class="nav-number">3.</span> <span class="nav-text">commit</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#ToBlock"><span class="nav-number">3.1.</span> <span class="nav-text">ToBlock</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#写数据库"><span class="nav-number">3.2.</span> <span class="nav-text">写数据库</span></a></li></ol></li></ol></div>
+            
+
+          </div>
+        </div>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; 2018 – <span itemprop="copyrightYear">2019</span>
+  <span class="with-love" id="animate">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">AmorFati</span>
+
+  
+
+  
+</div>
+
+
+  <div class="powered-by">由 <a href="https://hexo.io" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v3.8.0</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 – <a href="https://theme-next.org" class="theme-link" rel="noopener" target="_blank">NexT.Pisces</a> v6.6.0</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+    
+
+    
+  </div>
+
+  
+
+<script>
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+
+  
+
+
+  <script src="/js/src/utils.js?v=6.6.0"></script>
+
+  <script src="/js/src/motion.js?v=6.6.0"></script>
+
+
+
+  
+  
+
+
+  <script src="/js/src/affix.js?v=6.6.0"></script>
+
+  <script src="/js/src/schemes/pisces.js?v=6.6.0"></script>
+
+
+
+  
+  <script src="/js/src/scrollspy.js?v=6.6.0"></script>
+<script src="/js/src/post-details.js?v=6.6.0"></script>
+
+
+
+  
+
+
+  <script src="/js/src/bootstrap.js?v=6.6.0"></script>
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  <script>
+    // Popup Window;
+    var isfetched = false;
+    var isXml = true;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length === 0) {
+      search_path = "search.xml";
+    } else if (/json$/i.test(search_path)) {
+      isXml = false;
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    var onPopupClose = function (e) {
+      $('.popup').hide();
+      $('#local-search-input').val('');
+      $('.search-result-list').remove();
+      $('#no-result').remove();
+      $(".local-search-pop-overlay").remove();
+      $('body').css('overflow', '');
+    }
+
+    function proceedsearch() {
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay"></div>')
+        .css('overflow', 'hidden');
+      $('.search-popup-overlay').click(onPopupClose);
+      $('.popup').toggle();
+      var $localSearchInput = $('#local-search-input');
+      $localSearchInput.attr("autocapitalize", "none");
+      $localSearchInput.attr("autocorrect", "off");
+      $localSearchInput.focus();
+    }
+
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+      'use strict';
+
+      // start loading animation
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay">' +
+          '<div id="search-loading-icon">' +
+          '<i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>' +
+          '</div>' +
+          '</div>')
+        .css('overflow', 'hidden');
+      $("#search-loading-icon").css('margin', '20% auto 0 auto').css('text-align', 'center');
+
+      
+
+      $.ajax({
+        url: path,
+        dataType: isXml ? "xml" : "json",
+        async: true,
+        success: function(res) {
+          // get the contents from search data
+          isfetched = true;
+          $('.popup').detach().appendTo('.header-inner');
+          var datas = isXml ? $("entry", res).map(function() {
+            return {
+              title: $("title", this).text(),
+              content: $("content",this).text(),
+              url: $("url" , this).text()
+            };
+          }).get() : res;
+          var input = document.getElementById(search_id);
+          var resultContent = document.getElementById(content_id);
+          var inputEventFunction = function() {
+            var searchText = input.value.trim().toLowerCase();
+            var keywords = searchText.split(/[\s\-]+/);
+            if (keywords.length > 1) {
+              keywords.push(searchText);
+            }
+            var resultItems = [];
+            if (searchText.length > 0) {
+              // perform local searching
+              datas.forEach(function(data) {
+                var isMatch = false;
+                var hitCount = 0;
+                var searchTextCount = 0;
+                var title = data.title.trim();
+                var titleInLowerCase = title.toLowerCase();
+                var content = data.content.trim().replace(/<[^>]+>/g,"");
+                
+                var contentInLowerCase = content.toLowerCase();
+                var articleUrl = decodeURIComponent(data.url);
+                var indexOfTitle = [];
+                var indexOfContent = [];
+                // only match articles with not empty titles
+                if(title != '') {
+                  keywords.forEach(function(keyword) {
+                    function getIndexByWord(word, text, caseSensitive) {
+                      var wordLen = word.length;
+                      if (wordLen === 0) {
+                        return [];
+                      }
+                      var startPosition = 0, position = [], index = [];
+                      if (!caseSensitive) {
+                        text = text.toLowerCase();
+                        word = word.toLowerCase();
+                      }
+                      while ((position = text.indexOf(word, startPosition)) > -1) {
+                        index.push({position: position, word: word});
+                        startPosition = position + wordLen;
+                      }
+                      return index;
+                    }
+
+                    indexOfTitle = indexOfTitle.concat(getIndexByWord(keyword, titleInLowerCase, false));
+                    indexOfContent = indexOfContent.concat(getIndexByWord(keyword, contentInLowerCase, false));
+                  });
+                  if (indexOfTitle.length > 0 || indexOfContent.length > 0) {
+                    isMatch = true;
+                    hitCount = indexOfTitle.length + indexOfContent.length;
+                  }
+                }
+
+                // show search results
+
+                if (isMatch) {
+                  // sort index by position of keyword
+
+                  [indexOfTitle, indexOfContent].forEach(function (index) {
+                    index.sort(function (itemLeft, itemRight) {
+                      if (itemRight.position !== itemLeft.position) {
+                        return itemRight.position - itemLeft.position;
+                      } else {
+                        return itemLeft.word.length - itemRight.word.length;
+                      }
+                    });
+                  });
+
+                  // merge hits into slices
+
+                  function mergeIntoSlice(text, start, end, index) {
+                    var item = index[index.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    var hits = [];
+                    var searchTextCountInSlice = 0;
+                    while (position + word.length <= end && index.length != 0) {
+                      if (word === searchText) {
+                        searchTextCountInSlice++;
+                      }
+                      hits.push({position: position, length: word.length});
+                      var wordEnd = position + word.length;
+
+                      // move to next position of hit
+
+                      index.pop();
+                      while (index.length != 0) {
+                        item = index[index.length - 1];
+                        position = item.position;
+                        word = item.word;
+                        if (wordEnd > position) {
+                          index.pop();
+                        } else {
+                          break;
+                        }
+                      }
+                    }
+                    searchTextCount += searchTextCountInSlice;
+                    return {
+                      hits: hits,
+                      start: start,
+                      end: end,
+                      searchTextCount: searchTextCountInSlice
+                    };
+                  }
+
+                  var slicesOfTitle = [];
+                  if (indexOfTitle.length != 0) {
+                    slicesOfTitle.push(mergeIntoSlice(title, 0, title.length, indexOfTitle));
+                  }
+
+                  var slicesOfContent = [];
+                  while (indexOfContent.length != 0) {
+                    var item = indexOfContent[indexOfContent.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    // cut out 100 characters
+                    var start = position - 20;
+                    var end = position + 80;
+                    if(start < 0){
+                      start = 0;
+                    }
+                    if (end < position + word.length) {
+                      end = position + word.length;
+                    }
+                    if(end > content.length){
+                      end = content.length;
+                    }
+                    slicesOfContent.push(mergeIntoSlice(content, start, end, indexOfContent));
+                  }
+
+                  // sort slices in content by search text's count and hits' count
+
+                  slicesOfContent.sort(function (sliceLeft, sliceRight) {
+                    if (sliceLeft.searchTextCount !== sliceRight.searchTextCount) {
+                      return sliceRight.searchTextCount - sliceLeft.searchTextCount;
+                    } else if (sliceLeft.hits.length !== sliceRight.hits.length) {
+                      return sliceRight.hits.length - sliceLeft.hits.length;
+                    } else {
+                      return sliceLeft.start - sliceRight.start;
+                    }
+                  });
+
+                  // select top N slices in content
+
+                  var upperBound = parseInt('1');
+                  if (upperBound >= 0) {
+                    slicesOfContent = slicesOfContent.slice(0, upperBound);
+                  }
+
+                  // highlight title and content
+
+                  function highlightKeyword(text, slice) {
+                    var result = '';
+                    var prevEnd = slice.start;
+                    slice.hits.forEach(function (hit) {
+                      result += text.substring(prevEnd, hit.position);
+                      var end = hit.position + hit.length;
+                      result += '<b class="search-keyword">' + text.substring(hit.position, end) + '</b>';
+                      prevEnd = end;
+                    });
+                    result += text.substring(prevEnd, slice.end);
+                    return result;
+                  }
+
+                  var resultItem = '';
+
+                  if (slicesOfTitle.length != 0) {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + highlightKeyword(title, slicesOfTitle[0]) + "</a>";
+                  } else {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + title + "</a>";
+                  }
+
+                  slicesOfContent.forEach(function (slice) {
+                    resultItem += "<a href='" + articleUrl + "'>" +
+                      "<p class=\"search-result\">" + highlightKeyword(content, slice) +
+                      "...</p>" + "</a>";
+                  });
+
+                  resultItem += "</li>";
+                  resultItems.push({
+                    item: resultItem,
+                    searchTextCount: searchTextCount,
+                    hitCount: hitCount,
+                    id: resultItems.length
+                  });
+                }
+              })
+            };
+            if (keywords.length === 1 && keywords[0] === "") {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>'
+            } else if (resultItems.length === 0) {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>'
+            } else {
+              resultItems.sort(function (resultLeft, resultRight) {
+                if (resultLeft.searchTextCount !== resultRight.searchTextCount) {
+                  return resultRight.searchTextCount - resultLeft.searchTextCount;
+                } else if (resultLeft.hitCount !== resultRight.hitCount) {
+                  return resultRight.hitCount - resultLeft.hitCount;
+                } else {
+                  return resultRight.id - resultLeft.id;
+                }
+              });
+              var searchResultList = '<ul class=\"search-result-list\">';
+              resultItems.forEach(function (result) {
+                searchResultList += result.item;
+              })
+              searchResultList += "</ul>";
+              resultContent.innerHTML = searchResultList;
+            }
+          }
+
+          if ('auto' === 'auto') {
+            input.addEventListener('input', inputEventFunction);
+          } else {
+            $('.search-icon').click(inputEventFunction);
+            input.addEventListener('keypress', function (event) {
+              if (event.keyCode === 13) {
+                inputEventFunction();
+              }
+            });
+          }
+
+          // remove loading animation
+          $(".local-search-pop-overlay").remove();
+          $('body').css('overflow', '');
+
+          proceedsearch();
+        }
+      });
+    }
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched === false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+    });
+
+    $('.popup-btn-close').click(onPopupClose);
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+    $(document).on('keyup', function (event) {
+      var shouldDismissSearchPopup = event.which === 27 &&
+        $('.search-popup').is(':visible');
+      if (shouldDismissSearchPopup) {
+        onPopupClose();
+      }
+    });
+  </script>
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+  
+
+  
+
+
+  
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>
