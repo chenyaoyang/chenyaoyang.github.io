@@ -1,0 +1,1400 @@
+<!DOCTYPE html>
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+<html class="theme-next pisces use-motion" lang="zh-CN">
+<head><meta name="generator" content="Hexo 3.8.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+    
+      
+    
+
+    
+  
+
+  
+
+  
+    
+      
+    
+
+    
+  
+
+  
+    
+      
+    
+
+    
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Monda:300,300italic,400,400italic,700,700italic|Roboto Slab:300,300italic,400,400italic,700,700italic|Dancing Script:300,300italic,400,400italic,700,700italic|Consolas:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css">
+
+<link href="/css/main.css?v=6.6.0" rel="stylesheet" type="text/css">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=6.6.0">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=6.6.0">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=6.6.0">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=6.6.0" color="#222">
+
+
+
+
+
+
+
+
+
+<script id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    version: '6.6.0',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: false,
+    fastclick: false,
+    lazyload: false,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+  
+
+
+
+
+  <meta name="keywords" content="go,区块链,以太坊,go-ethereum">
+<meta property="og:type" content="article">
+<meta property="og:title" content="go-ethereum中core-blockchain源码学习">
+<meta property="og:url" content="http://yoursite.com/2019/05/19/go-ethereum中core-blockchain源码学习/index.html">
+<meta property="og:site_name" content="AmorFati">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:image" content="https://raw.githubusercontent.com/chenyaoyang/blog-pic/master/head/roberto-nickson-1600245-unsplash.jpg">
+<meta property="og:updated_time" content="2019-05-19T06:07:04.347Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="go-ethereum中core-blockchain源码学习">
+<meta name="twitter:image" content="https://raw.githubusercontent.com/chenyaoyang/blog-pic/master/head/roberto-nickson-1600245-unsplash.jpg">
+
+
+
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2019/05/19/go-ethereum中core-blockchain源码学习/">
+
+
+
+<script id="page.configurations">
+  CONFIG.page = {
+    sidebar: "",
+  };
+</script>
+
+  <title>go-ethereum中core-blockchain源码学习 | AmorFati</title>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  <noscript>
+  <style>
+    .use-motion .motion-element,
+    .use-motion .brand,
+    .use-motion .menu-item,
+    .sidebar-inner,
+    .use-motion .post-block,
+    .use-motion .pagination,
+    .use-motion .comments,
+    .use-motion .post-header,
+    .use-motion .post-body,
+    .use-motion .collection-title { opacity: initial; }
+
+    .use-motion .logo,
+    .use-motion .site-title,
+    .use-motion .site-subtitle {
+      opacity: initial;
+      top: initial;
+    }
+
+    .use-motion .logo-line-before i { left: initial; }
+    .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope="" itemtype="http://schema.org/WebPage" lang="zh-CN">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope="" itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">AmorFati</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+    
+      
+        <p class="site-subtitle">风吹过窗前的书，又翻过一页</p>
+      
+    
+    
+  </div>
+
+  <div class="site-nav-toggle">
+    <button aria-label="切换导航栏">
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  
+    <ul id="menu" class="menu">
+      
+        
+        
+        
+          
+          <li class="menu-item menu-item-home">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/" rel="section"><i class="menu-item-icon fa fa-fw fa-home"></i> <br>首页</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-about">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/about/" rel="section"><i class="menu-item-icon fa fa-fw fa-user"></i> <br>关于</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-tags">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/tags/" rel="section"><i class="menu-item-icon fa fa-fw fa-tags"></i> <br>标签</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-categories">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/categories/" rel="section"><i class="menu-item-icon fa fa-fw fa-th"></i> <br>分类</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-archives">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/archives/" rel="section"><i class="menu-item-icon fa fa-fw fa-archive"></i> <br>归档</a>
+
+  </li>
+
+      
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br>搜索</a>
+        </li>
+      
+    </ul>
+  
+
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup search-popup local-search-popup">
+  <div class="local-search-header clearfix">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+    <div class="local-search-input-wrapper">
+      <input autocomplete="off" placeholder="搜索..." spellcheck="false" type="text" id="local-search-input">
+    </div>
+  </div>
+  <div id="local-search-result"></div>
+</div>
+
+
+
+    </div>
+  
+</nav>
+
+
+
+  
+
+
+
+</div>
+    </header>
+
+    
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+            
+
+          
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  
+
+  <article class="post post-type-normal" itemscope="" itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/05/19/go-ethereum中core-blockchain源码学习/">
+
+    <span hidden itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="AmorFati">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/assets/img/icon.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope="" itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="AmorFati">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">go-ethereum中core-blockchain源码学习
+
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+
+            
+            
+            
+
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+
+              
+                
+              
+
+              <time title="创建时间：2019-05-19 14:04:39 / 修改时间：14:07:04" itemprop="dateCreated datePublished" datetime="2019-05-19T14:04:39+08:00">2019-05-19</time>
+            
+
+            
+              
+
+              
+            
+          </span>
+
+          
+            <span class="post-category">
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope="" itemtype="http://schema.org/Thing"><a href="/categories/go-ethereum源码学习/" itemprop="url" rel="index"><span itemprop="name">go-ethereum源码学习</span></a></span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p><img src="https://raw.githubusercontent.com/chenyaoyang/blog-pic/master/head/roberto-nickson-1600245-unsplash.jpg" alt=""><br><a id="more"></a></p>
+<h1 id="数据结构"><a href="#数据结构" class="headerlink" title="数据结构"></a>数据结构</h1><p>在BlockChain的数据结构定义前面有一段注释，解释了BlockChain功能，大致意思是BlockChain提供了规范链，也可以理解为主链的定义，同时提供了一系列区块链的操作。数据结构如下：<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// go-ethereum\core\blockchain.go</span></span><br><span class="line"><span class="keyword">type</span> BlockChain <span class="keyword">struct</span> &#123;</span><br><span class="line">	chainConfig *params.ChainConfig <span class="comment">// Chain &amp; network configuration</span></span><br><span class="line">	cacheConfig *CacheConfig        <span class="comment">// Cache configuration for pruning</span></span><br><span class="line"></span><br><span class="line">	db     ethdb.Database <span class="comment">// Low level persistent database to store final content in</span></span><br><span class="line">	triegc *prque.Prque   <span class="comment">// Priority queue mapping block numbers to tries to gc</span></span><br><span class="line">	gcproc time.Duration  <span class="comment">// Accumulates canonical block processing for trie dumping</span></span><br><span class="line"></span><br><span class="line">	hc            *HeaderChain</span><br><span class="line">	rmLogsFeed    event.Feed</span><br><span class="line">	chainFeed     event.Feed</span><br><span class="line">	chainSideFeed event.Feed</span><br><span class="line">	chainHeadFeed event.Feed</span><br><span class="line">	logsFeed      event.Feed</span><br><span class="line">	scope         event.SubscriptionScope</span><br><span class="line">	genesisBlock  *types.Block</span><br><span class="line"></span><br><span class="line">	chainmu sync.RWMutex <span class="comment">// blockchain insertion lock</span></span><br><span class="line">	procmu  sync.RWMutex <span class="comment">// block processor lock</span></span><br><span class="line"></span><br><span class="line">	checkpoint       <span class="keyword">int</span>          <span class="comment">// checkpoint counts towards the new checkpoint</span></span><br><span class="line">	currentBlock     atomic.Value <span class="comment">// Current head of the block chain</span></span><br><span class="line">	currentFastBlock atomic.Value <span class="comment">// Current head of the fast-sync chain (may be above the block chain!)</span></span><br><span class="line"></span><br><span class="line">	stateCache    state.Database <span class="comment">// State database to reuse between imports (contains state cache)</span></span><br><span class="line">	bodyCache     *lru.Cache     <span class="comment">// Cache for the most recent block bodies</span></span><br><span class="line">	bodyRLPCache  *lru.Cache     <span class="comment">// Cache for the most recent block bodies in RLP encoded format</span></span><br><span class="line">	receiptsCache *lru.Cache     <span class="comment">// Cache for the most recent receipts per block</span></span><br><span class="line">	blockCache    *lru.Cache     <span class="comment">// Cache for the most recent entire blocks</span></span><br><span class="line">	futureBlocks  *lru.Cache     <span class="comment">// future blocks are blocks added for later processing</span></span><br><span class="line"></span><br><span class="line">	quit    <span class="keyword">chan</span> <span class="keyword">struct</span>&#123;&#125; <span class="comment">// blockchain quit channel</span></span><br><span class="line">	running <span class="keyword">int32</span>         <span class="comment">// running must be called atomically</span></span><br><span class="line">	<span class="comment">// procInterrupt must be atomically called</span></span><br><span class="line">	procInterrupt <span class="keyword">int32</span>          <span class="comment">// interrupt signaler for block processing</span></span><br><span class="line">	wg            sync.WaitGroup <span class="comment">// chain processing wait group for shutting down</span></span><br><span class="line"></span><br><span class="line">	engine    consensus.Engine</span><br><span class="line">	processor Processor <span class="comment">// block processor interface</span></span><br><span class="line">	validator Validator <span class="comment">// block and state validator interface</span></span><br><span class="line">	vmConfig  vm.Config</span><br><span class="line"></span><br><span class="line">	badBlocks      *lru.Cache              <span class="comment">// Bad block cache</span></span><br><span class="line">	shouldPreserve <span class="function"><span class="keyword">func</span><span class="params">(*types.Block)</span> <span class="title">bool</span> // <span class="title">Function</span> <span class="title">used</span> <span class="title">to</span> <span class="title">determine</span> <span class="title">whether</span> <span class="title">should</span> <span class="title">preserve</span> <span class="title">the</span> <span class="title">given</span> <span class="title">block</span>.</span></span><br><span class="line"><span class="function">&#125;</span></span><br></pre></td></tr></table></figure></p>
+<h1 id="NewBlockChain"><a href="#NewBlockChain" class="headerlink" title="NewBlockChain"></a>NewBlockChain</h1><p>区块链的初始化方法是NewBlockChain，他在eth\backend.go中的New方法里会被调用。也就是创建一个Ethereum时会创建BlockChain对象并赋值到Ethereum的blockchain中。实现如下：<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// go-ethereum\core\blockchain.go</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">NewBlockChain</span><span class="params">(db ethdb.Database, cacheConfig *CacheConfig, chainConfig *params.ChainConfig, engine consensus.Engine, vmConfig vm.Config, shouldPreserve <span class="keyword">func</span>(block *types.Block)</span> <span class="title">bool</span>) <span class="params">(*BlockChain, error)</span></span> &#123;</span><br><span class="line">	<span class="keyword">if</span> cacheConfig == <span class="literal">nil</span> &#123;</span><br><span class="line">		cacheConfig = &amp;CacheConfig&#123;</span><br><span class="line">			TrieCleanLimit: <span class="number">256</span>,</span><br><span class="line">			TrieDirtyLimit: <span class="number">256</span>,</span><br><span class="line">			TrieTimeLimit:  <span class="number">5</span> * time.Minute,</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">	bodyCache, _ := lru.New(bodyCacheLimit)</span><br><span class="line">	bodyRLPCache, _ := lru.New(bodyCacheLimit)</span><br><span class="line">	receiptsCache, _ := lru.New(receiptsCacheLimit)</span><br><span class="line">	blockCache, _ := lru.New(blockCacheLimit)</span><br><span class="line">	futureBlocks, _ := lru.New(maxFutureBlocks)</span><br><span class="line">	badBlocks, _ := lru.New(badBlockLimit)</span><br><span class="line"></span><br><span class="line">	bc := &amp;BlockChain&#123;</span><br><span class="line">		chainConfig:    chainConfig,</span><br><span class="line">		cacheConfig:    cacheConfig,</span><br><span class="line">		db:             db,</span><br><span class="line">		triegc:         prque.New(<span class="literal">nil</span>),</span><br><span class="line">		stateCache:     state.NewDatabaseWithCache(db, cacheConfig.TrieCleanLimit),</span><br><span class="line">		quit:           <span class="built_in">make</span>(<span class="keyword">chan</span> <span class="keyword">struct</span>&#123;&#125;),</span><br><span class="line">		shouldPreserve: shouldPreserve,</span><br><span class="line">		bodyCache:      bodyCache,</span><br><span class="line">		bodyRLPCache:   bodyRLPCache,</span><br><span class="line">		receiptsCache:  receiptsCache,</span><br><span class="line">		blockCache:     blockCache,</span><br><span class="line">		futureBlocks:   futureBlocks,</span><br><span class="line">		engine:         engine,</span><br><span class="line">		vmConfig:       vmConfig,</span><br><span class="line">		badBlocks:      badBlocks,</span><br><span class="line">	&#125;</span><br><span class="line">	bc.SetValidator(NewBlockValidator(chainConfig, bc, engine))</span><br><span class="line">	bc.SetProcessor(NewStateProcessor(chainConfig, bc, engine))</span><br><span class="line"></span><br><span class="line">	<span class="keyword">var</span> err error</span><br><span class="line">	bc.hc, err = NewHeaderChain(db, chainConfig, engine, bc.getProcInterrupt)</span><br><span class="line">	<span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">		<span class="keyword">return</span> <span class="literal">nil</span>, err</span><br><span class="line">	&#125;</span><br><span class="line">	bc.genesisBlock = bc.GetBlockByNumber(<span class="number">0</span>)</span><br><span class="line">	<span class="keyword">if</span> bc.genesisBlock == <span class="literal">nil</span> &#123;</span><br><span class="line">		<span class="keyword">return</span> <span class="literal">nil</span>, ErrNoGenesis</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">if</span> err := bc.loadLastState(); err != <span class="literal">nil</span> &#123;</span><br><span class="line">		<span class="keyword">return</span> <span class="literal">nil</span>, err</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">for</span> hash := <span class="keyword">range</span> BadHashes &#123;</span><br><span class="line">		<span class="keyword">if</span> header := bc.GetHeaderByHash(hash); header != <span class="literal">nil</span> &#123;</span><br><span class="line">			headerByNumber := bc.GetHeaderByNumber(header.Number.Uint64())</span><br><span class="line">			<span class="keyword">if</span> headerByNumber != <span class="literal">nil</span> &amp;&amp; headerByNumber.Hash() == header.Hash() &#123;</span><br><span class="line">				log.Error(<span class="string">"Found bad hash, rewinding chain"</span>, <span class="string">"number"</span>, header.Number, <span class="string">"hash"</span>, header.ParentHash)</span><br><span class="line">				bc.SetHead(header.Number.Uint64() - <span class="number">1</span>)</span><br><span class="line">				log.Error(<span class="string">"Chain rewind was successful, resuming normal operation"</span>)</span><br><span class="line">			&#125;</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">go</span> bc.update()</span><br><span class="line">	<span class="keyword">return</span> bc, <span class="literal">nil</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>首先检查了cacheConfig是否为空，若为空则初始化一个默认配置。随后初始化了一系列的lru缓存实例。然后构造了BlockChain的实例，其中triegc是一个prque，也就是优先级队列的数据结构；stateCache在前面介绍state是分析过，NewDatabaseWithCache返回一个database类型对象，用于后面构建StateDB。</p>
+<p>随后设置了Validator和Processor。Validator是区块链验证器，Processor是用来对交易进行处理。</p>
+<p>接下来调用了NewHeaderChain创建了一个HeaderChain对象赋值给bc的hc。HeaderChain是一个只包含区块头的链。然后去取编号为0的区块，也就是创世区块并赋值给genesisBlock字段，如果取不到则报错。接下来调用loadLastState去加载最新状态，最后遍历BadHashes，所谓的BadHashes就是一组散列值，用于检测硬分叉，首先根据hash检测我们的区块链上是否有对应的区块，如果有的话在检测对应编号的区块是否相同，相同的话表示有坏区块，这时需要回滚到坏区块的编号减一的位置。</p>
+<p>最后启动一个goroutine运行update，然后返回构建的区块链对象。</p>
+<h1 id="update"><a href="#update" class="headerlink" title="update"></a>update</h1><p>这个方法实现如下<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(bc *BlockChain)</span> <span class="title">update</span><span class="params">()</span></span> &#123;</span><br><span class="line">	futureTimer := time.NewTicker(<span class="number">5</span> * time.Second)</span><br><span class="line">	<span class="keyword">defer</span> futureTimer.Stop()</span><br><span class="line">	<span class="keyword">for</span> &#123;</span><br><span class="line">		<span class="keyword">select</span> &#123;</span><br><span class="line">		<span class="keyword">case</span> &lt;-futureTimer.C:</span><br><span class="line">			bc.procFutureBlocks()</span><br><span class="line">		<span class="keyword">case</span> &lt;-bc.quit:</span><br><span class="line">			<span class="keyword">return</span></span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>主要就是启动一个ticker，每5秒触发一次，去执行procFutureBlocks方法<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(bc *BlockChain)</span> <span class="title">procFutureBlocks</span><span class="params">()</span></span> &#123;</span><br><span class="line">	blocks := <span class="built_in">make</span>([]*types.Block, <span class="number">0</span>, bc.futureBlocks.Len())</span><br><span class="line">	<span class="keyword">for</span> _, hash := <span class="keyword">range</span> bc.futureBlocks.Keys() &#123;</span><br><span class="line">		<span class="keyword">if</span> block, exist := bc.futureBlocks.Peek(hash); exist &#123;</span><br><span class="line">			blocks = <span class="built_in">append</span>(blocks, block.(*types.Block))</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">if</span> <span class="built_in">len</span>(blocks) &gt; <span class="number">0</span> &#123;</span><br><span class="line">		types.BlockBy(types.Number).Sort(blocks)</span><br><span class="line"></span><br><span class="line">		<span class="keyword">for</span> i := <span class="keyword">range</span> blocks &#123;</span><br><span class="line">			bc.InsertChain(blocks[i : i+<span class="number">1</span>])</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>这个方法主要是遍历futureBlocks这个lru缓存的key，futureBlocks存储着将要插入的区块，然后取出对应的block，并将block插入区块链。</p>
+<h1 id="loadLastState"><a href="#loadLastState" class="headerlink" title="loadLastState"></a>loadLastState</h1><p>刚才NewBlockChain方法中的loadLastState是用来更新区块链到最新状态，主要是更新三个变量：currentBlock，currentHeader和currentFastBlock。currentBlock表示区块链中最新的区块；currentHeader表示那个只保存区块头的链的最新内容，这个头部的编号可能大于currentBlock；currentFastBlock表示快速同步模式下的最新内容，也可能大于currentBlock。实现如下<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(bc *BlockChain)</span> <span class="title">loadLastState</span><span class="params">()</span> <span class="title">error</span></span> &#123;</span><br><span class="line">	head := rawdb.ReadHeadBlockHash(bc.db)</span><br><span class="line">	<span class="keyword">if</span> head == (common.Hash&#123;&#125;) &#123;</span><br><span class="line">		log.Warn(<span class="string">"Empty database, resetting chain"</span>)</span><br><span class="line">		<span class="keyword">return</span> bc.Reset()</span><br><span class="line">	&#125;</span><br><span class="line">	currentBlock := bc.GetBlockByHash(head)</span><br><span class="line">	<span class="keyword">if</span> currentBlock == <span class="literal">nil</span> &#123;</span><br><span class="line">		log.Warn(<span class="string">"Head block missing, resetting chain"</span>, <span class="string">"hash"</span>, head)</span><br><span class="line">		<span class="keyword">return</span> bc.Reset()</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">if</span> _, err := state.New(currentBlock.Root(), bc.stateCache); err != <span class="literal">nil</span> &#123;</span><br><span class="line">		log.Warn(<span class="string">"Head state missing, repairing chain"</span>, <span class="string">"number"</span>, currentBlock.Number(), <span class="string">"hash"</span>, currentBlock.Hash())</span><br><span class="line">		<span class="keyword">if</span> err := bc.repair(&amp;currentBlock); err != <span class="literal">nil</span> &#123;</span><br><span class="line">			<span class="keyword">return</span> err</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">	bc.currentBlock.Store(currentBlock)</span><br><span class="line"></span><br><span class="line">	currentHeader := currentBlock.Header()</span><br><span class="line">	<span class="keyword">if</span> head := rawdb.ReadHeadHeaderHash(bc.db); head != (common.Hash&#123;&#125;) &#123;</span><br><span class="line">		<span class="keyword">if</span> header := bc.GetHeaderByHash(head); header != <span class="literal">nil</span> &#123;</span><br><span class="line">			currentHeader = header</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">	bc.hc.SetCurrentHeader(currentHeader)</span><br><span class="line"></span><br><span class="line">	bc.currentFastBlock.Store(currentBlock)</span><br><span class="line">	<span class="keyword">if</span> head := rawdb.ReadHeadFastBlockHash(bc.db); head != (common.Hash&#123;&#125;) &#123;</span><br><span class="line">		<span class="keyword">if</span> block := bc.GetBlockByHash(head); block != <span class="literal">nil</span> &#123;</span><br><span class="line">			bc.currentFastBlock.Store(block)</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	currentFastBlock := bc.CurrentFastBlock()</span><br><span class="line"></span><br><span class="line">	headerTd := bc.GetTd(currentHeader.Hash(), currentHeader.Number.Uint64())</span><br><span class="line">	blockTd := bc.GetTd(currentBlock.Hash(), currentBlock.NumberU64())</span><br><span class="line">	fastTd := bc.GetTd(currentFastBlock.Hash(), currentFastBlock.NumberU64())</span><br><span class="line"></span><br><span class="line">	log.Info(<span class="string">"Loaded most recent local header"</span>, <span class="string">"number"</span>, currentHeader.Number, <span class="string">"hash"</span>, currentHeader.Hash(), <span class="string">"td"</span>, headerTd, <span class="string">"age"</span>, common.PrettyAge(time.Unix(currentHeader.Time.Int64(), <span class="number">0</span>)))</span><br><span class="line">	log.Info(<span class="string">"Loaded most recent local full block"</span>, <span class="string">"number"</span>, currentBlock.Number(), <span class="string">"hash"</span>, currentBlock.Hash(), <span class="string">"td"</span>, blockTd, <span class="string">"age"</span>, common.PrettyAge(time.Unix(currentBlock.Time().Int64(), <span class="number">0</span>)))</span><br><span class="line">	log.Info(<span class="string">"Loaded most recent local fast block"</span>, <span class="string">"number"</span>, currentFastBlock.Number(), <span class="string">"hash"</span>, currentFastBlock.Hash(), <span class="string">"td"</span>, fastTd, <span class="string">"age"</span>, common.PrettyAge(time.Unix(currentFastBlock.Time().Int64(), <span class="number">0</span>)))</span><br><span class="line"></span><br><span class="line">	<span class="keyword">return</span> <span class="literal">nil</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>在这个方法中首先利用ReadHeadBlockHash读取了数据库中的最新区块hash，也就是数据库key为”LastBlock”的数据，他代表区块链的最高区块的hash值，若为空则表示数据库为空，对应的区块链也要重置，调用Reset。</p>
+<p>若不为空，则根据hash值去查找对应区块数据，若找不到也进行重置。若找到对应区块，则确认和这个区块相关的状态树是否正确。这里的主要操作是尝试访问状态树，看是否成功，若不成功尝试进行修复，使用repair。若一切都正确则更新currentBlock。</p>
+<p>继续往下是更新currentHeader，逻辑也是一样的，先从数据库中读取key为”LastHeader”的数据，他表示只含头区块的链的最高区块头hash，然后根据hash从数据库查找对应头区块并更新currentHeader，若找不到则以前面的currentBlock的头作为currentHeader。</p>
+<p>再往下还是类似的逻辑，这次更新currentFastBlock，也是先从数据库中读取key为”LastFast”的数据，然后寻找对应的区块，并更新currentFastBlock，若找不到就以currentHeader为currentFastBlock。</p>
+<p>最后进行了log打印。</p>
+<h1 id="reset"><a href="#reset" class="headerlink" title="reset"></a>reset</h1><p>前面在loadLastState多次出现了reset方法，主要是恢复到创世区块状态<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(bc *BlockChain)</span> <span class="title">Reset</span><span class="params">()</span> <span class="title">error</span></span> &#123;</span><br><span class="line">	<span class="keyword">return</span> bc.ResetWithGenesisBlock(bc.genesisBlock)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(bc *BlockChain)</span> <span class="title">ResetWithGenesisBlock</span><span class="params">(genesis *types.Block)</span> <span class="title">error</span></span> &#123;</span><br><span class="line">	<span class="keyword">if</span> err := bc.SetHead(<span class="number">0</span>); err != <span class="literal">nil</span> &#123;</span><br><span class="line">		<span class="keyword">return</span> err</span><br><span class="line">	&#125;</span><br><span class="line">	bc.chainmu.Lock()</span><br><span class="line">	<span class="keyword">defer</span> bc.chainmu.Unlock()</span><br><span class="line"></span><br><span class="line">	<span class="keyword">if</span> err := bc.hc.WriteTd(genesis.Hash(), genesis.NumberU64(), genesis.Difficulty()); err != <span class="literal">nil</span> &#123;</span><br><span class="line">		log.Crit(<span class="string">"Failed to write genesis block TD"</span>, <span class="string">"err"</span>, err)</span><br><span class="line">	&#125;</span><br><span class="line">	rawdb.WriteBlock(bc.db, genesis)</span><br><span class="line"></span><br><span class="line">	bc.genesisBlock = genesis</span><br><span class="line">	bc.insert(bc.genesisBlock)</span><br><span class="line">	bc.currentBlock.Store(bc.genesisBlock)</span><br><span class="line">	bc.hc.SetGenesis(bc.genesisBlock.Header())</span><br><span class="line">	bc.hc.SetCurrentHeader(bc.genesisBlock.Header())</span><br><span class="line">	bc.currentFastBlock.Store(bc.genesisBlock)</span><br><span class="line"></span><br><span class="line">	<span class="keyword">return</span> <span class="literal">nil</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>这里首先调用SetHead方法，设置头区块为0。SetHead方法主要是指定区块链的某个区块为新的头区块，该区块之后的区块都会被删除，主要用于回滚。这里我们设置为0，也就是清空整个区块链。</p>
+<p>接下来根据创世区块重构区块链。首先利用hc上写入总难度，然后向数据库写入创世区块，并将其插入到区块链中，并设置currentBlock、currentFastBlock和CurrentHeader。</p>
+<h1 id="SetHead"><a href="#SetHead" class="headerlink" title="SetHead"></a>SetHead</h1><p>刚才reset以及NewBlockChain都用到了SetHead方法，这里详细看一下<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(bc *BlockChain)</span> <span class="title">SetHead</span><span class="params">(head <span class="keyword">uint64</span>)</span> <span class="title">error</span></span> &#123;</span><br><span class="line">	log.Warn(<span class="string">"Rewinding blockchain"</span>, <span class="string">"target"</span>, head)</span><br><span class="line"></span><br><span class="line">	bc.chainmu.Lock()</span><br><span class="line">	<span class="keyword">defer</span> bc.chainmu.Unlock()</span><br><span class="line"></span><br><span class="line">	delFn := <span class="function"><span class="keyword">func</span><span class="params">(db rawdb.DatabaseDeleter, hash common.Hash, num <span class="keyword">uint64</span>)</span></span> &#123;</span><br><span class="line">		rawdb.DeleteBody(db, hash, num)</span><br><span class="line">	&#125;</span><br><span class="line">	bc.hc.SetHead(head, delFn)</span><br><span class="line">	currentHeader := bc.hc.CurrentHeader()</span><br><span class="line"></span><br><span class="line">	bc.bodyCache.Purge()</span><br><span class="line">	bc.bodyRLPCache.Purge()</span><br><span class="line">	bc.receiptsCache.Purge()</span><br><span class="line">	bc.blockCache.Purge()</span><br><span class="line">	bc.futureBlocks.Purge()</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">	<span class="keyword">if</span> currentBlock := bc.CurrentBlock(); currentBlock != <span class="literal">nil</span> &amp;&amp; currentHeader.Number.Uint64() &lt; currentBlock.NumberU64() &#123;</span><br><span class="line">		bc.currentBlock.Store(bc.GetBlock(currentHeader.Hash(), currentHeader.Number.Uint64()))</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">if</span> currentBlock := bc.CurrentBlock(); currentBlock != <span class="literal">nil</span> &#123;</span><br><span class="line">		<span class="keyword">if</span> _, err := state.New(currentBlock.Root(), bc.stateCache); err != <span class="literal">nil</span> &#123;</span><br><span class="line">			bc.currentBlock.Store(bc.genesisBlock)</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">if</span> currentFastBlock := bc.CurrentFastBlock(); currentFastBlock != <span class="literal">nil</span> &amp;&amp; currentHeader.Number.Uint64() &lt; currentFastBlock.NumberU64() &#123;</span><br><span class="line">		bc.currentFastBlock.Store(bc.GetBlock(currentHeader.Hash(), currentHeader.Number.Uint64()))</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">if</span> currentBlock := bc.CurrentBlock(); currentBlock == <span class="literal">nil</span> &#123;</span><br><span class="line">		bc.currentBlock.Store(bc.genesisBlock)</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">if</span> currentFastBlock := bc.CurrentFastBlock(); currentFastBlock == <span class="literal">nil</span> &#123;</span><br><span class="line">		bc.currentFastBlock.Store(bc.genesisBlock)</span><br><span class="line">	&#125;</span><br><span class="line">	currentBlock := bc.CurrentBlock()</span><br><span class="line">	currentFastBlock := bc.CurrentFastBlock()</span><br><span class="line"></span><br><span class="line">	rawdb.WriteHeadBlockHash(bc.db, currentBlock.Hash())</span><br><span class="line">	rawdb.WriteHeadFastBlockHash(bc.db, currentFastBlock.Hash())</span><br><span class="line"></span><br><span class="line">	<span class="keyword">return</span> bc.loadLastState()</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>首先调用headerchain的SetHead方法：<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(hc *HeaderChain)</span> <span class="title">SetHead</span><span class="params">(head <span class="keyword">uint64</span>, delFn DeleteCallback)</span></span> &#123;</span><br><span class="line">	height := <span class="keyword">uint64</span>(<span class="number">0</span>)</span><br><span class="line"></span><br><span class="line">	<span class="keyword">if</span> hdr := hc.CurrentHeader(); hdr != <span class="literal">nil</span> &#123;</span><br><span class="line">		height = hdr.Number.Uint64()</span><br><span class="line">	&#125;</span><br><span class="line">	batch := hc.chainDb.NewBatch()</span><br><span class="line">	<span class="keyword">for</span> hdr := hc.CurrentHeader(); hdr != <span class="literal">nil</span> &amp;&amp; hdr.Number.Uint64() &gt; head; hdr = hc.CurrentHeader() &#123;</span><br><span class="line">		hash := hdr.Hash()</span><br><span class="line">		num := hdr.Number.Uint64()</span><br><span class="line">		<span class="keyword">if</span> delFn != <span class="literal">nil</span> &#123;</span><br><span class="line">			delFn(batch, hash, num)</span><br><span class="line">		&#125;</span><br><span class="line">		rawdb.DeleteHeader(batch, hash, num)</span><br><span class="line">		rawdb.DeleteTd(batch, hash, num)</span><br><span class="line"></span><br><span class="line">		hc.currentHeader.Store(hc.GetHeader(hdr.ParentHash, hdr.Number.Uint64()<span class="number">-1</span>))</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">for</span> i := height; i &gt; head; i-- &#123;</span><br><span class="line">		rawdb.DeleteCanonicalHash(batch, i)</span><br><span class="line">	&#125;</span><br><span class="line">	batch.Write()</span><br><span class="line"></span><br><span class="line">	hc.headerCache.Purge()</span><br><span class="line">	hc.tdCache.Purge()</span><br><span class="line">	hc.numberCache.Purge()</span><br><span class="line"></span><br><span class="line">	<span class="keyword">if</span> hc.CurrentHeader() == <span class="literal">nil</span> &#123;</span><br><span class="line">		hc.currentHeader.Store(hc.genesisHeader)</span><br><span class="line">	&#125;</span><br><span class="line">	hc.currentHeaderHash = hc.CurrentHeader().Hash()</span><br><span class="line"></span><br><span class="line">	rawdb.WriteHeadHeaderHash(hc.chainDb, hc.currentHeaderHash)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>在headerchain的SetHead中，首先计算了当前链的高度，然后开启一个循环从链的头部开始遍历到目标区块，每遍历一个区块就执行删除操作，具体来说，是先执行delFn函数，这个函数调用了DeleteBody用来删除区块体，然后又删除了存储在数据库中的区块头和总难度</p>
+<p>随后又有一个循环，也是从最高点开始到目标位置，删除规范链的hash。注意这些删除都是借助了批量操作。最后清空几个缓存后，如果最高区块为空，则存入创世区块的头作为最高区块。再存取最高区块的hash，并写入数据库。</p>
+<p>回到BlockChain的setHead，在hc回滚完之后，实际上目标点之后的区块已经删除，接下来更新了currentBlock，这里以hc的currentHeader为标准去查找区块，然后验证了状态树是否正确，不正确的话currentBlock设为创世区块。接着又更新了currentFastBlock，也是以currentHeader为标准。下面判断了currentBlock与currentFastBlock是否为空，若为空将二者都设置为创世区块。最后更新了数据库中currentBlock与currentFastBlock，也就是key为”LastBlock”和”LastFast”的数据。最后调用了loadLastState去更新状态。</p>
+<h1 id="InsertChain"><a href="#InsertChain" class="headerlink" title="InsertChain"></a>InsertChain</h1><p>这个是插入一系列区块的，在前面update的procFutureBlocks方法以及外部的downloader的importBlockResults中有调用过，只不过那里一次只插入一个区块，具体实现如下：<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(bc *BlockChain)</span> <span class="title">InsertChain</span><span class="params">(chain types.Blocks)</span> <span class="params">(<span class="keyword">int</span>, error)</span></span> &#123;</span><br><span class="line">	<span class="keyword">if</span> <span class="built_in">len</span>(chain) == <span class="number">0</span> &#123;</span><br><span class="line">		<span class="keyword">return</span> <span class="number">0</span>, <span class="literal">nil</span></span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">for</span> i := <span class="number">1</span>; i &lt; <span class="built_in">len</span>(chain); i++ &#123;</span><br><span class="line">		<span class="keyword">if</span> chain[i].NumberU64() != chain[i<span class="number">-1</span>].NumberU64()+<span class="number">1</span> || chain[i].ParentHash() != chain[i<span class="number">-1</span>].Hash() &#123;</span><br><span class="line">			log.Error(<span class="string">"Non contiguous block insert"</span>, <span class="string">"number"</span>, chain[i].Number(), <span class="string">"hash"</span>, chain[i].Hash(),</span><br><span class="line">				<span class="string">"parent"</span>, chain[i].ParentHash(), <span class="string">"prevnumber"</span>, chain[i<span class="number">-1</span>].Number(), <span class="string">"prevhash"</span>, chain[i<span class="number">-1</span>].Hash())</span><br><span class="line"></span><br><span class="line">			<span class="keyword">return</span> <span class="number">0</span>, fmt.Errorf(<span class="string">"non contiguous insert: item %d is #%d [%x…], item %d is #%d [%x…] (parent [%x…])"</span>, i<span class="number">-1</span>, chain[i<span class="number">-1</span>].NumberU64(),</span><br><span class="line">				chain[i<span class="number">-1</span>].Hash().Bytes()[:<span class="number">4</span>], i, chain[i].NumberU64(), chain[i].Hash().Bytes()[:<span class="number">4</span>], chain[i].ParentHash().Bytes()[:<span class="number">4</span>])</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	bc.wg.Add(<span class="number">1</span>)</span><br><span class="line">	bc.chainmu.Lock()</span><br><span class="line">	n, events, logs, err := bc.insertChain(chain, <span class="literal">true</span>)</span><br><span class="line">	bc.chainmu.Unlock()</span><br><span class="line">	bc.wg.Done()</span><br><span class="line"></span><br><span class="line">	bc.PostChainEvents(events, logs)</span><br><span class="line">	<span class="keyword">return</span> n, err</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>前面一部分主要是检查要插入的一系列区块是否合法，如编号是否正确，父子关系是否正确等。实际插入方法在insertChain中实现：<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br><span class="line">129</span><br><span class="line">130</span><br><span class="line">131</span><br><span class="line">132</span><br><span class="line">133</span><br><span class="line">134</span><br><span class="line">135</span><br><span class="line">136</span><br><span class="line">137</span><br><span class="line">138</span><br><span class="line">139</span><br><span class="line">140</span><br><span class="line">141</span><br><span class="line">142</span><br><span class="line">143</span><br><span class="line">144</span><br><span class="line">145</span><br><span class="line">146</span><br><span class="line">147</span><br><span class="line">148</span><br><span class="line">149</span><br><span class="line">150</span><br><span class="line">151</span><br><span class="line">152</span><br><span class="line">153</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(bc *BlockChain)</span> <span class="title">insertChain</span><span class="params">(chain types.Blocks, verifySeals <span class="keyword">bool</span>)</span> <span class="params">(<span class="keyword">int</span>, []<span class="keyword">interface</span>&#123;&#125;, []*types.Log, error)</span></span> &#123;</span><br><span class="line">	<span class="keyword">if</span> atomic.LoadInt32(&amp;bc.procInterrupt) == <span class="number">1</span> &#123;</span><br><span class="line">		<span class="keyword">return</span> <span class="number">0</span>, <span class="literal">nil</span>, <span class="literal">nil</span>, <span class="literal">nil</span></span><br><span class="line">	&#125;</span><br><span class="line">	senderCacher.recoverFromBlocks(types.MakeSigner(bc.chainConfig, chain[<span class="number">0</span>].Number()), chain)</span><br><span class="line"></span><br><span class="line">	<span class="keyword">var</span> (</span><br><span class="line">		stats         = insertStats&#123;startTime: mclock.Now()&#125;</span><br><span class="line">		events        = <span class="built_in">make</span>([]<span class="keyword">interface</span>&#123;&#125;, <span class="number">0</span>, <span class="built_in">len</span>(chain))</span><br><span class="line">		lastCanon     *types.Block</span><br><span class="line">		coalescedLogs []*types.Log</span><br><span class="line">	)</span><br><span class="line"></span><br><span class="line">	headers := <span class="built_in">make</span>([]*types.Header, <span class="built_in">len</span>(chain))</span><br><span class="line">	seals := <span class="built_in">make</span>([]<span class="keyword">bool</span>, <span class="built_in">len</span>(chain))</span><br><span class="line"></span><br><span class="line">	<span class="keyword">for</span> i, block := <span class="keyword">range</span> chain &#123;</span><br><span class="line">		headers[i] = block.Header()</span><br><span class="line">		seals[i] = verifySeals</span><br><span class="line">	&#125;</span><br><span class="line">	abort, results := bc.engine.VerifyHeaders(bc, headers, seals)</span><br><span class="line">	<span class="keyword">defer</span> <span class="built_in">close</span>(abort)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">	it := newInsertIterator(chain, results, bc.Validator())</span><br><span class="line"></span><br><span class="line">	block, err := it.next()</span><br><span class="line">	<span class="keyword">switch</span> &#123;</span><br><span class="line">	<span class="keyword">case</span> err == consensus.ErrPrunedAncestor:</span><br><span class="line">		<span class="keyword">return</span> bc.insertSidechain(block, it)</span><br><span class="line"></span><br><span class="line">	<span class="keyword">case</span> err == consensus.ErrFutureBlock || (err == consensus.ErrUnknownAncestor &amp;&amp; bc.futureBlocks.Contains(it.first().ParentHash())):</span><br><span class="line">		<span class="keyword">for</span> block != <span class="literal">nil</span> &amp;&amp; (it.index == <span class="number">0</span> || err == consensus.ErrUnknownAncestor) &#123;</span><br><span class="line">			<span class="keyword">if</span> err := bc.addFutureBlock(block); err != <span class="literal">nil</span> &#123;</span><br><span class="line">				<span class="keyword">return</span> it.index, events, coalescedLogs, err</span><br><span class="line">			&#125;</span><br><span class="line">			block, err = it.next()</span><br><span class="line">		&#125;</span><br><span class="line">		stats.queued += it.processed()</span><br><span class="line">		stats.ignored += it.remaining()</span><br><span class="line"></span><br><span class="line">		<span class="keyword">return</span> it.index, events, coalescedLogs, err</span><br><span class="line"></span><br><span class="line">	<span class="keyword">case</span> err == ErrKnownBlock:</span><br><span class="line">		current := bc.CurrentBlock().NumberU64()</span><br><span class="line"></span><br><span class="line">		<span class="keyword">for</span> block != <span class="literal">nil</span> &amp;&amp; err == ErrKnownBlock &amp;&amp; current &gt;= block.NumberU64() &#123;</span><br><span class="line">			stats.ignored++</span><br><span class="line">			block, err = it.next()</span><br><span class="line">		&#125;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">case</span> err != <span class="literal">nil</span>:</span><br><span class="line">		stats.ignored += <span class="built_in">len</span>(it.chain)</span><br><span class="line">		bc.reportBlock(block, <span class="literal">nil</span>, err)</span><br><span class="line">		<span class="keyword">return</span> it.index, events, coalescedLogs, err</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">for</span> ; block != <span class="literal">nil</span> &amp;&amp; err == <span class="literal">nil</span>; block, err = it.next() &#123;</span><br><span class="line"></span><br><span class="line">		<span class="keyword">if</span> atomic.LoadInt32(&amp;bc.procInterrupt) == <span class="number">1</span> &#123;</span><br><span class="line">			log.Debug(<span class="string">"Premature abort during blocks processing"</span>)</span><br><span class="line">			<span class="keyword">break</span></span><br><span class="line">		&#125;</span><br><span class="line"></span><br><span class="line">		<span class="keyword">if</span> BadHashes[block.Hash()] &#123;</span><br><span class="line">			bc.reportBlock(block, <span class="literal">nil</span>, ErrBlacklistedHash)</span><br><span class="line">			<span class="keyword">return</span> it.index, events, coalescedLogs, ErrBlacklistedHash</span><br><span class="line">		&#125;</span><br><span class="line"></span><br><span class="line">		start := time.Now()</span><br><span class="line"></span><br><span class="line">		parent := it.previous()</span><br><span class="line">		<span class="keyword">if</span> parent == <span class="literal">nil</span> &#123;</span><br><span class="line">			parent = bc.GetBlock(block.ParentHash(), block.NumberU64()<span class="number">-1</span>)</span><br><span class="line">		&#125;</span><br><span class="line">		state, err := state.New(parent.Root(), bc.stateCache)</span><br><span class="line">		<span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">			<span class="keyword">return</span> it.index, events, coalescedLogs, err</span><br><span class="line">		&#125;</span><br><span class="line"></span><br><span class="line">		t0 := time.Now()</span><br><span class="line">		receipts, logs, usedGas, err := bc.processor.Process(block, state, bc.vmConfig)</span><br><span class="line">		t1 := time.Now()</span><br><span class="line">		<span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">			bc.reportBlock(block, receipts, err)</span><br><span class="line">			<span class="keyword">return</span> it.index, events, coalescedLogs, err</span><br><span class="line">		&#125;</span><br><span class="line"></span><br><span class="line">		<span class="keyword">if</span> err := bc.Validator().ValidateState(block, parent, state, receipts, usedGas); err != <span class="literal">nil</span> &#123;</span><br><span class="line">			bc.reportBlock(block, receipts, err)</span><br><span class="line">			<span class="keyword">return</span> it.index, events, coalescedLogs, err</span><br><span class="line">		&#125;</span><br><span class="line">		t2 := time.Now()</span><br><span class="line">		proctime := time.Since(start)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">		status, err := bc.writeBlockWithState(block, receipts, state)</span><br><span class="line">		t3 := time.Now()</span><br><span class="line">		<span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">			<span class="keyword">return</span> it.index, events, coalescedLogs, err</span><br><span class="line">		&#125;</span><br><span class="line">		blockInsertTimer.UpdateSince(start)</span><br><span class="line">		blockExecutionTimer.Update(t1.Sub(t0))</span><br><span class="line">		blockValidationTimer.Update(t2.Sub(t1))</span><br><span class="line">		blockWriteTimer.Update(t3.Sub(t2))</span><br><span class="line">		<span class="keyword">switch</span> status &#123;</span><br><span class="line">		<span class="keyword">case</span> CanonStatTy:</span><br><span class="line">			log.Debug(<span class="string">"Inserted new block"</span>, <span class="string">"number"</span>, block.Number(), <span class="string">"hash"</span>, block.Hash(),</span><br><span class="line">				<span class="string">"uncles"</span>, <span class="built_in">len</span>(block.Uncles()), <span class="string">"txs"</span>, <span class="built_in">len</span>(block.Transactions()), <span class="string">"gas"</span>, block.GasUsed(),</span><br><span class="line">				<span class="string">"elapsed"</span>, common.PrettyDuration(time.Since(start)),</span><br><span class="line">				<span class="string">"root"</span>, block.Root())</span><br><span class="line"></span><br><span class="line">			coalescedLogs = <span class="built_in">append</span>(coalescedLogs, logs...)</span><br><span class="line">			events = <span class="built_in">append</span>(events, ChainEvent&#123;block, block.Hash(), logs&#125;)</span><br><span class="line">			lastCanon = block</span><br><span class="line"></span><br><span class="line">			bc.gcproc += proctime</span><br><span class="line"></span><br><span class="line">		<span class="keyword">case</span> SideStatTy:</span><br><span class="line">			log.Debug(<span class="string">"Inserted forked block"</span>, <span class="string">"number"</span>, block.Number(), <span class="string">"hash"</span>, block.Hash(),</span><br><span class="line">				<span class="string">"diff"</span>, block.Difficulty(), <span class="string">"elapsed"</span>, common.PrettyDuration(time.Since(start)),</span><br><span class="line">				<span class="string">"txs"</span>, <span class="built_in">len</span>(block.Transactions()), <span class="string">"gas"</span>, block.GasUsed(), <span class="string">"uncles"</span>, <span class="built_in">len</span>(block.Uncles()),</span><br><span class="line">				<span class="string">"root"</span>, block.Root())</span><br><span class="line">			events = <span class="built_in">append</span>(events, ChainSideEvent&#123;block&#125;)</span><br><span class="line">		&#125;</span><br><span class="line">		blockInsertTimer.UpdateSince(start)</span><br><span class="line">		stats.processed++</span><br><span class="line">		stats.usedGas += usedGas</span><br><span class="line"></span><br><span class="line">		dirty, _ := bc.stateCache.TrieDB().Size()</span><br><span class="line">		stats.report(chain, it.index, dirty)</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">if</span> block != <span class="literal">nil</span> &amp;&amp; err == consensus.ErrFutureBlock &#123;</span><br><span class="line">		<span class="keyword">if</span> err := bc.addFutureBlock(block); err != <span class="literal">nil</span> &#123;</span><br><span class="line">			<span class="keyword">return</span> it.index, events, coalescedLogs, err</span><br><span class="line">		&#125;</span><br><span class="line">		block, err = it.next()</span><br><span class="line"></span><br><span class="line">		<span class="keyword">for</span> ; block != <span class="literal">nil</span> &amp;&amp; err == consensus.ErrUnknownAncestor; block, err = it.next() &#123;</span><br><span class="line">			<span class="keyword">if</span> err := bc.addFutureBlock(block); err != <span class="literal">nil</span> &#123;</span><br><span class="line">				<span class="keyword">return</span> it.index, events, coalescedLogs, err</span><br><span class="line">			&#125;</span><br><span class="line">			stats.queued++</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">	stats.ignored += it.remaining()</span><br><span class="line"></span><br><span class="line">	<span class="keyword">if</span> lastCanon != <span class="literal">nil</span> &amp;&amp; bc.CurrentBlock().Hash() == lastCanon.Hash() &#123;</span><br><span class="line">		events = <span class="built_in">append</span>(events, ChainHeadEvent&#123;lastCanon&#125;)</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">return</span> it.index, events, coalescedLogs, err</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>在这个方法里，首先验证了头部的正确性。之后创建了两个数组分别存储要插入的区块头和该区块是否需要验证。然后创建了一个迭代器：<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// go-ethereum\core\blockchain_insert.go</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">newInsertIterator</span><span class="params">(chain types.Blocks, results &lt;-<span class="keyword">chan</span> error, validator Validator)</span> *<span class="title">insertIterator</span></span> &#123;</span><br><span class="line">	<span class="keyword">return</span> &amp;insertIterator&#123;</span><br><span class="line">		chain:     chain,</span><br><span class="line">		results:   results,</span><br><span class="line">		index:     <span class="number">-1</span>,</span><br><span class="line">		validator: validator,</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>这个迭代器有一组迭代方法，next用于获取下一个区块，previous用于获取上一个区块，first获取第一个区块，remaining返回还有多少区块未便利，processed返回已经遍历了多少区块。它是借助于数组操作的，实现也很简单，唯一特别的是在获取下一个区块时会对区块进行验证。</p>
+<p>这里首先取了第一个区块，然后根据不同的错误执行不同的逻辑，若没有错误则进入循环遍历所有要插入的区块。</p>
+<p>首先检测每个区块是否是BadHash中元素，若不是，先取出其父区块，对于第一个区块的父区块要在本地区块链中根据其指定的父区块hash查找，其余区块就是通过迭代器的previous方法取上一个区块。接着新建一个状态树，然后利用processor处理交易，生成收据日志等信息。接着又验证了状态树，若通过，则利用writeBlockWithState写入区块和状态。最后根据写入的结果执行不同逻辑：CanonStatTy表示插入了新区快，SideStatTy表示插入了分叉区块。</p>
+<p>在循环结束后，判断是否还有区块，这种情况主要是之前循环过程中procInterrupt等于1，也就是被中断了，在调用stop函数后会出现这种情况。若有剩余的，而且err为ErrFutureBlock，表示区块是未来的区块时会将其添加到futureBlocks缓存中，并迭代其后的区块，注意添加的时候最多添加未来30s以内的区块。</p>
+<h1 id="writeBlockWithState"><a href="#writeBlockWithState" class="headerlink" title="writeBlockWithState"></a>writeBlockWithState</h1><p>insertChain的主要插入操作是在writeBlockWithState完成的，实现如下：<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(bc *BlockChain)</span> <span class="title">writeBlockWithState</span><span class="params">(block *types.Block, receipts []*types.Receipt, state *state.StateDB)</span> <span class="params">(status WriteStatus, err error)</span></span> &#123;</span><br><span class="line">	bc.wg.Add(<span class="number">1</span>)</span><br><span class="line">	<span class="keyword">defer</span> bc.wg.Done()</span><br><span class="line"></span><br><span class="line">	ptd := bc.GetTd(block.ParentHash(), block.NumberU64()<span class="number">-1</span>)</span><br><span class="line">	<span class="keyword">if</span> ptd == <span class="literal">nil</span> &#123;</span><br><span class="line">		<span class="keyword">return</span> NonStatTy, consensus.ErrUnknownAncestor</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	currentBlock := bc.CurrentBlock()</span><br><span class="line">	localTd := bc.GetTd(currentBlock.Hash(), currentBlock.NumberU64())</span><br><span class="line">	externTd := <span class="built_in">new</span>(big.Int).Add(block.Difficulty(), ptd)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">	<span class="keyword">if</span> err := bc.hc.WriteTd(block.Hash(), block.NumberU64(), externTd); err != <span class="literal">nil</span> &#123;</span><br><span class="line">		<span class="keyword">return</span> NonStatTy, err</span><br><span class="line">	&#125;</span><br><span class="line">	rawdb.WriteBlock(bc.db, block)</span><br><span class="line"></span><br><span class="line">	root, err := state.Commit(bc.chainConfig.IsEIP158(block.Number()))</span><br><span class="line">	<span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">		<span class="keyword">return</span> NonStatTy, err</span><br><span class="line">	&#125;</span><br><span class="line">	triedb := bc.stateCache.TrieDB()</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">	<span class="keyword">if</span> bc.cacheConfig.Disabled &#123;</span><br><span class="line">		<span class="keyword">if</span> err := triedb.Commit(root, <span class="literal">false</span>); err != <span class="literal">nil</span> &#123;</span><br><span class="line">			<span class="keyword">return</span> NonStatTy, err</span><br><span class="line">		&#125;</span><br><span class="line">	&#125; <span class="keyword">else</span> &#123;</span><br><span class="line">		triedb.Reference(root, common.Hash&#123;&#125;) </span><br><span class="line">		bc.triegc.Push(root, -<span class="keyword">int64</span>(block.NumberU64()))</span><br><span class="line"></span><br><span class="line">		<span class="keyword">if</span> current := block.NumberU64(); current &gt; triesInMemory &#123;</span><br><span class="line">			<span class="keyword">var</span> (</span><br><span class="line">				nodes, imgs = triedb.Size()</span><br><span class="line">				limit       = common.StorageSize(bc.cacheConfig.TrieDirtyLimit) * <span class="number">1024</span> * <span class="number">1024</span></span><br><span class="line">			)</span><br><span class="line">			<span class="keyword">if</span> nodes &gt; limit || imgs &gt; <span class="number">4</span>*<span class="number">1024</span>*<span class="number">1024</span> &#123;</span><br><span class="line">				triedb.Cap(limit - ethdb.IdealBatchSize)</span><br><span class="line">			&#125;</span><br><span class="line">			chosen := current - triesInMemory</span><br><span class="line"></span><br><span class="line">			<span class="keyword">if</span> bc.gcproc &gt; bc.cacheConfig.TrieTimeLimit &#123;</span><br><span class="line">				header := bc.GetHeaderByNumber(chosen)</span><br><span class="line">				<span class="keyword">if</span> header == <span class="literal">nil</span> &#123;</span><br><span class="line">					log.Warn(<span class="string">"Reorg in progress, trie commit postponed"</span>, <span class="string">"number"</span>, chosen)</span><br><span class="line">				&#125; <span class="keyword">else</span> &#123;</span><br><span class="line">					<span class="keyword">if</span> chosen &lt; lastWrite+triesInMemory &amp;&amp; bc.gcproc &gt;= <span class="number">2</span>*bc.cacheConfig.TrieTimeLimit &#123;</span><br><span class="line">						log.Info(<span class="string">"State in memory for too long, committing"</span>, <span class="string">"time"</span>, bc.gcproc, <span class="string">"allowance"</span>, bc.cacheConfig.TrieTimeLimit, <span class="string">"optimum"</span>, <span class="keyword">float64</span>(chosen-lastWrite)/triesInMemory)</span><br><span class="line">					&#125;</span><br><span class="line">					triedb.Commit(header.Root, <span class="literal">true</span>)</span><br><span class="line">					lastWrite = chosen</span><br><span class="line">					bc.gcproc = <span class="number">0</span></span><br><span class="line">				&#125;</span><br><span class="line">			&#125;</span><br><span class="line">			<span class="keyword">for</span> !bc.triegc.Empty() &#123;</span><br><span class="line">				root, number := bc.triegc.Pop()</span><br><span class="line">				<span class="keyword">if</span> <span class="keyword">uint64</span>(-number) &gt; chosen &#123;</span><br><span class="line">					bc.triegc.Push(root, number)</span><br><span class="line">					<span class="keyword">break</span></span><br><span class="line">				&#125;</span><br><span class="line">				triedb.Dereference(root.(common.Hash))</span><br><span class="line">			&#125;</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	batch := bc.db.NewBatch()</span><br><span class="line">	rawdb.WriteReceipts(batch, block.Hash(), block.NumberU64(), receipts)</span><br><span class="line"></span><br><span class="line">	reorg := externTd.Cmp(localTd) &gt; <span class="number">0</span></span><br><span class="line">	currentBlock = bc.CurrentBlock()</span><br><span class="line">	<span class="keyword">if</span> !reorg &amp;&amp; externTd.Cmp(localTd) == <span class="number">0</span> &#123;</span><br><span class="line">		<span class="keyword">if</span> block.NumberU64() &lt; currentBlock.NumberU64() &#123;</span><br><span class="line">			reorg = <span class="literal">true</span></span><br><span class="line">		&#125; <span class="keyword">else</span> <span class="keyword">if</span> block.NumberU64() == currentBlock.NumberU64() &#123;</span><br><span class="line">			<span class="keyword">var</span> currentPreserve, blockPreserve <span class="keyword">bool</span></span><br><span class="line">			<span class="keyword">if</span> bc.shouldPreserve != <span class="literal">nil</span> &#123;</span><br><span class="line">				currentPreserve, blockPreserve = bc.shouldPreserve(currentBlock), bc.shouldPreserve(block)</span><br><span class="line">			&#125;</span><br><span class="line">			reorg = !currentPreserve &amp;&amp; (blockPreserve || mrand.Float64() &lt; <span class="number">0.5</span>)</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">if</span> reorg &#123;</span><br><span class="line">		<span class="keyword">if</span> block.ParentHash() != currentBlock.Hash() &#123;</span><br><span class="line">			<span class="keyword">if</span> err := bc.reorg(currentBlock, block); err != <span class="literal">nil</span> &#123;</span><br><span class="line">				<span class="keyword">return</span> NonStatTy, err</span><br><span class="line">			&#125;</span><br><span class="line">		&#125;</span><br><span class="line">		rawdb.WriteTxLookupEntries(batch, block)</span><br><span class="line">		rawdb.WritePreimages(batch, state.Preimages())</span><br><span class="line"></span><br><span class="line">		status = CanonStatTy</span><br><span class="line">	&#125; <span class="keyword">else</span> &#123;</span><br><span class="line">		status = SideStatTy</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">if</span> err := batch.Write(); err != <span class="literal">nil</span> &#123;</span><br><span class="line">		<span class="keyword">return</span> NonStatTy, err</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">if</span> status == CanonStatTy &#123;</span><br><span class="line">		bc.insert(block)</span><br><span class="line">	&#125;</span><br><span class="line">	bc.futureBlocks.Remove(block.Hash())</span><br><span class="line">	<span class="keyword">return</span> status, <span class="literal">nil</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>首先计算了几个区块链的难度值，ptd表示要插入区块的父区块的总难度，localTd表示本地最高区块的总难度，externTd表示要插入区块的难度加上ptd，也就是可能的新的总难度。计算完之后将externTd写入数据库，随后又写入了区块体，然后又提交了state，之前在处理交易时状态可能改变了，这里将其提交持久化到数据库中。再往下写入了收据信息。</p>
+<p>接下来需要根据reorg的真假决定后面的逻辑，这其实也对应了区块插入的几种情况。</p>
+<p>第一种情况，如果新区块插入后总难度并不比主链的总难度高，该区块插入后不产生实际影响，则reorg置为false，对应的后面status写为SideStatTy，表示区块插入到了分支上了。</p>
+<p>第二种情况，如果新区快插入后总难度比我们主链的难度高，但是新区块又不能放在主链后，表示有分叉而且主流也要调整，此时reorg置为true，并且执行reorg方法，最后status写为CanonStatTy，表示规范链也就是主链有变动。</p>
+<p>第三种情况，如果新区块插入后总难度和我们目前主链相等，但是新区块的高度比我们目前主链要小。说明出现更优的主链，此时新区快必定不能放在主链后，所以和第二种情况一样，reorg置为true，并且执行reorg方法，最后status写为CanonStatTy，表示主链有变动。</p>
+<p>第四种情况，如果新区块插入后总难度和我们目前主链相等，同时高度有相等，这是一种在主链顶端分叉的情况，具体选哪一个为主链，这就要具体判断了，这里要避免私自挖矿的情况。这里调用shouldPreserve方法，这个方法主要是检测区块是不是自己挖的。如果本地最新区块是自己挖的，则reorg置为false，表示不分叉。如果本地最高区块不是自己挖的，新区快是自己挖的，则reorg置为true，表示主链要更改。如果两个都不是自己挖的，则有50%的概率reorg为true，也就是50%概率修改主链。另外，这种情况下，如果reorg为true，必能触发后面的reorg方法重构主链。</p>
+<p>在判断reorg的if中，如果新插入区块的父区块不等于当前本地最新区块的，则表示新区快不能放主链后，则表示主链要从新定义，所以执行reorg方法。对于能接在主链后的区块，只是简单调用WriteTxLookupEntries和WritePreimages写入一些信息。</p>
+<p>再接着，如果status为CanonStatTy，调用insert来设置新的区块链信息。最后把该区块从futureBlocks中移除。</p>
+<h1 id="reorg"><a href="#reorg" class="headerlink" title="reorg"></a>reorg</h1><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(bc *BlockChain)</span> <span class="title">reorg</span><span class="params">(oldBlock, newBlock *types.Block)</span> <span class="title">error</span></span> &#123;</span><br><span class="line">	<span class="keyword">var</span> (</span><br><span class="line">		newChain    types.Blocks</span><br><span class="line">		oldChain    types.Blocks</span><br><span class="line">		commonBlock *types.Block</span><br><span class="line">		deletedTxs  types.Transactions</span><br><span class="line">		deletedLogs []*types.Log</span><br><span class="line">		collectLogs = <span class="function"><span class="keyword">func</span><span class="params">(hash common.Hash)</span></span> &#123;</span><br><span class="line">			<span class="comment">// Coalesce logs and set 'Removed'.</span></span><br><span class="line">			number := bc.hc.GetBlockNumber(hash)</span><br><span class="line">			<span class="keyword">if</span> number == <span class="literal">nil</span> &#123;</span><br><span class="line">				<span class="keyword">return</span></span><br><span class="line">			&#125;</span><br><span class="line">			receipts := rawdb.ReadReceipts(bc.db, hash, *number)</span><br><span class="line">			<span class="keyword">for</span> _, receipt := <span class="keyword">range</span> receipts &#123;</span><br><span class="line">				<span class="keyword">for</span> _, log := <span class="keyword">range</span> receipt.Logs &#123;</span><br><span class="line">					del := *log</span><br><span class="line">					del.Removed = <span class="literal">true</span></span><br><span class="line">					deletedLogs = <span class="built_in">append</span>(deletedLogs, &amp;del)</span><br><span class="line">				&#125;</span><br><span class="line">			&#125;</span><br><span class="line">		&#125;</span><br><span class="line">	)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">	<span class="keyword">if</span> oldBlock.NumberU64() &gt; newBlock.NumberU64() &#123;</span><br><span class="line"></span><br><span class="line">		<span class="keyword">for</span> ; oldBlock != <span class="literal">nil</span> &amp;&amp; oldBlock.NumberU64() != newBlock.NumberU64(); oldBlock = bc.GetBlock(oldBlock.ParentHash(), oldBlock.NumberU64()<span class="number">-1</span>) &#123;</span><br><span class="line">			oldChain = <span class="built_in">append</span>(oldChain, oldBlock)</span><br><span class="line">			deletedTxs = <span class="built_in">append</span>(deletedTxs, oldBlock.Transactions()...)</span><br><span class="line"></span><br><span class="line">			collectLogs(oldBlock.Hash())</span><br><span class="line">		&#125;</span><br><span class="line">	&#125; <span class="keyword">else</span> &#123;</span><br><span class="line"></span><br><span class="line">		<span class="keyword">for</span> ; newBlock != <span class="literal">nil</span> &amp;&amp; newBlock.NumberU64() != oldBlock.NumberU64(); newBlock = bc.GetBlock(newBlock.ParentHash(), newBlock.NumberU64()<span class="number">-1</span>) &#123;</span><br><span class="line">			newChain = <span class="built_in">append</span>(newChain, newBlock)</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">if</span> oldBlock == <span class="literal">nil</span> &#123;</span><br><span class="line">		<span class="keyword">return</span> fmt.Errorf(<span class="string">"Invalid old chain"</span>)</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">if</span> newBlock == <span class="literal">nil</span> &#123;</span><br><span class="line">		<span class="keyword">return</span> fmt.Errorf(<span class="string">"Invalid new chain"</span>)</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">for</span> &#123;</span><br><span class="line">		<span class="keyword">if</span> oldBlock.Hash() == newBlock.Hash() &#123;</span><br><span class="line">			commonBlock = oldBlock</span><br><span class="line">			<span class="keyword">break</span></span><br><span class="line">		&#125;</span><br><span class="line"></span><br><span class="line">		oldChain = <span class="built_in">append</span>(oldChain, oldBlock)</span><br><span class="line">		newChain = <span class="built_in">append</span>(newChain, newBlock)</span><br><span class="line">		deletedTxs = <span class="built_in">append</span>(deletedTxs, oldBlock.Transactions()...)</span><br><span class="line">		collectLogs(oldBlock.Hash())</span><br><span class="line"></span><br><span class="line">		oldBlock, newBlock = bc.GetBlock(oldBlock.ParentHash(), oldBlock.NumberU64()<span class="number">-1</span>), bc.GetBlock(newBlock.ParentHash(), newBlock.NumberU64()<span class="number">-1</span>)</span><br><span class="line">		<span class="keyword">if</span> oldBlock == <span class="literal">nil</span> &#123;</span><br><span class="line">			<span class="keyword">return</span> fmt.Errorf(<span class="string">"Invalid old chain"</span>)</span><br><span class="line">		&#125;</span><br><span class="line">		<span class="keyword">if</span> newBlock == <span class="literal">nil</span> &#123;</span><br><span class="line">			<span class="keyword">return</span> fmt.Errorf(<span class="string">"Invalid new chain"</span>)</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">if</span> <span class="built_in">len</span>(oldChain) &gt; <span class="number">0</span> &amp;&amp; <span class="built_in">len</span>(newChain) &gt; <span class="number">0</span> &#123;</span><br><span class="line">		logFn := log.Debug</span><br><span class="line">		<span class="keyword">if</span> <span class="built_in">len</span>(oldChain) &gt; <span class="number">63</span> &#123;</span><br><span class="line">			logFn = log.Warn</span><br><span class="line">		&#125;</span><br><span class="line">		logFn(<span class="string">"Chain split detected"</span>, <span class="string">"number"</span>, commonBlock.Number(), <span class="string">"hash"</span>, commonBlock.Hash(),</span><br><span class="line">			<span class="string">"drop"</span>, <span class="built_in">len</span>(oldChain), <span class="string">"dropfrom"</span>, oldChain[<span class="number">0</span>].Hash(), <span class="string">"add"</span>, <span class="built_in">len</span>(newChain), <span class="string">"addfrom"</span>, newChain[<span class="number">0</span>].Hash())</span><br><span class="line">	&#125; <span class="keyword">else</span> &#123;</span><br><span class="line">		log.Error(<span class="string">"Impossible reorg, please file an issue"</span>, <span class="string">"oldnum"</span>, oldBlock.Number(), <span class="string">"oldhash"</span>, oldBlock.Hash(), <span class="string">"newnum"</span>, newBlock.Number(), <span class="string">"newhash"</span>, newBlock.Hash())</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">var</span> addedTxs types.Transactions</span><br><span class="line">	<span class="keyword">for</span> i := <span class="built_in">len</span>(newChain) - <span class="number">1</span>; i &gt;= <span class="number">0</span>; i-- &#123;</span><br><span class="line">		rawdb.WriteTxLookupEntries(bc.db, newChain[i])</span><br><span class="line">		addedTxs = <span class="built_in">append</span>(addedTxs, newChain[i].Transactions()...)</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	batch := bc.db.NewBatch()</span><br><span class="line">	<span class="keyword">for</span> _, tx := <span class="keyword">range</span> diff &#123;</span><br><span class="line">		rawdb.DeleteTxLookupEntry(batch, tx.Hash())</span><br><span class="line">	&#125;</span><br><span class="line">	batch.Write()</span><br><span class="line"></span><br><span class="line">	<span class="keyword">if</span> <span class="built_in">len</span>(deletedLogs) &gt; <span class="number">0</span> &#123;</span><br><span class="line">		<span class="keyword">go</span> bc.rmLogsFeed.Send(RemovedLogsEvent&#123;deletedLogs&#125;)</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">if</span> <span class="built_in">len</span>(oldChain) &gt; <span class="number">0</span> &#123;</span><br><span class="line">		<span class="keyword">go</span> <span class="function"><span class="keyword">func</span><span class="params">()</span></span> &#123;</span><br><span class="line">			<span class="keyword">for</span> _, block := <span class="keyword">range</span> oldChain &#123;</span><br><span class="line">				bc.chainSideFeed.Send(ChainSideEvent&#123;Block: block&#125;)</span><br><span class="line">			&#125;</span><br><span class="line">		&#125;()</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">return</span> <span class="literal">nil</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>这个方法是重新调整区块链，传入的两个区块代表旧链和新链，在前面writeBlockWithState方法中有调用。</p>
+<p>首先如果旧链比新链高，要减少旧链高度，则从旧链头部开始向下遍历，直到等于要插入的区块高度，将遍历得到的区块即区块中的交易分别放入oldChain和deletedTxs，然后对每一个遍历的区块调用collectLogs方法收集日志信息，并将所有日志信息标记为removed。</p>
+<p>如果旧链等于或小于新链高度，则向下遍历新链，将遍历得到的区块放入newChain。</p>
+<p>到这里新链旧链的高度相等，但是二者的hash未必相等。所以进入循环，同时向下遍历两条链，寻找二者hash值相等的位置，对于不相等的区块也是放入oldChain和newChain，并将旧链上的区块交易放入deletedTxs，同时用collectLogs处理旧链区块。知道二者的hash相等时，此时二者高度与hash都相等，表示找到一个共同点，也就是分叉点，记为commonBlock并退出循环。</p>
+<p>接下来，遍历newChain，对每个区块调用insert，表示更新新链为规范链，然后调用WriteTxLookupEntries写入交易信息，并将每个区块的交易信息放入addedTxs。</p>
+<p>然后比较deletedTxs和addedTxs的不同，主要是deletedTxs有的但addedTxs没有的交易。addedTxs是从分叉点开始到新链结束所有的交易，deletedTxs表示从分叉点开始到旧链结束所有的交易。对于找出的不同交易将其从数据库中删除。</p>
+<h1 id="InsertHeaderChain"><a href="#InsertHeaderChain" class="headerlink" title="InsertHeaderChain"></a>InsertHeaderChain</h1><p>这个方法在downloader的processHeaders中调用，作用是插入区块头<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(bc *BlockChain)</span> <span class="title">InsertHeaderChain</span><span class="params">(chain []*types.Header, checkFreq <span class="keyword">int</span>)</span> <span class="params">(<span class="keyword">int</span>, error)</span></span> &#123;</span><br><span class="line">	start := time.Now()</span><br><span class="line">	<span class="keyword">if</span> i, err := bc.hc.ValidateHeaderChain(chain, checkFreq); err != <span class="literal">nil</span> &#123;</span><br><span class="line">		<span class="keyword">return</span> i, err</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	bc.chainmu.Lock()</span><br><span class="line">	<span class="keyword">defer</span> bc.chainmu.Unlock()</span><br><span class="line"></span><br><span class="line">	bc.wg.Add(<span class="number">1</span>)</span><br><span class="line">	<span class="keyword">defer</span> bc.wg.Done()</span><br><span class="line"></span><br><span class="line">	whFunc := <span class="function"><span class="keyword">func</span><span class="params">(header *types.Header)</span> <span class="title">error</span></span> &#123;</span><br><span class="line">		_, err := bc.hc.WriteHeader(header)</span><br><span class="line">		<span class="keyword">return</span> err</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">return</span> bc.hc.InsertHeaderChain(chain, whFunc, start)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>首先验证给的区块头：<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(hc *HeaderChain)</span> <span class="title">ValidateHeaderChain</span><span class="params">(chain []*types.Header, checkFreq <span class="keyword">int</span>)</span> <span class="params">(<span class="keyword">int</span>, error)</span></span> &#123;</span><br><span class="line">	<span class="keyword">for</span> i := <span class="number">1</span>; i &lt; <span class="built_in">len</span>(chain); i++ &#123;</span><br><span class="line">		<span class="keyword">if</span> chain[i].Number.Uint64() != chain[i<span class="number">-1</span>].Number.Uint64()+<span class="number">1</span> || chain[i].ParentHash != chain[i<span class="number">-1</span>].Hash() &#123;</span><br><span class="line">			log.Error(<span class="string">"Non contiguous header insert"</span>, <span class="string">"number"</span>, chain[i].Number, <span class="string">"hash"</span>, chain[i].Hash(),</span><br><span class="line">				<span class="string">"parent"</span>, chain[i].ParentHash, <span class="string">"prevnumber"</span>, chain[i<span class="number">-1</span>].Number, <span class="string">"prevhash"</span>, chain[i<span class="number">-1</span>].Hash())</span><br><span class="line"></span><br><span class="line">			<span class="keyword">return</span> <span class="number">0</span>, fmt.Errorf(<span class="string">"non contiguous insert: item %d is #%d [%xâ€¦], item %d is #%d [%xâ€¦] (parent [%xâ€¦])"</span>, i<span class="number">-1</span>, chain[i<span class="number">-1</span>].Number,</span><br><span class="line">				chain[i<span class="number">-1</span>].Hash().Bytes()[:<span class="number">4</span>], i, chain[i].Number, chain[i].Hash().Bytes()[:<span class="number">4</span>], chain[i].ParentHash[:<span class="number">4</span>])</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	seals := <span class="built_in">make</span>([]<span class="keyword">bool</span>, <span class="built_in">len</span>(chain))</span><br><span class="line">	<span class="keyword">if</span> checkFreq != <span class="number">0</span> &#123;</span><br><span class="line">		<span class="keyword">for</span> i := <span class="number">0</span>; i &lt; <span class="built_in">len</span>(seals)/checkFreq; i++ &#123;</span><br><span class="line">			index := i*checkFreq + hc.rand.Intn(checkFreq)</span><br><span class="line">			<span class="keyword">if</span> index &gt;= <span class="built_in">len</span>(seals) &#123;</span><br><span class="line">				index = <span class="built_in">len</span>(seals) - <span class="number">1</span></span><br><span class="line">			&#125;</span><br><span class="line">			seals[index] = <span class="literal">true</span></span><br><span class="line">		&#125;</span><br><span class="line">		seals[<span class="built_in">len</span>(seals)<span class="number">-1</span>] = <span class="literal">true</span></span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	abort, results := hc.engine.VerifyHeaders(hc, chain, seals)</span><br><span class="line">	<span class="keyword">defer</span> <span class="built_in">close</span>(abort)</span><br><span class="line"></span><br><span class="line">	<span class="keyword">for</span> i, header := <span class="keyword">range</span> chain &#123;</span><br><span class="line">		<span class="keyword">if</span> hc.procInterrupt() &#123;</span><br><span class="line">			log.Debug(<span class="string">"Premature abort during headers verification"</span>)</span><br><span class="line">			<span class="keyword">return</span> <span class="number">0</span>, errors.New(<span class="string">"aborted"</span>)</span><br><span class="line">		&#125;</span><br><span class="line">		<span class="keyword">if</span> BadHashes[header.Hash()] &#123;</span><br><span class="line">			<span class="keyword">return</span> i, ErrBlacklistedHash</span><br><span class="line">		&#125;</span><br><span class="line">		<span class="keyword">if</span> err := &lt;-results; err != <span class="literal">nil</span> &#123;</span><br><span class="line">			<span class="keyword">return</span> i, err</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">return</span> <span class="number">0</span>, <span class="literal">nil</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>第一个for循环是检查给定的一组区块相互依赖是否正确。之后根据checkFreq的值确定哪些区块需要验证，这里并不是固定的每个checkFreq检查一个，而是每checkFreq个区块中间随机选一个。最后根据验证结果以及是否在badhash内返回最终结果。</p>
+<p>回到InsertHeaderChain，如果验证无误，则调用InsertHeaderChain方法，这是headerchain的方法<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(hc *HeaderChain)</span> <span class="title">InsertHeaderChain</span><span class="params">(chain []*types.Header, writeHeader WhCallback, start time.Time)</span> <span class="params">(<span class="keyword">int</span>, error)</span></span> &#123;</span><br><span class="line">	stats := <span class="keyword">struct</span>&#123; processed, ignored <span class="keyword">int</span> &#125;&#123;&#125;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">for</span> i, header := <span class="keyword">range</span> chain &#123;</span><br><span class="line"></span><br><span class="line">		<span class="keyword">if</span> hc.procInterrupt() &#123;</span><br><span class="line">			log.Debug(<span class="string">"Premature abort during headers import"</span>)</span><br><span class="line">			<span class="keyword">return</span> i, errors.New(<span class="string">"aborted"</span>)</span><br><span class="line">		&#125;</span><br><span class="line"></span><br><span class="line">		<span class="keyword">if</span> hc.HasHeader(header.Hash(), header.Number.Uint64()) &#123;</span><br><span class="line">			stats.ignored++</span><br><span class="line">			<span class="keyword">continue</span></span><br><span class="line">		&#125;</span><br><span class="line">		<span class="keyword">if</span> err := writeHeader(header); err != <span class="literal">nil</span> &#123;</span><br><span class="line">			<span class="keyword">return</span> i, err</span><br><span class="line">		&#125;</span><br><span class="line">		stats.processed++</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	last := chain[<span class="built_in">len</span>(chain)<span class="number">-1</span>]</span><br><span class="line"></span><br><span class="line">	context := []<span class="keyword">interface</span>&#123;&#125;&#123;</span><br><span class="line">		<span class="string">"count"</span>, stats.processed, <span class="string">"elapsed"</span>, common.PrettyDuration(time.Since(start)),</span><br><span class="line">		<span class="string">"number"</span>, last.Number, <span class="string">"hash"</span>, last.Hash(),</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">if</span> timestamp := time.Unix(last.Time.Int64(), <span class="number">0</span>); time.Since(timestamp) &gt; time.Minute &#123;</span><br><span class="line">		context = <span class="built_in">append</span>(context, []<span class="keyword">interface</span>&#123;&#125;&#123;<span class="string">"age"</span>, common.PrettyAge(timestamp)&#125;...)</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">if</span> stats.ignored &gt; <span class="number">0</span> &#123;</span><br><span class="line">		context = <span class="built_in">append</span>(context, []<span class="keyword">interface</span>&#123;&#125;&#123;<span class="string">"ignored"</span>, stats.ignored&#125;...)</span><br><span class="line">	&#125;</span><br><span class="line">	log.Info(<span class="string">"Imported new block headers"</span>, context...)</span><br><span class="line"></span><br><span class="line">	<span class="keyword">return</span> <span class="number">0</span>, <span class="literal">nil</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>首先遍历所有要插入的区块头，先判断是否已经有了，没有的话调用writeHeader，这是在BlockChain的InsertHeaderChain定义的，实际调用的headerchain的WriteHeader方法<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(hc *HeaderChain)</span> <span class="title">WriteHeader</span><span class="params">(header *types.Header)</span> <span class="params">(status WriteStatus, err error)</span></span> &#123;</span><br><span class="line">	<span class="keyword">var</span> (</span><br><span class="line">		hash   = header.Hash()</span><br><span class="line">		number = header.Number.Uint64()</span><br><span class="line">	)</span><br><span class="line"></span><br><span class="line">	ptd := hc.GetTd(header.ParentHash, number<span class="number">-1</span>)</span><br><span class="line">	<span class="keyword">if</span> ptd == <span class="literal">nil</span> &#123;</span><br><span class="line">		<span class="keyword">return</span> NonStatTy, consensus.ErrUnknownAncestor</span><br><span class="line">	&#125;</span><br><span class="line">	localTd := hc.GetTd(hc.currentHeaderHash, hc.CurrentHeader().Number.Uint64())</span><br><span class="line">	externTd := <span class="built_in">new</span>(big.Int).Add(header.Difficulty, ptd)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">	<span class="keyword">if</span> err := hc.WriteTd(hash, number, externTd); err != <span class="literal">nil</span> &#123;</span><br><span class="line">		log.Crit(<span class="string">"Failed to write header total difficulty"</span>, <span class="string">"err"</span>, err)</span><br><span class="line">	&#125;</span><br><span class="line">	rawdb.WriteHeader(hc.chainDb, header)</span><br><span class="line"></span><br><span class="line">	<span class="keyword">if</span> externTd.Cmp(localTd) &gt; <span class="number">0</span> || (externTd.Cmp(localTd) == <span class="number">0</span> &amp;&amp; mrand.Float64() &lt; <span class="number">0.5</span>) &#123;</span><br><span class="line">		batch := hc.chainDb.NewBatch()</span><br><span class="line">		<span class="keyword">for</span> i := number + <span class="number">1</span>; ; i++ &#123;</span><br><span class="line">			hash := rawdb.ReadCanonicalHash(hc.chainDb, i)</span><br><span class="line">			<span class="keyword">if</span> hash == (common.Hash&#123;&#125;) &#123;</span><br><span class="line">				<span class="keyword">break</span></span><br><span class="line">			&#125;</span><br><span class="line">			rawdb.DeleteCanonicalHash(batch, i)</span><br><span class="line">		&#125;</span><br><span class="line">		batch.Write()</span><br><span class="line"></span><br><span class="line">		<span class="keyword">var</span> (</span><br><span class="line">			headHash   = header.ParentHash</span><br><span class="line">			headNumber = header.Number.Uint64() - <span class="number">1</span></span><br><span class="line">			headHeader = hc.GetHeader(headHash, headNumber)</span><br><span class="line">		)</span><br><span class="line">		<span class="keyword">for</span> rawdb.ReadCanonicalHash(hc.chainDb, headNumber) != headHash &#123;</span><br><span class="line">			rawdb.WriteCanonicalHash(hc.chainDb, headHash, headNumber)</span><br><span class="line"></span><br><span class="line">			headHash = headHeader.ParentHash</span><br><span class="line">			headNumber = headHeader.Number.Uint64() - <span class="number">1</span></span><br><span class="line">			headHeader = hc.GetHeader(headHash, headNumber)</span><br><span class="line">		&#125;</span><br><span class="line"></span><br><span class="line">		rawdb.WriteCanonicalHash(hc.chainDb, hash, number)</span><br><span class="line">		rawdb.WriteHeadHeaderHash(hc.chainDb, hash)</span><br><span class="line"></span><br><span class="line">		hc.currentHeaderHash = hash</span><br><span class="line">		hc.currentHeader.Store(types.CopyHeader(header))</span><br><span class="line"></span><br><span class="line">		status = CanonStatTy</span><br><span class="line">	&#125; <span class="keyword">else</span> &#123;</span><br><span class="line">		status = SideStatTy</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	hc.headerCache.Add(hash, header)</span><br><span class="line">	hc.numberCache.Add(hash, number)</span><br><span class="line"></span><br><span class="line">	<span class="keyword">return</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>和插入区块类似，计算localTd与externTd，然后写入总难度即区块头。之后如果外部难度大于本地难度，或者即使相等但仍有50%概率修改规范链。修改的操作如下，首先从要插入的区块头高度开始从本地读取对应高度的规范链hash，每次高度加一，读到一个删一个，知道读不到为止。这样本地规范链的的高度和要插入的区块头高度一样。接着从要插入区块头的高度减一的位置开始，每次减一，读到一个删一个，直到到达某个位置的区块hash等于要插入区块的父hash。经过这两步后，新到的的区块可以正确的插入到规范链中，然后写入规范链hash以及头区块hash，最后改写入状态为CanonStatTy。如果不满足前面的本地难度和外部难度的判断则写入状态为SideStatTy。</p>
+<p>回到headerchain的InsertHeaderChain中，在插入所有区块头后，打印了一些日志然后返回，整个InsertHeaderChain结束。</p>
+<h1 id="insert"><a href="#insert" class="headerlink" title="insert"></a>insert</h1><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(bc *BlockChain)</span> <span class="title">insert</span><span class="params">(block *types.Block)</span></span> &#123;</span><br><span class="line">	updateHeads := rawdb.ReadCanonicalHash(bc.db, block.NumberU64()) != block.Hash()</span><br><span class="line"></span><br><span class="line">	rawdb.WriteCanonicalHash(bc.db, block.Hash(), block.NumberU64())</span><br><span class="line">	rawdb.WriteHeadBlockHash(bc.db, block.Hash())</span><br><span class="line"></span><br><span class="line">	bc.currentBlock.Store(block)</span><br><span class="line"></span><br><span class="line">	<span class="keyword">if</span> updateHeads &#123;</span><br><span class="line">		bc.hc.SetCurrentHeader(block.Header())</span><br><span class="line">		rawdb.WriteHeadFastBlockHash(bc.db, block.Hash())</span><br><span class="line"></span><br><span class="line">		bc.currentFastBlock.Store(block)</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>这是一个调整主链的方法，在reorg方法中，当遍历到新旧链的公共点之后，开始在新链上遍历区块，每遍历一个区块执行一次insert方法，通过这样改变主链到新链。具体方法如下，首先读取数据库中主链上相应高度的区块hash来决定时候更新CurrentHeader和currentFastBlock。不过首先更新了主链上对应高度的hash，然后修改数据库中最新区块的hash。</p>
+<p>通过对新链的每个区块都执行这个方法，使得数据库中规范链的每个位置的区块得到更新，而且currentBlock、currentHeader和currentFastBlock这几个变量也得到更新，从而改变了主链。</p>
+<blockquote>
+<p>题图来自unsplash：<a href="https://unsplash.com/photos/HQMyV8a_4_4" target="_blank" rel="noopener">https://unsplash.com/photos/HQMyV8a_4_4</a></p>
+</blockquote>
+
+      
+    </div>
+
+    
+
+    
+    
+    
+
+    
+
+    
+      
+    
+    
+      <div>
+        <div style="padding: 10px 0; margin: 20px auto; width: 90%; text-align: center;">
+  <div>谢谢你请我吃糖</div>
+  <button id="rewardButton" disable="enable" onclick="var qr = document.getElementById('QR'); if (qr.style.display === 'none') {qr.style.display='block';} else {qr.style.display='none'}">
+    <span>打赏</span>
+  </button>
+  <div id="QR" style="display: none;">
+
+    
+      <div id="wechat" style="display: inline-block">
+        <img id="wechat_qr" src="/assets/img/wechatpay.jpg" alt="AmorFati 微信支付">
+        <p>微信支付</p>
+      </div>
+    
+
+    
+      <div id="alipay" style="display: inline-block">
+        <img id="alipay_qr" src="/assets/img/alipay.jpg" alt="AmorFati 支付宝">
+        <p>支付宝</p>
+      </div>
+    
+
+    
+
+  </div>
+</div>
+
+      </div>
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/go/" rel="tag"># go</a>
+          
+            <a href="/tags/区块链/" rel="tag"># 区块链</a>
+          
+            <a href="/tags/以太坊/" rel="tag"># 以太坊</a>
+          
+            <a href="/tags/go-ethereum/" rel="tag"># go-ethereum</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2019/05/18/go-ethereum中core-genesis源码学习/" rel="next" title="go-ethereum中core-genesis源码学习">
+                <i class="fa fa-chevron-left"></i> go-ethereum中core-genesis源码学习
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+  </div>
+
+
+          </div>
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image" src="/assets/img/icon.jpg" alt="AmorFati">
+            
+              <p class="site-author-name" itemprop="name">AmorFati</p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          
+            <nav class="site-state motion-element">
+              
+                <div class="site-state-item site-state-posts">
+                
+                  <a href="/archives/">
+                
+                    <span class="site-state-item-count">37</span>
+                    <span class="site-state-item-name">日志</span>
+                  </a>
+                </div>
+              
+
+              
+                
+                
+                <div class="site-state-item site-state-categories">
+                  <a href="/categories/index.html">
+                    
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">7</span>
+                    <span class="site-state-item-name">分类</span>
+                  </a>
+                </div>
+              
+
+              
+                
+                
+                <div class="site-state-item site-state-tags">
+                  <a href="/tags/index.html">
+                    
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">11</span>
+                    <span class="site-state-item-name">标签</span>
+                  </a>
+                </div>
+              
+            </nav>
+          
+
+          
+
+          
+            <div class="links-of-author motion-element">
+              
+                <span class="links-of-author-item">
+                  
+                  
+                    
+                  
+                  
+                    
+                  
+                  <a href="https://github.com/chenyaoyang" title="GitHub &rarr; https://github.com/chenyaoyang" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i>GitHub</a>
+                </span>
+              
+                <span class="links-of-author-item">
+                  
+                  
+                    
+                  
+                  
+                    
+                  
+                  <a href="mailto:chenyang4346@foxmail.com" title="E-Mail &rarr; mailto:chenyang4346@foxmail.com" rel="noopener" target="_blank"><i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+                </span>
+              
+                <span class="links-of-author-item">
+                  
+                  
+                    
+                  
+                  
+                    
+                  
+                  <a href="https://www.jianshu.com/u/52c1bec4559c" title="简书 &rarr; https://www.jianshu.com/u/52c1bec4559c" rel="noopener" target="_blank"><i class="fa fa-fw fa-globe"></i>简书</a>
+                </span>
+              
+            </div>
+          
+
+          
+
+          
+          
+
+          
+            
+          
+          
+
+        </div>
+      </div>
+
+      
+      <!--noindex-->
+        <div class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+            
+            
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#数据结构"><span class="nav-number">1.</span> <span class="nav-text">数据结构</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#NewBlockChain"><span class="nav-number">2.</span> <span class="nav-text">NewBlockChain</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#update"><span class="nav-number">3.</span> <span class="nav-text">update</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#loadLastState"><span class="nav-number">4.</span> <span class="nav-text">loadLastState</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#reset"><span class="nav-number">5.</span> <span class="nav-text">reset</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#SetHead"><span class="nav-number">6.</span> <span class="nav-text">SetHead</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#InsertChain"><span class="nav-number">7.</span> <span class="nav-text">InsertChain</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#writeBlockWithState"><span class="nav-number">8.</span> <span class="nav-text">writeBlockWithState</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#reorg"><span class="nav-number">9.</span> <span class="nav-text">reorg</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#InsertHeaderChain"><span class="nav-number">10.</span> <span class="nav-text">InsertHeaderChain</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#insert"><span class="nav-number">11.</span> <span class="nav-text">insert</span></a></li></ol></div>
+            
+
+          </div>
+        </div>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; 2018 – <span itemprop="copyrightYear">2019</span>
+  <span class="with-love" id="animate">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">AmorFati</span>
+
+  
+
+  
+</div>
+
+
+  <div class="powered-by">由 <a href="https://hexo.io" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v3.8.0</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 – <a href="https://theme-next.org" class="theme-link" rel="noopener" target="_blank">NexT.Pisces</a> v6.6.0</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+    
+
+    
+  </div>
+
+  
+
+<script>
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+
+  
+
+
+  <script src="/js/src/utils.js?v=6.6.0"></script>
+
+  <script src="/js/src/motion.js?v=6.6.0"></script>
+
+
+
+  
+  
+
+
+  <script src="/js/src/affix.js?v=6.6.0"></script>
+
+  <script src="/js/src/schemes/pisces.js?v=6.6.0"></script>
+
+
+
+  
+  <script src="/js/src/scrollspy.js?v=6.6.0"></script>
+<script src="/js/src/post-details.js?v=6.6.0"></script>
+
+
+
+  
+
+
+  <script src="/js/src/bootstrap.js?v=6.6.0"></script>
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  <script>
+    // Popup Window;
+    var isfetched = false;
+    var isXml = true;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length === 0) {
+      search_path = "search.xml";
+    } else if (/json$/i.test(search_path)) {
+      isXml = false;
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    var onPopupClose = function (e) {
+      $('.popup').hide();
+      $('#local-search-input').val('');
+      $('.search-result-list').remove();
+      $('#no-result').remove();
+      $(".local-search-pop-overlay").remove();
+      $('body').css('overflow', '');
+    }
+
+    function proceedsearch() {
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay"></div>')
+        .css('overflow', 'hidden');
+      $('.search-popup-overlay').click(onPopupClose);
+      $('.popup').toggle();
+      var $localSearchInput = $('#local-search-input');
+      $localSearchInput.attr("autocapitalize", "none");
+      $localSearchInput.attr("autocorrect", "off");
+      $localSearchInput.focus();
+    }
+
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+      'use strict';
+
+      // start loading animation
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay">' +
+          '<div id="search-loading-icon">' +
+          '<i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>' +
+          '</div>' +
+          '</div>')
+        .css('overflow', 'hidden');
+      $("#search-loading-icon").css('margin', '20% auto 0 auto').css('text-align', 'center');
+
+      
+
+      $.ajax({
+        url: path,
+        dataType: isXml ? "xml" : "json",
+        async: true,
+        success: function(res) {
+          // get the contents from search data
+          isfetched = true;
+          $('.popup').detach().appendTo('.header-inner');
+          var datas = isXml ? $("entry", res).map(function() {
+            return {
+              title: $("title", this).text(),
+              content: $("content",this).text(),
+              url: $("url" , this).text()
+            };
+          }).get() : res;
+          var input = document.getElementById(search_id);
+          var resultContent = document.getElementById(content_id);
+          var inputEventFunction = function() {
+            var searchText = input.value.trim().toLowerCase();
+            var keywords = searchText.split(/[\s\-]+/);
+            if (keywords.length > 1) {
+              keywords.push(searchText);
+            }
+            var resultItems = [];
+            if (searchText.length > 0) {
+              // perform local searching
+              datas.forEach(function(data) {
+                var isMatch = false;
+                var hitCount = 0;
+                var searchTextCount = 0;
+                var title = data.title.trim();
+                var titleInLowerCase = title.toLowerCase();
+                var content = data.content.trim().replace(/<[^>]+>/g,"");
+                
+                var contentInLowerCase = content.toLowerCase();
+                var articleUrl = decodeURIComponent(data.url);
+                var indexOfTitle = [];
+                var indexOfContent = [];
+                // only match articles with not empty titles
+                if(title != '') {
+                  keywords.forEach(function(keyword) {
+                    function getIndexByWord(word, text, caseSensitive) {
+                      var wordLen = word.length;
+                      if (wordLen === 0) {
+                        return [];
+                      }
+                      var startPosition = 0, position = [], index = [];
+                      if (!caseSensitive) {
+                        text = text.toLowerCase();
+                        word = word.toLowerCase();
+                      }
+                      while ((position = text.indexOf(word, startPosition)) > -1) {
+                        index.push({position: position, word: word});
+                        startPosition = position + wordLen;
+                      }
+                      return index;
+                    }
+
+                    indexOfTitle = indexOfTitle.concat(getIndexByWord(keyword, titleInLowerCase, false));
+                    indexOfContent = indexOfContent.concat(getIndexByWord(keyword, contentInLowerCase, false));
+                  });
+                  if (indexOfTitle.length > 0 || indexOfContent.length > 0) {
+                    isMatch = true;
+                    hitCount = indexOfTitle.length + indexOfContent.length;
+                  }
+                }
+
+                // show search results
+
+                if (isMatch) {
+                  // sort index by position of keyword
+
+                  [indexOfTitle, indexOfContent].forEach(function (index) {
+                    index.sort(function (itemLeft, itemRight) {
+                      if (itemRight.position !== itemLeft.position) {
+                        return itemRight.position - itemLeft.position;
+                      } else {
+                        return itemLeft.word.length - itemRight.word.length;
+                      }
+                    });
+                  });
+
+                  // merge hits into slices
+
+                  function mergeIntoSlice(text, start, end, index) {
+                    var item = index[index.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    var hits = [];
+                    var searchTextCountInSlice = 0;
+                    while (position + word.length <= end && index.length != 0) {
+                      if (word === searchText) {
+                        searchTextCountInSlice++;
+                      }
+                      hits.push({position: position, length: word.length});
+                      var wordEnd = position + word.length;
+
+                      // move to next position of hit
+
+                      index.pop();
+                      while (index.length != 0) {
+                        item = index[index.length - 1];
+                        position = item.position;
+                        word = item.word;
+                        if (wordEnd > position) {
+                          index.pop();
+                        } else {
+                          break;
+                        }
+                      }
+                    }
+                    searchTextCount += searchTextCountInSlice;
+                    return {
+                      hits: hits,
+                      start: start,
+                      end: end,
+                      searchTextCount: searchTextCountInSlice
+                    };
+                  }
+
+                  var slicesOfTitle = [];
+                  if (indexOfTitle.length != 0) {
+                    slicesOfTitle.push(mergeIntoSlice(title, 0, title.length, indexOfTitle));
+                  }
+
+                  var slicesOfContent = [];
+                  while (indexOfContent.length != 0) {
+                    var item = indexOfContent[indexOfContent.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    // cut out 100 characters
+                    var start = position - 20;
+                    var end = position + 80;
+                    if(start < 0){
+                      start = 0;
+                    }
+                    if (end < position + word.length) {
+                      end = position + word.length;
+                    }
+                    if(end > content.length){
+                      end = content.length;
+                    }
+                    slicesOfContent.push(mergeIntoSlice(content, start, end, indexOfContent));
+                  }
+
+                  // sort slices in content by search text's count and hits' count
+
+                  slicesOfContent.sort(function (sliceLeft, sliceRight) {
+                    if (sliceLeft.searchTextCount !== sliceRight.searchTextCount) {
+                      return sliceRight.searchTextCount - sliceLeft.searchTextCount;
+                    } else if (sliceLeft.hits.length !== sliceRight.hits.length) {
+                      return sliceRight.hits.length - sliceLeft.hits.length;
+                    } else {
+                      return sliceLeft.start - sliceRight.start;
+                    }
+                  });
+
+                  // select top N slices in content
+
+                  var upperBound = parseInt('1');
+                  if (upperBound >= 0) {
+                    slicesOfContent = slicesOfContent.slice(0, upperBound);
+                  }
+
+                  // highlight title and content
+
+                  function highlightKeyword(text, slice) {
+                    var result = '';
+                    var prevEnd = slice.start;
+                    slice.hits.forEach(function (hit) {
+                      result += text.substring(prevEnd, hit.position);
+                      var end = hit.position + hit.length;
+                      result += '<b class="search-keyword">' + text.substring(hit.position, end) + '</b>';
+                      prevEnd = end;
+                    });
+                    result += text.substring(prevEnd, slice.end);
+                    return result;
+                  }
+
+                  var resultItem = '';
+
+                  if (slicesOfTitle.length != 0) {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + highlightKeyword(title, slicesOfTitle[0]) + "</a>";
+                  } else {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + title + "</a>";
+                  }
+
+                  slicesOfContent.forEach(function (slice) {
+                    resultItem += "<a href='" + articleUrl + "'>" +
+                      "<p class=\"search-result\">" + highlightKeyword(content, slice) +
+                      "...</p>" + "</a>";
+                  });
+
+                  resultItem += "</li>";
+                  resultItems.push({
+                    item: resultItem,
+                    searchTextCount: searchTextCount,
+                    hitCount: hitCount,
+                    id: resultItems.length
+                  });
+                }
+              })
+            };
+            if (keywords.length === 1 && keywords[0] === "") {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>'
+            } else if (resultItems.length === 0) {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>'
+            } else {
+              resultItems.sort(function (resultLeft, resultRight) {
+                if (resultLeft.searchTextCount !== resultRight.searchTextCount) {
+                  return resultRight.searchTextCount - resultLeft.searchTextCount;
+                } else if (resultLeft.hitCount !== resultRight.hitCount) {
+                  return resultRight.hitCount - resultLeft.hitCount;
+                } else {
+                  return resultRight.id - resultLeft.id;
+                }
+              });
+              var searchResultList = '<ul class=\"search-result-list\">';
+              resultItems.forEach(function (result) {
+                searchResultList += result.item;
+              })
+              searchResultList += "</ul>";
+              resultContent.innerHTML = searchResultList;
+            }
+          }
+
+          if ('auto' === 'auto') {
+            input.addEventListener('input', inputEventFunction);
+          } else {
+            $('.search-icon').click(inputEventFunction);
+            input.addEventListener('keypress', function (event) {
+              if (event.keyCode === 13) {
+                inputEventFunction();
+              }
+            });
+          }
+
+          // remove loading animation
+          $(".local-search-pop-overlay").remove();
+          $('body').css('overflow', '');
+
+          proceedsearch();
+        }
+      });
+    }
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched === false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+    });
+
+    $('.popup-btn-close').click(onPopupClose);
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+    $(document).on('keyup', function (event) {
+      var shouldDismissSearchPopup = event.which === 27 &&
+        $('.search-popup').is(':visible');
+      if (shouldDismissSearchPopup) {
+        onPopupClose();
+      }
+    });
+  </script>
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+  
+
+  
+
+
+  
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>
