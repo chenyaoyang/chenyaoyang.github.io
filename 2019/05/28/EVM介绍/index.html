@@ -1,0 +1,1460 @@
+<!DOCTYPE html>
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+<html class="theme-next pisces use-motion" lang="zh-CN">
+<head><meta name="generator" content="Hexo 3.8.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+    
+      
+    
+
+    
+  
+
+  
+
+  
+    
+      
+    
+
+    
+  
+
+  
+    
+      
+    
+
+    
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Monda:300,300italic,400,400italic,700,700italic|Roboto Slab:300,300italic,400,400italic,700,700italic|Dancing Script:300,300italic,400,400italic,700,700italic|Consolas:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css">
+
+<link href="/css/main.css?v=6.6.0" rel="stylesheet" type="text/css">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=6.6.0">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=6.6.0">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=6.6.0">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=6.6.0" color="#222">
+
+
+
+
+
+
+
+
+
+<script id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    version: '6.6.0',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: false,
+    fastclick: false,
+    lazyload: false,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+  
+
+
+
+
+  <meta name="keywords" content="翻译,以太坊">
+<meta property="og:type" content="article">
+<meta property="og:title" content="EVM介绍">
+<meta property="og:url" content="http://yoursite.com/2019/05/28/EVM介绍/index.html">
+<meta property="og:site_name" content="AmorFati">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:image" content="https://raw.githubusercontent.com/chenyaoyang/blog-pic/master/head/jeremy-weber-1584016-unsplash.jpg">
+<meta property="og:updated_time" content="2019-05-28T09:15:12.961Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="EVM介绍">
+<meta name="twitter:image" content="https://raw.githubusercontent.com/chenyaoyang/blog-pic/master/head/jeremy-weber-1584016-unsplash.jpg">
+
+
+
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2019/05/28/EVM介绍/">
+
+
+
+<script id="page.configurations">
+  CONFIG.page = {
+    sidebar: "",
+  };
+</script>
+
+  <title>EVM介绍 | AmorFati</title>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  <noscript>
+  <style>
+    .use-motion .motion-element,
+    .use-motion .brand,
+    .use-motion .menu-item,
+    .sidebar-inner,
+    .use-motion .post-block,
+    .use-motion .pagination,
+    .use-motion .comments,
+    .use-motion .post-header,
+    .use-motion .post-body,
+    .use-motion .collection-title { opacity: initial; }
+
+    .use-motion .logo,
+    .use-motion .site-title,
+    .use-motion .site-subtitle {
+      opacity: initial;
+      top: initial;
+    }
+
+    .use-motion .logo-line-before i { left: initial; }
+    .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope="" itemtype="http://schema.org/WebPage" lang="zh-CN">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope="" itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">AmorFati</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+    
+      
+        <p class="site-subtitle">风吹过窗前的书，又翻过一页</p>
+      
+    
+    
+  </div>
+
+  <div class="site-nav-toggle">
+    <button aria-label="切换导航栏">
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  
+    <ul id="menu" class="menu">
+      
+        
+        
+        
+          
+          <li class="menu-item menu-item-home">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/" rel="section"><i class="menu-item-icon fa fa-fw fa-home"></i> <br>首页</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-about">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/about/" rel="section"><i class="menu-item-icon fa fa-fw fa-user"></i> <br>关于</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-tags">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/tags/" rel="section"><i class="menu-item-icon fa fa-fw fa-tags"></i> <br>标签</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-categories">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/categories/" rel="section"><i class="menu-item-icon fa fa-fw fa-th"></i> <br>分类</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-archives">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/archives/" rel="section"><i class="menu-item-icon fa fa-fw fa-archive"></i> <br>归档</a>
+
+  </li>
+
+      
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br>搜索</a>
+        </li>
+      
+    </ul>
+  
+
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup search-popup local-search-popup">
+  <div class="local-search-header clearfix">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+    <div class="local-search-input-wrapper">
+      <input autocomplete="off" placeholder="搜索..." spellcheck="false" type="text" id="local-search-input">
+    </div>
+  </div>
+  <div id="local-search-result"></div>
+</div>
+
+
+
+    </div>
+  
+</nav>
+
+
+
+  
+
+
+
+</div>
+    </header>
+
+    
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+            
+
+          
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  
+
+  <article class="post post-type-normal" itemscope="" itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/05/28/EVM介绍/">
+
+    <span hidden itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="AmorFati">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/assets/img/icon.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope="" itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="AmorFati">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">EVM介绍
+
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+
+            
+            
+            
+
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+
+              
+                
+              
+
+              <time title="创建时间：2019-05-28 16:44:32 / 修改时间：17:15:12" itemprop="dateCreated datePublished" datetime="2019-05-28T16:44:32+08:00">2019-05-28</time>
+            
+
+            
+              
+
+              
+            
+          </span>
+
+          
+            <span class="post-category">
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope="" itemtype="http://schema.org/Thing"><a href="/categories/翻译/" itemprop="url" rel="index"><span itemprop="name">翻译</span></a></span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p><img src="https://raw.githubusercontent.com/chenyaoyang/blog-pic/master/head/jeremy-weber-1584016-unsplash.jpg" alt=""><br><a id="more"></a></p>
+<blockquote>
+<p><a href="https://github.com/CoinCulture/evm-tools/blob/master/analysis/guide.md" target="_blank" rel="noopener">原文地址</a></p>
+</blockquote>
+<p>这是一个了解EVM及其与Solidity关系以及如何使用某些调试工具的指南。</p>
+<h1 id="安全性"><a href="#安全性" class="headerlink" title="安全性"></a>安全性</h1><p>EVM是面向安全的虚拟机，旨在允许不受信任的代码由全球计算机网络执行。为安全起见，它规定了以下限制</p>
+<ul>
+<li>程序执行中的每个计算步骤都必须预先支付金额，从而防止拒绝服务攻击。</li>
+<li>程序只能通过发送单个任意长度的字节数组来进行交互;但是他们无法访问彼此的状态。</li>
+<li>程序是在沙盒中执行的;EVM程序仅可以访问和修改自己的内部状态，或者触发其他EVM程序的执行。</li>
+<li>程序执行是完全确定的，对于从相同状态开始的任何情况都产生相同的状态转换</li>
+</ul>
+<h1 id="概述"><a href="#概述" class="headerlink" title="概述"></a>概述</h1><p>EVM是一个基于堆栈的虚拟机，它具有临时的内存字节数组存储和持久的键值存储（持久的存储在Merkle树中）。堆栈上的元素是32字节长度，并且所有键和值都是以32字节存储的。有超过100个操作码，按十六进制分类。以下是pyethereum客户端的操作符列表，使用粗略的类别名称进行注释。<br><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># schema: [opcode, ins, outs, gas]</span></span><br><span class="line"></span><br><span class="line">opcodes = &#123;</span><br><span class="line"></span><br><span class="line">    <span class="comment"># arithmetic</span></span><br><span class="line">    <span class="number">0x00</span>: [<span class="string">'STOP'</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>],</span><br><span class="line">    <span class="number">0x01</span>: [<span class="string">'ADD'</span>, <span class="number">2</span>, <span class="number">1</span>, <span class="number">3</span>],</span><br><span class="line">    <span class="number">0x02</span>: [<span class="string">'MUL'</span>, <span class="number">2</span>, <span class="number">1</span>, <span class="number">5</span>],</span><br><span class="line">    <span class="number">0x03</span>: [<span class="string">'SUB'</span>, <span class="number">2</span>, <span class="number">1</span>, <span class="number">3</span>],</span><br><span class="line">    <span class="number">0x04</span>: [<span class="string">'DIV'</span>, <span class="number">2</span>, <span class="number">1</span>, <span class="number">5</span>],</span><br><span class="line">    <span class="number">0x05</span>: [<span class="string">'SDIV'</span>, <span class="number">2</span>, <span class="number">1</span>, <span class="number">5</span>],</span><br><span class="line">    <span class="number">0x06</span>: [<span class="string">'MOD'</span>, <span class="number">2</span>, <span class="number">1</span>, <span class="number">5</span>],</span><br><span class="line">    <span class="number">0x07</span>: [<span class="string">'SMOD'</span>, <span class="number">2</span>, <span class="number">1</span>, <span class="number">5</span>],</span><br><span class="line">    <span class="number">0x08</span>: [<span class="string">'ADDMOD'</span>, <span class="number">3</span>, <span class="number">1</span>, <span class="number">8</span>],</span><br><span class="line">    <span class="number">0x09</span>: [<span class="string">'MULMOD'</span>, <span class="number">3</span>, <span class="number">1</span>, <span class="number">8</span>],</span><br><span class="line">    <span class="number">0x0a</span>: [<span class="string">'EXP'</span>, <span class="number">2</span>, <span class="number">1</span>, <span class="number">10</span>],</span><br><span class="line">    <span class="number">0x0b</span>: [<span class="string">'SIGNEXTEND'</span>, <span class="number">2</span>, <span class="number">1</span>, <span class="number">5</span>],</span><br><span class="line"></span><br><span class="line">    <span class="comment"># boolean</span></span><br><span class="line">    <span class="number">0x10</span>: [<span class="string">'LT'</span>, <span class="number">2</span>, <span class="number">1</span>, <span class="number">3</span>],</span><br><span class="line">    <span class="number">0x11</span>: [<span class="string">'GT'</span>, <span class="number">2</span>, <span class="number">1</span>, <span class="number">3</span>],</span><br><span class="line">    <span class="number">0x12</span>: [<span class="string">'SLT'</span>, <span class="number">2</span>, <span class="number">1</span>, <span class="number">3</span>],</span><br><span class="line">    <span class="number">0x13</span>: [<span class="string">'SGT'</span>, <span class="number">2</span>, <span class="number">1</span>, <span class="number">3</span>],</span><br><span class="line">    <span class="number">0x14</span>: [<span class="string">'EQ'</span>, <span class="number">2</span>, <span class="number">1</span>, <span class="number">3</span>],</span><br><span class="line">    <span class="number">0x15</span>: [<span class="string">'ISZERO'</span>, <span class="number">1</span>, <span class="number">1</span>, <span class="number">3</span>],</span><br><span class="line">    <span class="number">0x16</span>: [<span class="string">'AND'</span>, <span class="number">2</span>, <span class="number">1</span>, <span class="number">3</span>],</span><br><span class="line">    <span class="number">0x17</span>: [<span class="string">'OR'</span>, <span class="number">2</span>, <span class="number">1</span>, <span class="number">3</span>],</span><br><span class="line">    <span class="number">0x18</span>: [<span class="string">'XOR'</span>, <span class="number">2</span>, <span class="number">1</span>, <span class="number">3</span>],</span><br><span class="line">    <span class="number">0x19</span>: [<span class="string">'NOT'</span>, <span class="number">1</span>, <span class="number">1</span>, <span class="number">3</span>],</span><br><span class="line">    <span class="number">0x1a</span>: [<span class="string">'BYTE'</span>, <span class="number">2</span>, <span class="number">1</span>, <span class="number">3</span>],</span><br><span class="line"></span><br><span class="line">    <span class="comment"># crypto</span></span><br><span class="line">    <span class="number">0x20</span>: [<span class="string">'SHA3'</span>, <span class="number">2</span>, <span class="number">1</span>, <span class="number">30</span>],</span><br><span class="line">    </span><br><span class="line">    <span class="comment"># contract context</span></span><br><span class="line">    <span class="number">0x30</span>: [<span class="string">'ADDRESS'</span>, <span class="number">0</span>, <span class="number">1</span>, <span class="number">2</span>],</span><br><span class="line">    <span class="number">0x31</span>: [<span class="string">'BALANCE'</span>, <span class="number">1</span>, <span class="number">1</span>, <span class="number">20</span>],</span><br><span class="line">    <span class="number">0x32</span>: [<span class="string">'ORIGIN'</span>, <span class="number">0</span>, <span class="number">1</span>, <span class="number">2</span>],</span><br><span class="line">    <span class="number">0x33</span>: [<span class="string">'CALLER'</span>, <span class="number">0</span>, <span class="number">1</span>, <span class="number">2</span>],</span><br><span class="line">    <span class="number">0x34</span>: [<span class="string">'CALLVALUE'</span>, <span class="number">0</span>, <span class="number">1</span>, <span class="number">2</span>],</span><br><span class="line">    <span class="number">0x35</span>: [<span class="string">'CALLDATALOAD'</span>, <span class="number">1</span>, <span class="number">1</span>, <span class="number">3</span>],</span><br><span class="line">    <span class="number">0x36</span>: [<span class="string">'CALLDATASIZE'</span>, <span class="number">0</span>, <span class="number">1</span>, <span class="number">2</span>],</span><br><span class="line">    <span class="number">0x37</span>: [<span class="string">'CALLDATACOPY'</span>, <span class="number">3</span>, <span class="number">0</span>, <span class="number">3</span>],</span><br><span class="line">    <span class="number">0x38</span>: [<span class="string">'CODESIZE'</span>, <span class="number">0</span>, <span class="number">1</span>, <span class="number">2</span>],</span><br><span class="line">    <span class="number">0x39</span>: [<span class="string">'CODECOPY'</span>, <span class="number">3</span>, <span class="number">0</span>, <span class="number">3</span>],</span><br><span class="line">    <span class="number">0x3a</span>: [<span class="string">'GASPRICE'</span>, <span class="number">0</span>, <span class="number">1</span>, <span class="number">2</span>],</span><br><span class="line">    <span class="number">0x3b</span>: [<span class="string">'EXTCODESIZE'</span>, <span class="number">1</span>, <span class="number">1</span>, <span class="number">20</span>],</span><br><span class="line">    <span class="number">0x3c</span>: [<span class="string">'EXTCODECOPY'</span>, <span class="number">4</span>, <span class="number">0</span>, <span class="number">20</span>],</span><br><span class="line"></span><br><span class="line">    <span class="comment"># blockchain context</span></span><br><span class="line">    <span class="number">0x40</span>: [<span class="string">'BLOCKHASH'</span>, <span class="number">1</span>, <span class="number">1</span>, <span class="number">20</span>],</span><br><span class="line">    <span class="number">0x41</span>: [<span class="string">'COINBASE'</span>, <span class="number">0</span>, <span class="number">1</span>, <span class="number">2</span>],</span><br><span class="line">    <span class="number">0x42</span>: [<span class="string">'TIMESTAMP'</span>, <span class="number">0</span>, <span class="number">1</span>, <span class="number">2</span>],</span><br><span class="line">    <span class="number">0x43</span>: [<span class="string">'NUMBER'</span>, <span class="number">0</span>, <span class="number">1</span>, <span class="number">2</span>],</span><br><span class="line">    <span class="number">0x44</span>: [<span class="string">'DIFFICULTY'</span>, <span class="number">0</span>, <span class="number">1</span>, <span class="number">2</span>],</span><br><span class="line">    <span class="number">0x45</span>: [<span class="string">'GASLIMIT'</span>, <span class="number">0</span>, <span class="number">1</span>, <span class="number">2</span>],</span><br><span class="line">  </span><br><span class="line">    <span class="comment"># storage and execution</span></span><br><span class="line">    <span class="number">0x50</span>: [<span class="string">'POP'</span>, <span class="number">1</span>, <span class="number">0</span>, <span class="number">2</span>],</span><br><span class="line">    <span class="number">0x51</span>: [<span class="string">'MLOAD'</span>, <span class="number">1</span>, <span class="number">1</span>, <span class="number">3</span>],</span><br><span class="line">    <span class="number">0x52</span>: [<span class="string">'MSTORE'</span>, <span class="number">2</span>, <span class="number">0</span>, <span class="number">3</span>],</span><br><span class="line">    <span class="number">0x53</span>: [<span class="string">'MSTORE8'</span>, <span class="number">2</span>, <span class="number">0</span>, <span class="number">3</span>],</span><br><span class="line">    <span class="number">0x54</span>: [<span class="string">'SLOAD'</span>, <span class="number">1</span>, <span class="number">1</span>, <span class="number">50</span>],</span><br><span class="line">    <span class="number">0x55</span>: [<span class="string">'SSTORE'</span>, <span class="number">2</span>, <span class="number">0</span>, <span class="number">0</span>],</span><br><span class="line">    <span class="number">0x56</span>: [<span class="string">'JUMP'</span>, <span class="number">1</span>, <span class="number">0</span>, <span class="number">8</span>],</span><br><span class="line">    <span class="number">0x57</span>: [<span class="string">'JUMPI'</span>, <span class="number">2</span>, <span class="number">0</span>, <span class="number">10</span>],</span><br><span class="line">    <span class="number">0x58</span>: [<span class="string">'PC'</span>, <span class="number">0</span>, <span class="number">1</span>, <span class="number">2</span>],</span><br><span class="line">    <span class="number">0x59</span>: [<span class="string">'MSIZE'</span>, <span class="number">0</span>, <span class="number">1</span>, <span class="number">2</span>],</span><br><span class="line">    <span class="number">0x5a</span>: [<span class="string">'GAS'</span>, <span class="number">0</span>, <span class="number">1</span>, <span class="number">2</span>],</span><br><span class="line">    <span class="number">0x5b</span>: [<span class="string">'JUMPDEST'</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">1</span>],</span><br><span class="line"></span><br><span class="line">    <span class="comment"># logging</span></span><br><span class="line">    <span class="number">0xa0</span>: [<span class="string">'LOG0'</span>, <span class="number">2</span>, <span class="number">0</span>, <span class="number">375</span>],</span><br><span class="line">    <span class="number">0xa1</span>: [<span class="string">'LOG1'</span>, <span class="number">3</span>, <span class="number">0</span>, <span class="number">750</span>],</span><br><span class="line">    <span class="number">0xa2</span>: [<span class="string">'LOG2'</span>, <span class="number">4</span>, <span class="number">0</span>, <span class="number">1125</span>],</span><br><span class="line">    <span class="number">0xa3</span>: [<span class="string">'LOG3'</span>, <span class="number">5</span>, <span class="number">0</span>, <span class="number">1500</span>],</span><br><span class="line">    <span class="number">0xa4</span>: [<span class="string">'LOG4'</span>, <span class="number">6</span>, <span class="number">0</span>, <span class="number">1875</span>],</span><br><span class="line">	</span><br><span class="line">    <span class="comment"># arbitrary length storage (proposal for metropolis hardfork)</span></span><br><span class="line">    <span class="number">0xe1</span>: [<span class="string">'SLOADBYTES'</span>, <span class="number">3</span>, <span class="number">0</span>, <span class="number">50</span>],</span><br><span class="line">    <span class="number">0xe2</span>: [<span class="string">'SSTOREBYTES'</span>, <span class="number">3</span>, <span class="number">0</span>, <span class="number">0</span>],</span><br><span class="line">    <span class="number">0xe3</span>: [<span class="string">'SSIZE'</span>, <span class="number">1</span>, <span class="number">1</span>, <span class="number">50</span>],</span><br><span class="line"></span><br><span class="line">    <span class="comment"># closures</span></span><br><span class="line">    <span class="number">0xf0</span>: [<span class="string">'CREATE'</span>, <span class="number">3</span>, <span class="number">1</span>, <span class="number">32000</span>],</span><br><span class="line">    <span class="number">0xf1</span>: [<span class="string">'CALL'</span>, <span class="number">7</span>, <span class="number">1</span>, <span class="number">40</span>],</span><br><span class="line">    <span class="number">0xf2</span>: [<span class="string">'CALLCODE'</span>, <span class="number">7</span>, <span class="number">1</span>, <span class="number">40</span>],</span><br><span class="line">    <span class="number">0xf3</span>: [<span class="string">'RETURN'</span>, <span class="number">2</span>, <span class="number">0</span>, <span class="number">0</span>],</span><br><span class="line">    <span class="number">0xf4</span>: [<span class="string">'DELEGATECALL'</span>, <span class="number">6</span>, <span class="number">0</span>, <span class="number">40</span>],</span><br><span class="line">    <span class="number">0xff</span>: [<span class="string">'SUICIDE'</span>, <span class="number">1</span>, <span class="number">0</span>, <span class="number">0</span>],</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment"># push</span></span><br><span class="line"><span class="keyword">for</span> i <span class="keyword">in</span> range(<span class="number">1</span>, <span class="number">33</span>):</span><br><span class="line">    opcodes[<span class="number">0x5f</span> + i] = [<span class="string">'PUSH'</span> + str(i), <span class="number">0</span>, <span class="number">1</span>, <span class="number">3</span>]</span><br><span class="line"></span><br><span class="line"><span class="comment"># duplicate and swap</span></span><br><span class="line"><span class="keyword">for</span> i <span class="keyword">in</span> range(<span class="number">1</span>, <span class="number">17</span>):</span><br><span class="line">    opcodes[<span class="number">0x7f</span> + i] = [<span class="string">'DUP'</span> + str(i), i, i + <span class="number">1</span>, <span class="number">3</span>]</span><br><span class="line">    opcodes[<span class="number">0x8f</span> + i] = [<span class="string">'SWAP'</span> + str(i), i + <span class="number">1</span>, i + <span class="number">1</span>, <span class="number">3</span>]</span><br></pre></td></tr></table></figure></p>
+<p>该表告诉我们每个操作码从堆栈中弹出多少个参数并压回几个参数，以及消耗了多少Gas。大多数操作码从堆栈中取出一些参数，并将一个或零个结压回栈。但是有些像GAS和PC一样的操作符，并不会从堆栈中取出任何参数，但是会将剩余的气体和程序计数器分别压入堆栈。许多操作码，如SHA3，CREATE和RETURN，从堆栈中获取引用内存中位置和大小的参数，允许它们对一个连续的内存数组进行操作。</p>
+<p>所有的运算都是使用栈上的元素对大整数进行的（如32字节大端整数）。目前，唯一的加密操作是SHA3散列函数，它从内存中获取任意长度的字节数组(由内存中的初始位置和长度指定)，并在堆栈上输出散列值。智能合约和区块链的上下文允许访问各种有用的环境信息，例如，CALLDATACOPY将发送到合约的数据(称为call-data)复制到内存中，NUMBER可以根据区块编号执行时间锁定。</p>
+<p>EVM通过MLOAD和MSTORE对其内存进行操作，并通过SLOAD和SSTORE对其持久存储进行操作。JUMP可用于跳转到程序中的任意点，其中这些点必须是JUMPDEST。PUSH1-PUSH32操作码将1-32字节的任何数据压入堆栈。DUP1-DUP16操作码将堆栈顶部16个元素之一的副本放到栈顶。SWAP1-SWAP16操作码将栈顶元素与栈中前16个元素的某一个交换。</p>
+<p>LOG操作码支持事件日志记录，它在区块中进行记录，并且能够被轻量级客户机有效地验证。最后，CALL和CREATE允许合约调用和创建其他合约，RETURN用于从一个调用中返回一块内存。SUICIDE导致合约被销毁，并将所有资金发送到指定的地址。</p>
+<p>每个操作码的规范可以在<a href="http://gavwood.com/paper.pdf" target="_blank" rel="noopener">黄皮书</a>上找到<a href="https://github.com/ethereum/yellowpaper" target="_blank" rel="noopener">源代码在Github上</a>，或者从EVM的实现中寻找。</p>
+<p>注意，EVM是图灵完全的：它既有图灵机的基本结构(用于管理内存和跳转到程序中的任意点的操作)，也有基于代理的消息传递系统，其中代理可能是任意代码(用于调用和创建其他合约以及返回值的操作)。为了确保每个操作都能终止，所有操作都带有明确的成本标记，以gas表示。执行必须指定一个最大的Gas量，这样当超过这个量就会抛出一个OutOfGas异常。操作码列表指定每个操作码消耗多少气体。 此外，某些操作消耗的气体量可通过下表参数化(详细信息请参阅黄皮书):<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line"># Non-opcode gas prices</span><br><span class="line">GDEFAULT = 1</span><br><span class="line">GMEMORY = 3</span><br><span class="line">GQUADRATICMEMDENOM = 512  # 1 gas per 512 quadwords</span><br><span class="line">GSTORAGEREFUND = 15000</span><br><span class="line">GSTORAGEKILL = 5000</span><br><span class="line">GSTORAGEMOD = 5000</span><br><span class="line">GSTORAGEADD = 20000</span><br><span class="line">GEXPONENTBYTE = 10    # cost of EXP exponent per byte</span><br><span class="line">GCOPY = 3             # cost to copy one 32 byte word</span><br><span class="line">GCONTRACTBYTE = 200   # one byte of code in contract creation</span><br><span class="line">GCALLVALUETRANSFER = 9000   # non-zero-valued call</span><br><span class="line">GLOGBYTE = 8          # cost of a byte of logdata</span><br><span class="line"></span><br><span class="line">GTXCOST = 21000       # TX BASE GAS COST</span><br><span class="line">GTXDATAZERO = 4       # TX DATA ZERO BYTE GAS COST</span><br><span class="line">GTXDATANONZERO = 68   # TX DATA NON ZERO BYTE GAS COST</span><br><span class="line">GSHA3WORD = 6         # Cost of SHA3 per word</span><br><span class="line">GSHA256BASE = 60      # Base c of SHA256</span><br><span class="line">GSHA256WORD = 12      # Cost of SHA256 per word</span><br><span class="line">GRIPEMD160BASE = 600  # Base cost of RIPEMD160</span><br><span class="line">GRIPEMD160WORD = 120  # Cost of RIPEMD160 per word</span><br><span class="line">GIDENTITYBASE = 15    # Base cost of indentity</span><br><span class="line">GIDENTITYWORD = 3     # Cost of identity per word</span><br><span class="line">GECRECOVER = 3000     # Cost of ecrecover op</span><br><span class="line"></span><br><span class="line">GSTIPEND = 2300</span><br><span class="line"></span><br><span class="line">GCALLNEWACCOUNT = 25000</span><br><span class="line">GSUICIDEREFUND = 24000</span><br></pre></td></tr></table></figure></p>
+<p>除Gas耗尽异常外，还包括无效的操作符、堆栈下溢和无效的跳转目的地等。栈的大小也有限制，而且调用深度也有限制，这样从一个合约到另一个合约的链式调用不能太长。例如，尽管提供了大量的Gas，递归调用合约终止也会停止。以太坊交易和原子性的，一旦抛出异常，交易状态会被回滚。唯一例外的是gas的支付在OutOfGas异常之前使用的任何Gas都将被扣除并发送给矿工。请注意，这样的交易仍然包含在块中，以便他们可以支付费用，如果不是这样，这将为矿工提供一个重要的DoS攻击载体。</p>
+<h1 id="执行"><a href="#执行" class="headerlink" title="执行"></a>执行</h1><p>让我们看一些简单的执行。为此，我在一个repo中收集了一些有用的工具，包括go-ethereum提供的一些不错的工具的分支。安装这些工具请参考<a href="https://github.com/CoinCulture/evm-tools/blob/master/INSTALL.md" target="_blank" rel="noopener">安装指南</a></p>
+<p>下面是我写的一些非常简单的字节码:<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">6005600401</span><br></pre></td></tr></table></figure></p>
+<p>运行 <code>echo 6005600401 | disasm</code> 执行反汇编, 结果如下:<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">0      PUSH1  =&gt; 05</span><br><span class="line">2      PUSH1  =&gt; 04</span><br><span class="line">4      ADD</span><br></pre></td></tr></table></figure></p>
+<p>这是一个简单的程序，它将数字 <code>05</code> 和 <code>04</code>放入栈内然后相加。</p>
+<p>我们也可以通过 <code>evm --debug --code 6005600401</code> 在EVM中执行, 得到的结果如下<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line">VM STAT 4 OPs</span><br><span class="line">PC 00000000: PUSH1 GAS: 9999999997 COST: 3</span><br><span class="line">STACK = 0</span><br><span class="line">MEM = 0</span><br><span class="line">STORAGE = 0</span><br><span class="line"></span><br><span class="line">PC 00000002: PUSH1 GAS: 9999999994 COST: 3</span><br><span class="line">STACK = 1</span><br><span class="line">0000: 0000000000000000000000000000000000000000000000000000000000000005</span><br><span class="line">MEM = 0</span><br><span class="line">STORAGE = 0</span><br><span class="line"></span><br><span class="line">PC 00000004: ADD GAS: 9999999991 COST: 3</span><br><span class="line">STACK = 2</span><br><span class="line">0000: 0000000000000000000000000000000000000000000000000000000000000004</span><br><span class="line">0001: 0000000000000000000000000000000000000000000000000000000000000005</span><br><span class="line">MEM = 0</span><br><span class="line">STORAGE = 0</span><br><span class="line"></span><br><span class="line">PC 00000005: STOP GAS: 9999999991 COST: 0</span><br><span class="line">STACK = 1</span><br><span class="line">0000: 0000000000000000000000000000000000000000000000000000000000000009</span><br><span class="line">MEM = 0</span><br><span class="line">STORAGE = 0</span><br></pre></td></tr></table></figure></p>
+<p>其中<code>--debug</code> debug标志在每个步骤中为我们打印堆栈、内存和存储的当前状态，并显示每个操作码和Gas用量。注意0x04和0x05是如何被压入栈(填充为32字节)并由ADD使用的，这使得结果0x09留在堆栈上。如果要返回值，而不是简单地留在栈上，我们需要修改字节码，以便将值复制到内存中，然后返回:<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">$ echo 60056004016000526001601ff3  | disasm</span><br><span class="line">60056004016000526001601ff3</span><br><span class="line">0      PUSH1  =&gt; 05</span><br><span class="line">2      PUSH1  =&gt; 04</span><br><span class="line">4      ADD</span><br><span class="line">5      PUSH1  =&gt; 00</span><br><span class="line">7      MSTORE</span><br><span class="line">8      PUSH1  =&gt; 01</span><br><span class="line">10     PUSH1  =&gt; 1f</span><br><span class="line">12     RETURN</span><br></pre></td></tr></table></figure></p>
+<p>值(0x09)存储在0x0位置。然而，由于存储的元素来自堆栈，所以它是一个32字节的元素，使用大端字节编码(即左填充0)的0x09。因此，为了只返回一个字节0x09，我们从内存0x1f位置开始返回长度为0x01的字节数组。或者，我们可以从位置0x00开始返回长度为0x20的字节数组，返回值是用零填充的32字节数据。</p>
+<p>通过 <code>evm --debug --code 60056004016000526001601ff3</code> 执行上面逻辑:<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br></pre></td><td class="code"><pre><span class="line">VM STAT 8 OPs</span><br><span class="line">PC 00000000: PUSH1 GAS: 9999999997 COST: 3</span><br><span class="line">STACK = 0</span><br><span class="line">MEM = 0</span><br><span class="line">STORAGE = 0</span><br><span class="line"></span><br><span class="line">PC 00000002: PUSH1 GAS: 9999999994 COST: 3</span><br><span class="line">STACK = 1</span><br><span class="line">0000: 0000000000000000000000000000000000000000000000000000000000000005</span><br><span class="line">MEM = 0</span><br><span class="line">STORAGE = 0</span><br><span class="line"></span><br><span class="line">PC 00000004: ADD GAS: 9999999991 COST: 3</span><br><span class="line">STACK = 2</span><br><span class="line">0000: 0000000000000000000000000000000000000000000000000000000000000004</span><br><span class="line">0001: 0000000000000000000000000000000000000000000000000000000000000005</span><br><span class="line">MEM = 0</span><br><span class="line">STORAGE = 0</span><br><span class="line"></span><br><span class="line">PC 00000005: PUSH1 GAS: 9999999988 COST: 3</span><br><span class="line">STACK = 1</span><br><span class="line">0000: 0000000000000000000000000000000000000000000000000000000000000009</span><br><span class="line">MEM = 0</span><br><span class="line">STORAGE = 0</span><br><span class="line"></span><br><span class="line">PC 00000007: MSTORE GAS: 9999999982 COST: 6</span><br><span class="line">STACK = 2</span><br><span class="line">0000: 0000000000000000000000000000000000000000000000000000000000000000</span><br><span class="line">0001: 0000000000000000000000000000000000000000000000000000000000000009</span><br><span class="line">MEM = 32</span><br><span class="line">0000: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................</span><br><span class="line">0016: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................</span><br><span class="line">STORAGE = 0</span><br><span class="line"></span><br><span class="line">PC 00000008: PUSH1 GAS: 9999999979 COST: 3</span><br><span class="line">STACK = 0</span><br><span class="line">MEM = 32</span><br><span class="line">0000: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................</span><br><span class="line">0016: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 09  ...............?</span><br><span class="line">STORAGE = 0</span><br><span class="line"></span><br><span class="line">PC 00000010: PUSH1 GAS: 9999999976 COST: 3</span><br><span class="line">STACK = 1</span><br><span class="line">0000: 0000000000000000000000000000000000000000000000000000000000000001</span><br><span class="line">MEM = 32</span><br><span class="line">0000: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................</span><br><span class="line">0016: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 09  ...............?</span><br><span class="line">STORAGE = 0</span><br><span class="line"></span><br><span class="line">PC 00000012: RETURN GAS: 9999999976 COST: 0</span><br><span class="line">STACK = 2</span><br><span class="line">0000: 000000000000000000000000000000000000000000000000000000000000001f</span><br><span class="line">0001: 0000000000000000000000000000000000000000000000000000000000000001</span><br><span class="line">MEM = 32</span><br><span class="line">0000: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................</span><br><span class="line">0016: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 09  ...............?</span><br><span class="line">STORAGE = 0</span><br><span class="line"></span><br><span class="line">OUT: 0x09</span><br></pre></td></tr></table></figure></p>
+<p>注意32字节的大端字节0x09如何存储在内存中，以及程序最终如何输出0x09。</p>
+<p>如果我们添加的参数大于一个字节，我们可以使用不同的PUSH操作符。例如，要添加像257 (0x0101)和258 (0x0102)这样的双字节数，我们使用PUSH2 (0x61):</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">$ echo 61010161010201 | disasm</span><br><span class="line">61010161010201</span><br><span class="line">0      PUSH2  =&gt; 0101</span><br><span class="line">3      PUSH2  =&gt; 0102</span><br><span class="line">6      ADD</span><br></pre></td></tr></table></figure>
+<p>执行 <code>evm --debug --code 61010161010201</code> 结果如下<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line">VM STAT 4 OPs</span><br><span class="line">PC 00000000: PUSH2 GAS: 9999999997 COST: 3</span><br><span class="line">STACK = 0</span><br><span class="line">MEM = 0</span><br><span class="line">STORAGE = 0</span><br><span class="line"></span><br><span class="line">PC 00000003: PUSH2 GAS: 9999999994 COST: 3</span><br><span class="line">STACK = 1</span><br><span class="line">0000: 0000000000000000000000000000000000000000000000000000000000000101</span><br><span class="line">MEM = 0</span><br><span class="line">STORAGE = 0</span><br><span class="line"></span><br><span class="line">PC 00000006: ADD GAS: 9999999991 COST: 3</span><br><span class="line">STACK = 2</span><br><span class="line">0000: 0000000000000000000000000000000000000000000000000000000000000102</span><br><span class="line">0001: 0000000000000000000000000000000000000000000000000000000000000101</span><br><span class="line">MEM = 0</span><br><span class="line">STORAGE = 0</span><br><span class="line"></span><br><span class="line">PC 00000007: STOP GAS: 9999999991 COST: 0</span><br><span class="line">STACK = 1</span><br><span class="line">0000: 0000000000000000000000000000000000000000000000000000000000000203</span><br><span class="line">MEM = 0</span><br><span class="line">STORAGE = 0</span><br></pre></td></tr></table></figure></p>
+<p>其中 <code>0x0203 = 515 = 257 + 258</code></p>
+<p>如果我们想将参数作为调用数据传递，而不是硬编码它们，该怎么办?为了方便起见，我们需要首先就格式规则达成一致。例如，所有输入值都左填充为32字节。然后我们可以这样做:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">$ echo 60003560203501 | disasm</span><br><span class="line">60003560203501</span><br><span class="line">0      PUSH1  =&gt; 00</span><br><span class="line">2      CALLDATALOAD</span><br><span class="line">3      PUSH1  =&gt; 20</span><br><span class="line">5      CALLDATALOAD</span><br><span class="line">6      ADD</span><br></pre></td></tr></table></figure>
+<p>要正确执行，我们必须传递正确的填充输入:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br></pre></td><td class="code"><pre><span class="line">$ evm --debug --code 60003560203501 --input 00000000000000000000000000000000000000000000000000000000000000050000000000000000000000000000000000000000000000000000000000000004</span><br><span class="line">VM STAT 6 OPs</span><br><span class="line">PC 00000000: PUSH1 GAS: 9999999997 COST: 3</span><br><span class="line">STACK = 0</span><br><span class="line">MEM = 0</span><br><span class="line">STORAGE = 0</span><br><span class="line"></span><br><span class="line">PC 00000002: CALLDATALOAD GAS: 9999999994 COST: 3</span><br><span class="line">STACK = 1</span><br><span class="line">0000: 0000000000000000000000000000000000000000000000000000000000000000</span><br><span class="line">MEM = 0</span><br><span class="line">STORAGE = 0</span><br><span class="line"></span><br><span class="line">PC 00000003: PUSH1 GAS: 9999999991 COST: 3</span><br><span class="line">STACK = 1</span><br><span class="line">0000: 0000000000000000000000000000000000000000000000000000000000000005</span><br><span class="line">MEM = 0</span><br><span class="line">STORAGE = 0</span><br><span class="line"></span><br><span class="line">PC 00000005: CALLDATALOAD GAS: 9999999988 COST: 3</span><br><span class="line">STACK = 2</span><br><span class="line">0000: 0000000000000000000000000000000000000000000000000000000000000020</span><br><span class="line">0001: 0000000000000000000000000000000000000000000000000000000000000005</span><br><span class="line">MEM = 0</span><br><span class="line">STORAGE = 0</span><br><span class="line"></span><br><span class="line">PC 00000006: ADD GAS: 9999999985 COST: 3</span><br><span class="line">STACK = 2</span><br><span class="line">0000: 0000000000000000000000000000000000000000000000000000000000000004</span><br><span class="line">0001: 0000000000000000000000000000000000000000000000000000000000000005</span><br><span class="line">MEM = 0</span><br><span class="line">STORAGE = 0</span><br><span class="line"></span><br><span class="line">PC 00000007: STOP GAS: 9999999985 COST: 0</span><br><span class="line">STACK = 1</span><br><span class="line">0000: 0000000000000000000000000000000000000000000000000000000000000009</span><br><span class="line">MEM = 0</span><br><span class="line">STORAGE = 0</span><br></pre></td></tr></table></figure>
+<p>如果你想让你的程序有多个可能的函数呢?结合调用数据的格式化和调用函数等问题，产生了<a href="https://solidity.readthedocs.io/en/develop/abi-spec.html" target="_blank" rel="noopener">应用程序二进制接口(ABI)标准</a>，并被高级语言如Solidity或serpent接受。我们稍后再讨论这个问题</p>
+<p>首先，我们如何控制流程? 当然是使用布尔表达式和跳转!下面是一个简单的循环:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">$ echo  6000356000525b600160005103600052600051600657 | disasm</span><br><span class="line">6000356000525b600160005103600052600051600657</span><br><span class="line">0      PUSH1  =&gt; 00</span><br><span class="line">2      CALLDATALOAD</span><br><span class="line">3      PUSH1  =&gt; 00</span><br><span class="line">5      MSTORE</span><br><span class="line">6      JUMPDEST</span><br><span class="line">7      PUSH1  =&gt; 01</span><br><span class="line">9      PUSH1  =&gt; 00</span><br><span class="line">11     MLOAD</span><br><span class="line">12     SUB</span><br><span class="line">13     PUSH1  =&gt; 00</span><br><span class="line">15     MSTORE</span><br><span class="line">16     PUSH1  =&gt; 00</span><br><span class="line">18     MLOAD</span><br><span class="line">19     PUSH1  =&gt; 06</span><br><span class="line">21     JUMPI</span><br></pre></td></tr></table></figure>
+<p>这里我们从call-data中加载一些值，然后通过多次循环将计数器的值存到内存中，并在每次循环是递减。这个循环实际上是从JUMPDEST地方开始的.最后一个操作码JUMPI接受一个值和一个位置，如果该值非零，则跳转到程序中的位置。如果跳转位置不是JUMPDEST，则抛出异常。在本例中，JUMPDEST的位置是0x06，它检查的值是计数器变量，从内存中加载。</p>
+<p>通过执行<code>evm --debug --code 6000356000525b600160005103600052600051600657 --input 0000000000000000000000000000000000000000000000000000000000000005</code> 来循环五次。看看您是否能够破译代码——查找内存中递减的计数器变量。</p>
+<p>如果我们运行的代码没有任何输入，或者输入为零，会发生什么? 循环会运行0次吗?为什么或为什么不(EVM没有负数的概念, 所以-1实际是 <code>2^256 - 1</code> 或 <code>0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff</code>). 要解决这个问题，在进入循环之前检查输入值是否为零(提示:使用ISZERO)。</p>
+<p>注意，我们在内存的使用上非常低效，因为我们不断地在内存中多次从同一个位置加载，然后存储到该位置。我们可以使用DUP和SWAP操作码将需要的内容保存在堆栈上，而不是访问内存字节数组。Solidity编译器一直在进行这种优化。下面是不使用内存的循环:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">$ echo 6000355b6001900380600357 | disasm</span><br><span class="line">6000355b6001900380600357</span><br><span class="line">0      PUSH1  =&gt; 00</span><br><span class="line">2      CALLDATALOAD</span><br><span class="line">3      JUMPDEST</span><br><span class="line">4      PUSH1  =&gt; 01</span><br><span class="line">6      SWAP1</span><br><span class="line">7      SUB</span><br><span class="line">8      DUP1</span><br><span class="line">9      PUSH1  =&gt; 03</span><br><span class="line">11     JUMPI</span><br></pre></td></tr></table></figure>
+<p>非常简单! SWAP操作确保计数器(要递减的值)位于堆栈的顶部，这正是SUB操作码所期望的。DUP1用于复制堆栈上的计数器，因此JUMPI可以使用它，并且下一次通过循环时仍然可以使用它进行减法。除此之外，循环的工作方式完全相同。还要注意，由于在循环开始之前我们没有将计数器存储到内存中，所以JUMPDEST的位置是0x03而不是0x06。</p>
+<p>通过下面操作执行五次循环<code>evm --debug --code 6000355b6001900380600357 --input 0000000000000000000000000000000000000000000000000000000000000005</code>观察计数器在堆栈上而不是在内存中保持和递减。</p>
+<p>在继续之前还有一个改进。传递一个32字节填充的字符串是很糟糕的;调用数据的大小应该是它需要的大小在本例中，我们希望使用<code>—input 05</code>调用5次循环，并使用<code>—input 0101</code>运行257次循环。问题是, CALLDATALOAD加载32字节大端数, 所以 <code>--input 05</code> 在栈中变成了 <code>0500000000000000000000000000000000000000000000000000000000000000</code>由于EVM中没有字节移位操作符，我们必须使用除法。在本例中，我们要除以256^(32-L)其中L是调用数据的长度。这具有字节右移(32-L)字节的效果。更新后的字节码如下:<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">$ echo  366020036101000a600035045b6001900380600c57 | disasm</span><br><span class="line">366020036101000a600035045b6001900380600c57</span><br><span class="line">0      CALLDATASIZE</span><br><span class="line">1      PUSH1  =&gt; 20</span><br><span class="line">3      SUB</span><br><span class="line">4      PUSH2  =&gt; 0100</span><br><span class="line">7      EXP</span><br><span class="line">8      PUSH1  =&gt; 00</span><br><span class="line">10     CALLDATALOAD</span><br><span class="line">11     DIV</span><br><span class="line">12     JUMPDEST</span><br><span class="line">13     PUSH1  =&gt; 01</span><br><span class="line">15     SWAP1</span><br><span class="line">16     SUB</span><br><span class="line">17     DUP1</span><br><span class="line">18     PUSH1  =&gt; 0c</span><br><span class="line">20     JUMPI</span><br></pre></td></tr></table></figure></p>
+<p>我们可以通过 <code>evm --debug --code 366020036101000a600035045b6001900380600c57 --input 05</code> 执行五次循环或者通过 <code>evm --debug --code 366020036101000a600035045b6001900380600c57 --input 0101</code>执行257次循环。确保您了解如何使用EXP和DIV来实现移位，这是高级语言广泛使用的一种非常常见的范例。</p>
+<h1 id="合约"><a href="#合约" class="headerlink" title="合约"></a>合约</h1><p>到目前为止，我们只研究了EVM的基本执行环境。但是EVM嵌入了区块链账户状态。以太坊中所有的账户都存储在一个<a href="https://easythereentropy.wordpress.com/2014/06/04/understanding-the-ethereum-trie/" target="_blank" rel="noopener">Merkle基数树</a>中。EVM中的程序位于称为合约的帐户中。除了地址、余额和序列号(等于帐户发送的事务数——也称为nonce)之外，合约还保留其EVM字节码的散列和内部存储树的Merkle根。一个账户最多可以有一个与之关联的程序，通过一个交易可以再任何时候创建一个合约。或者使用CALL操作符从另外一个合约中触发来创建。注意，一旦部署，合约的代码可能不会更改。帐户/合约存储的Merkle根将在任何交易成功之后更新，其中SSTORE操作码的执行将导致一个值存储在一个新键上，或者对存储在现有键上的值进行更改。</p>
+<p>合约的创建以一种特殊的方式进行，将交易发送到空地址，并将合约代码作为数据。以太坊的状态转移函数或通过创建一个新账户来创建合约，并运行调用数据中指定的程序，之后将EVM返回的内容设置为新合约的代码。也就是说，在创建过程中发送的代码与存储在合约中的代码不一样——相反，它是所谓的“部署代码”，其中包含包装在某些操作中的实际合约代码，这些操作将把它复制到内存中并返回。</p>
+<p>例如，如果我们编写的一个程序(它不返回任何东西)，并将其作为数据发送到空地址，程序将执行，但是生成的帐户将没有代码，因此对该帐户的任何事务将导致没有代码运行。</p>
+<p>以简单的加法程序<code>6005600401</code>为例，我们可以使用evm-deploy工具生成部署代码:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">$ echo 6005600401 | evm-deploy | disasm </span><br><span class="line">600580600b6000396000f36005600401</span><br><span class="line">0      PUSH1  =&gt; 05</span><br><span class="line">2      DUP1</span><br><span class="line">3      PUSH1  =&gt; 0b</span><br><span class="line">5      PUSH1  =&gt; 00</span><br><span class="line">7      CODECOPY</span><br><span class="line">8      PUSH1  =&gt; 00</span><br><span class="line">10     RETURN</span><br><span class="line">11     PUSH1  =&gt; 05</span><br><span class="line">13     PUSH1  =&gt; 04</span><br><span class="line">15     ADD</span><br></pre></td></tr></table></figure>
+<p>在这里，我们知道程序的长度是0x05，并且我们知道它嵌入到部署代码中，从位置11 (0x0b)开始。因此，我们将这段代码复制到内存中(位置0x00)并返回它。注意，使用DUP1可以使代码的长度(在本例中是0x05)在栈上，用于CODECOPY和返回。当部署代码运行时，返回值应该是目标代码，即：6005600401</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br></pre></td><td class="code"><pre><span class="line">$ evm --debug --code 600580600b6000396000f36005600401</span><br><span class="line">VM STAT 7 OPs</span><br><span class="line">PC 00000000: PUSH1 GAS: 9999999997 COST: 3</span><br><span class="line">STACK = 0</span><br><span class="line">MEM = 0</span><br><span class="line">STORAGE = 0</span><br><span class="line"></span><br><span class="line">PC 00000002: DUP1 GAS: 9999999994 COST: 3</span><br><span class="line">STACK = 1</span><br><span class="line">0000: 0000000000000000000000000000000000000000000000000000000000000005</span><br><span class="line">MEM = 0</span><br><span class="line">STORAGE = 0</span><br><span class="line"></span><br><span class="line">PC 00000003: PUSH1 GAS: 9999999991 COST: 3</span><br><span class="line">STACK = 2</span><br><span class="line">0000: 0000000000000000000000000000000000000000000000000000000000000005</span><br><span class="line">0001: 0000000000000000000000000000000000000000000000000000000000000005</span><br><span class="line">MEM = 0</span><br><span class="line">STORAGE = 0</span><br><span class="line"></span><br><span class="line">PC 00000005: PUSH1 GAS: 9999999988 COST: 3</span><br><span class="line">STACK = 3</span><br><span class="line">0000: 000000000000000000000000000000000000000000000000000000000000000b</span><br><span class="line">0001: 0000000000000000000000000000000000000000000000000000000000000005</span><br><span class="line">0002: 0000000000000000000000000000000000000000000000000000000000000005</span><br><span class="line">MEM = 0</span><br><span class="line">STORAGE = 0</span><br><span class="line"></span><br><span class="line">PC 00000007: CODECOPY GAS: 9999999979 COST: 9</span><br><span class="line">STACK = 4</span><br><span class="line">0000: 0000000000000000000000000000000000000000000000000000000000000000</span><br><span class="line">0001: 000000000000000000000000000000000000000000000000000000000000000b</span><br><span class="line">0002: 0000000000000000000000000000000000000000000000000000000000000005</span><br><span class="line">0003: 0000000000000000000000000000000000000000000000000000000000000005</span><br><span class="line">MEM = 32</span><br><span class="line">0000: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................</span><br><span class="line">0016: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................</span><br><span class="line">STORAGE = 0</span><br><span class="line"></span><br><span class="line">PC 00000008: PUSH1 GAS: 9999999976 COST: 3</span><br><span class="line">STACK = 1</span><br><span class="line">0000: 0000000000000000000000000000000000000000000000000000000000000005</span><br><span class="line">MEM = 32</span><br><span class="line">0000: 60 05 60 04 01 00 00 00 00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................</span><br><span class="line">STORAGE = 0</span><br><span class="line"></span><br><span class="line">PC 00000010: RETURN GAS: 9999999976 COST: 0</span><br><span class="line">STACK = 2</span><br><span class="line">0000: 0000000000000000000000000000000000000000000000000000000000000000</span><br><span class="line">0001: 0000000000000000000000000000000000000000000000000000000000000005</span><br><span class="line">MEM = 32</span><br><span class="line">0000: 60 05 60 04 01 00 00 00 00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................</span><br><span class="line">STORAGE = 0</span><br><span class="line"></span><br><span class="line">OUT: 0x6005600401</span><br></pre></td></tr></table></figure>
+<h1 id="有状态的EVM"><a href="#有状态的EVM" class="headerlink" title="有状态的EVM"></a>有状态的EVM</h1><p>我对evm工具做了一些修改，以便它可以在调用之间保持状态。只需使用datadir标志。例如，让我们使用返回0x5和0x4之和的合约。我们可以运行部署代码，因此实际上部署了合约(用正确的代码创建的帐户)，然后我们可以与它交互:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">$ evm --code $(echo &quot;60056004016000526001601ff3&quot; | evm-deploy)  --datadir evm-data</span><br><span class="line">Loading database</span><br><span class="line">Loading root hash 0000000000000000000000000000000000000000000000000000000000000000</span><br><span class="line">Contract Address: 1F2A98889594024BFFDA3311CBE69728D392C06D</span><br><span class="line">VM STAT 0 OPs</span><br><span class="line">OUT: 0x60056004016000526001601ff3</span><br></pre></td></tr></table></figure>
+<p>他给我们返回了合约地址：(<code>1F2A98889594024BFFDA3311CBE69728D392C06D</code>).这个地址是从哪儿来的?它是列表<code>[发送者地址,发送者序列号]</code>的<a href="https://github.com/ethereum/wiki/wiki/RLP" target="_blank" rel="noopener">RLP编码</a>的sha3散列值。<br>默认的发送者是 <code>0x000000000000000000000000000073656e646572</code> ，序列号从0x0开始。python代码如下:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">&gt;&gt;&gt; import rlp, sha3</span><br><span class="line">&gt;&gt;&gt; sha3.sha3_256(rlp.encode([&quot;000000000000000000000000000073656e646572&quot;.decode(&apos;hex&apos;), 0])).hexdigest()[24:]</span><br><span class="line">&apos;1f2a98889594024bffda3311cbe69728d392c06d&apos;</span><br></pre></td></tr></table></figure>
+<p>注意，这意味着地址从相同的状态开始是严格确定的。如果我们再次部署合同，发送者的序列号将是0x1:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">$ evm --code $(echo &quot;60056004016000526001601ff3&quot; | evm-deploy)  --datadir evm-data</span><br><span class="line">Datadir already exists</span><br><span class="line">Loading database</span><br><span class="line">Loading root hash BFDDB19821CE2BFAB71C4BA9E8ADC6CF083DAE0EF9206AA506BC88B0F9064182</span><br><span class="line">Contract Address: 14F6D12ECEBB7606C528880AD8B97C25AB7D4AD9</span><br><span class="line">VM STAT 0 OPs</span><br><span class="line">OUT: 0x60056004016000526001601ff3</span><br></pre></td></tr></table></figure>
+<p>对于相同的输出产生不同的地址：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">&gt;&gt;&gt; import rlp, sha3</span><br><span class="line">&gt;&gt;&gt; sha3.sha3_256(rlp.encode([&quot;000000000000000000000000000073656e646572&quot;.decode(&apos;hex&apos;), 1])).hexdigest()[24:]</span><br><span class="line">&apos;14f6d12ecebb7606c528880ad8b97c25ab7d4ad9&apos;</span><br></pre></td></tr></table></figure>
+<p>现在我们可以发送一个交易给合约</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">$ evm --to 14F6D12ECEBB7606C528880AD8B97C25AB7D4AD9 --datadir evm-data</span><br><span class="line">Datadir already exists</span><br><span class="line">Loading database</span><br><span class="line">Loading root hash 60209E93FEFD3DD5CF1D6B3FBDC33DA1B020C5B880A51E8306A3F5FDF269122A</span><br><span class="line">Loaded account for receiver 14F6D12ECEBB7606C528880AD8B97C25AB7D4AD9</span><br><span class="line">CODE: 60056004016000526001601FF3</span><br><span class="line">VM STAT 0 OPs</span><br><span class="line">OUT: 0x09</span><br></pre></td></tr></table></figure>
+<p>注意它是如何返回0x09的</p>
+<h1 id="异常"><a href="#异常" class="headerlink" title="异常"></a>异常</h1><p>这里有一些异常的例子。</p>
+<p>无效操作符 (<code>5f</code> 是一个无效的操作符):</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">evm --debug --code 5f</span><br></pre></td></tr></table></figure>
+<p>栈下溢 (<code>JUMP</code> (0x56) 只要要求一个参数):</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">evm --debug --code 56</span><br></pre></td></tr></table></figure>
+<p>无效的跳转目的地 (0x0不是一个 <code>JUMPDEST</code>, 在本例它是一个 <code>PUSH</code>):</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">evm --debug --code 600056</span><br></pre></td></tr></table></figure>
+<p>这是一个out-of-gas异常 (<code>PUSH</code> 要求3个gas):</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">evm --debug --gas 1 --code 6000</span><br></pre></td></tr></table></figure>
+<p>更多说明参见evm –help</p>
+<h1 id="内存和存储"><a href="#内存和存储" class="headerlink" title="内存和存储"></a>内存和存储</h1><p>除了堆栈之外，EVM还附带一个临时内存字节数组和持久存储树。对内存字节数组的访问是相对便宜的，内存越界访问也不例外;当您访问内存时，内存会根据需要增长，您只需为大小的变化支付相应的费用。</p>
+<p>例如，第一次访问内存位置0x1000花费了我们很多钱，因为内存的大小从0增长到4096，而第二次几乎没有，因为内存的大小没有变化:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">evm --debug --code 611000805151</span><br></pre></td></tr></table></figure>
+<p>存储空间实际上是无限的，或者说是2^256，但是相对来说比较昂贵，将一个非零的区域赋值需要消耗20000个Gas，相反则需要5000个气体。例如，我们将0x2存储在0x0位置，然后用0x1覆盖它:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">evm --debug --code 60026000556001600055</span><br></pre></td></tr></table></figure>
+<h1 id="Solidity"><a href="#Solidity" class="headerlink" title="Solidity"></a>Solidity</h1><p>最后我们讨论一下Solidity。solability是一种高级的、类似javascript的、面向合约的语言，可以编译为EVM。他有许多EVM没有的高级特性，如type、arrays和函数调用。它还符合Ethereum ABI，这是一个关于参数和函数调用如何在调用数据中编码的规范。总之，调用数据的前四个字节是函数标识符，对应于函数签名规范版本的sha3散列的前四个字节。其余参数以32字节形式填充并传递。</p>
+<p>首先，我们需要Solidity编译器,<code>solc</code>。因为它是用c++编写的，所以安装起来很麻烦。幸运的是，您可以使用docker和Eris Industries提供好的镜像。</p>
+<p>首先，我们创建一个工作目录:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">export SOLC_WORKSPACE=$HOME/solidity_workspace</span><br><span class="line">mkdir $SOLC_WORKSPACE</span><br></pre></td></tr></table></figure>
+<p>现在我们运行docker容器(如果你还没有eris/compiler的镜像，这个会进行下载):</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">docker run --name solc -v $SOLC_WORKSPACE:/home/eris/.eris -it quay.io/eris/compilers /bin/bash</span><br></pre></td></tr></table></figure>
+<p>这个命令会让您进入Solidity编译器的容器，<code>$SOLC_WORKSPACE</code>目录会被挂载到容器的 <code>/home/eris/.eris</code>目录下，<code>$SOLC_WORKSPACE</code>目录中的任何文件改动都会立即在容器中得到体现。运行 <code>solc --help</code>确保编译器已被安装。</p>
+<p>使用docker通常涉及两个终端会话，一个在容器中，另一个在主机上。容器会话允许交互访问所需的任何二进制文件(在本例中是solc)，而主机会话允许文件正常地在主机进行更改，并立即反映在容器中。</p>
+<p>打开另一个窗口作为主机会话, 设置 <code>SOLC_WORKSPACE</code> 通过 <code>export SOLC_WORKSPACE=$HOME/solidity_workspace</code>,并存储下面的合约为：<code>$SOLC_WORKSPACE/add.sol</code>:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">contract Addition&#123;</span><br><span class="line">	int x;</span><br><span class="line">        function add(int a, int b)&#123;</span><br><span class="line">		x = a + b;</span><br><span class="line">    	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>这个合约运行用户调用 <code>add</code> 函数, 传递两个参数 <code>a</code> 和 <code>b</code> ，他们相加的结果存储在变量<code>x</code>中。注意，定义在合约顶部的变量被持久化到合约存储树中(使用SSTORE)。</p>
+<p>回到容器会话, 使用<code>cd /home/eris/.eris</code>和<code>ls</code>,你会发现一个目录和合约文件</p>
+<p>编译合约:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">solc --bin-runtime --optimize -o . add.sol</span><br></pre></td></tr></table></figure>
+<p>在主机会话, 你会发现合约在 <code>$SOLC_WORKSPACE/Addition.bin-runtime</code>目录.</p>
+<p>通过使用 <code>--bin-runtime</code>,我们将得到与部署后合同中一样的代码——我们可以使用evm工具进行测试。如果使用 <code>--bin</code> 代替 <code>--bin-runtime</code>, 并通过 <code>evm</code>运行, 将得到和<code>--bin-runtime</code>一样的输出,使用<code>—bin</code>编译的合约的返回值是使用<code>—bin-runtime</code>编译的合约。</p>
+<p>让我们反编译solidity合约:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line">$ echo $(cat MyContract.bin-runtime)  | disasm </span><br><span class="line">606060405260e060020a6000350463a5f3c23b8114601a575b005b60243560043501600055601856</span><br><span class="line">0      PUSH1  =&gt; 60</span><br><span class="line">2      PUSH1  =&gt; 40</span><br><span class="line">4      MSTORE</span><br><span class="line">5      PUSH1  =&gt; e0</span><br><span class="line">7      PUSH1  =&gt; 02</span><br><span class="line">9      EXP</span><br><span class="line">10     PUSH1  =&gt; 00</span><br><span class="line">12     CALLDATALOAD</span><br><span class="line">13     DIV</span><br><span class="line">14     PUSH4  =&gt; a5f3c23b</span><br><span class="line">19     DUP2</span><br><span class="line">20     EQ</span><br><span class="line">21     PUSH1  =&gt; 1a</span><br><span class="line">23     JUMPI</span><br><span class="line">24     JUMPDEST</span><br><span class="line">25     STOP</span><br><span class="line">26     JUMPDEST</span><br><span class="line">27     PUSH1  =&gt; 24</span><br><span class="line">29     CALLDATALOAD</span><br><span class="line">30     PUSH1  =&gt; 04</span><br><span class="line">32     CALLDATALOAD</span><br><span class="line">33     ADD</span><br><span class="line">34     PUSH1  =&gt; 00</span><br><span class="line">36     SSTORE</span><br><span class="line">37     PUSH1  =&gt; 18</span><br><span class="line">39     JUMP</span><br></pre></td></tr></table></figure>
+<p>：加法本身发生在底部。注意，就在ADD之前，使用CALLDATALOADs，我们从调用数据的0x04和0x24位置加载32字节的参数，而不是0x00和0x20，以便在函数标识符的前四个字节中留出空间。在本例中，您可能已经猜到，我们唯一的函数的函数标识符是<code>a5f3c23b</code>。26行之前所有的代码都是为了检测调用数据的前四个字节是否是<code>a5f3c23b</code>。因为CALLDATALOAD会获取一个32字节的数据，而我们只需要4个字节，所以我们必须通过除以一个大整数来进行字节移位，因此需要EXP和DIV。如果调用数据的前四个字节匹配a5f3c23b，则加载参数，添加它们，并存储在0x00位置。否则,我们停止。</p>
+<p>注意，我们可以通过运行<code>solc --hashes add.sol</code>来验证函数标识符 , 或者在python如下操作</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">&gt;&gt;&gt; import sha3</span><br><span class="line">&gt;&gt;&gt; sha3.sha3_256(&quot;add(int256,int256)&quot;).hexdigest()[:8]</span><br><span class="line">&apos;a5f3c23b&apos;</span><br></pre></td></tr></table></figure>
+<p>为了正确调用函数, 我们可以如下操作 <code>evm --debug --code $(cat Addition.bin-runtime) --input a5f3c23b00000000000000000000000000000000000000000000000000000000000000050000000000000000000000000000000000000000000000000000000000000004</code></p>
+<p>一个更有趣的合约将有一个get函数，所以我们可以找出最后存储的值:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">contract Addition&#123;</span><br><span class="line">	int x;</span><br><span class="line">	function add(int a, int b)&#123;</span><br><span class="line">		x = a + b;</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	function get() returns (int)&#123;</span><br><span class="line">		return x;</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>使用我们的evm工具，我们可以部署此合约，添加两个值，然后检索存储的值。<br>将合约存储为<code>add.sol</code>. 现在，从容器内部编译合同：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">solc --bin --optimize -o . add.sol</span><br></pre></td></tr></table></figure>
+<p>这回创建一个 <code>Addition.bin</code>文件, 在容器外面的的目录为 <code>$SOLC_WORKSPACE</code>.<br>在主机的 <code>$SOLC_WORKSPACE</code> 目录，我们可以部署合约：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">$ evm --code $(cat Addition.bin) --datadir evm-data</span><br><span class="line">Loading database</span><br><span class="line">Loading root hash 0000000000000000000000000000000000000000000000000000000000000000</span><br><span class="line">Contract Address: 1F2A98889594024BFFDA3311CBE69728D392C06D</span><br><span class="line">VM STAT 0 OPs</span><br><span class="line">OUT: 0x606060405260e060020a60003504636d4ce63c81146024578063a5f3c23b146031575b005b6000546060908152602090f35b60243560043501600055602256</span><br></pre></td></tr></table></figure>
+<p>现在我们调用 <code>add</code> 函数, 并存储 <code>5+4</code>的结果:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">evm --datadir evm-data --to 0x1F2A98889594024BFFDA3311CBE69728D392C06D --input a5f3c23b00000000000000000000000000000000000000000000000000000000000000050000000000000000000000000000000000000000000000000000000000000004</span><br></pre></td></tr></table></figure>
+<p>最后让我们调用 <code>get</code> 函数. 首先我们获取函数标识:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">$ solc --hashes add.sol</span><br><span class="line">======= Addition =======</span><br><span class="line">Function signatures: </span><br><span class="line">6d4ce63c: get()</span><br><span class="line">a5f3c23b: add(int256,int256)</span><br></pre></td></tr></table></figure>
+<p>现在我们可以进行调用</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">$ evm --datadir evm-data --to 0x1F2A98889594024BFFDA3311CBE69728D392C06D --input 6d4ce63c</span><br><span class="line">Datadir already exists</span><br><span class="line">Loading database</span><br><span class="line">Loading root hash F3C30A7CD9769C45590C236816F2714E96198DBD7FEC33AE892E861816F548B2</span><br><span class="line">Loaded account for receiver 1F2A98889594024BFFDA3311CBE69728D392C06D</span><br><span class="line">CODE: 606060405260E060020A60003504636D4CE63C81146024578063A5F3C23B146031575B005B6000546060908152602090F35B60243560043501600055602256</span><br><span class="line">VM STAT 0 OPs</span><br><span class="line">OUT: 0x0000000000000000000000000000000000000000000000000000000000000009</span><br></pre></td></tr></table></figure>
+<h1 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h1><p>以上就是对Ethereum虚拟机的介绍。希望您现在能够更深入地了解它的工作原理，并将这些知识传授给其他人，使更多的人了解以太坊底层工作原理，从而促进更多的分析和处理以太坊合约的工具出现。</p>
+<blockquote>
+<p>题图来自unsplash：<a href="https://unsplash.com/photos/H1SOELwNtTw" target="_blank" rel="noopener">https://unsplash.com/photos/H1SOELwNtTw</a></p>
+</blockquote>
+
+      
+    </div>
+
+    
+
+    
+    
+    
+
+    
+
+    
+      
+    
+    
+      <div>
+        <div style="padding: 10px 0; margin: 20px auto; width: 90%; text-align: center;">
+  <div>谢谢你请我吃糖</div>
+  <button id="rewardButton" disable="enable" onclick="var qr = document.getElementById('QR'); if (qr.style.display === 'none') {qr.style.display='block';} else {qr.style.display='none'}">
+    <span>打赏</span>
+  </button>
+  <div id="QR" style="display: none;">
+
+    
+      <div id="wechat" style="display: inline-block">
+        <img id="wechat_qr" src="/assets/img/wechatpay.jpg" alt="AmorFati 微信支付">
+        <p>微信支付</p>
+      </div>
+    
+
+    
+      <div id="alipay" style="display: inline-block">
+        <img id="alipay_qr" src="/assets/img/alipay.jpg" alt="AmorFati 支付宝">
+        <p>支付宝</p>
+      </div>
+    
+
+    
+
+  </div>
+</div>
+
+      </div>
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/翻译/" rel="tag"># 翻译</a>
+          
+            <a href="/tags/以太坊/" rel="tag"># 以太坊</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2019/05/23/Hashimoto：IO限制的工作证明/" rel="next" title="Hashimoto：IO限制的工作证明">
+                <i class="fa fa-chevron-left"></i> Hashimoto：IO限制的工作证明
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2019/05/28/Dagger算法/" rel="prev" title="Dagger算法">
+                Dagger算法 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+  </div>
+
+
+          </div>
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image" src="/assets/img/icon.jpg" alt="AmorFati">
+            
+              <p class="site-author-name" itemprop="name">AmorFati</p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          
+            <nav class="site-state motion-element">
+              
+                <div class="site-state-item site-state-posts">
+                
+                  <a href="/archives/">
+                
+                    <span class="site-state-item-count">41</span>
+                    <span class="site-state-item-name">日志</span>
+                  </a>
+                </div>
+              
+
+              
+                
+                
+                <div class="site-state-item site-state-categories">
+                  <a href="/categories/index.html">
+                    
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">7</span>
+                    <span class="site-state-item-name">分类</span>
+                  </a>
+                </div>
+              
+
+              
+                
+                
+                <div class="site-state-item site-state-tags">
+                  <a href="/tags/index.html">
+                    
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">11</span>
+                    <span class="site-state-item-name">标签</span>
+                  </a>
+                </div>
+              
+            </nav>
+          
+
+          
+
+          
+            <div class="links-of-author motion-element">
+              
+                <span class="links-of-author-item">
+                  
+                  
+                    
+                  
+                  
+                    
+                  
+                  <a href="https://github.com/chenyaoyang" title="GitHub &rarr; https://github.com/chenyaoyang" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i>GitHub</a>
+                </span>
+              
+                <span class="links-of-author-item">
+                  
+                  
+                    
+                  
+                  
+                    
+                  
+                  <a href="mailto:chenyang4346@foxmail.com" title="E-Mail &rarr; mailto:chenyang4346@foxmail.com" rel="noopener" target="_blank"><i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+                </span>
+              
+                <span class="links-of-author-item">
+                  
+                  
+                    
+                  
+                  
+                    
+                  
+                  <a href="https://www.jianshu.com/u/52c1bec4559c" title="简书 &rarr; https://www.jianshu.com/u/52c1bec4559c" rel="noopener" target="_blank"><i class="fa fa-fw fa-globe"></i>简书</a>
+                </span>
+              
+            </div>
+          
+
+          
+
+          
+          
+
+          
+            
+          
+          
+
+        </div>
+      </div>
+
+      
+      <!--noindex-->
+        <div class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+            
+            
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#安全性"><span class="nav-number">1.</span> <span class="nav-text">安全性</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#概述"><span class="nav-number">2.</span> <span class="nav-text">概述</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#执行"><span class="nav-number">3.</span> <span class="nav-text">执行</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#合约"><span class="nav-number">4.</span> <span class="nav-text">合约</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#有状态的EVM"><span class="nav-number">5.</span> <span class="nav-text">有状态的EVM</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#异常"><span class="nav-number">6.</span> <span class="nav-text">异常</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#内存和存储"><span class="nav-number">7.</span> <span class="nav-text">内存和存储</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Solidity"><span class="nav-number">8.</span> <span class="nav-text">Solidity</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#总结"><span class="nav-number">9.</span> <span class="nav-text">总结</span></a></li></ol></div>
+            
+
+          </div>
+        </div>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; 2018 – <span itemprop="copyrightYear">2019</span>
+  <span class="with-love" id="animate">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">AmorFati</span>
+
+  
+
+  
+</div>
+
+
+  <div class="powered-by">由 <a href="https://hexo.io" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v3.8.0</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 – <a href="https://theme-next.org" class="theme-link" rel="noopener" target="_blank">NexT.Pisces</a> v6.6.0</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+    
+
+    
+  </div>
+
+  
+
+<script>
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+
+  
+
+
+  <script src="/js/src/utils.js?v=6.6.0"></script>
+
+  <script src="/js/src/motion.js?v=6.6.0"></script>
+
+
+
+  
+  
+
+
+  <script src="/js/src/affix.js?v=6.6.0"></script>
+
+  <script src="/js/src/schemes/pisces.js?v=6.6.0"></script>
+
+
+
+  
+  <script src="/js/src/scrollspy.js?v=6.6.0"></script>
+<script src="/js/src/post-details.js?v=6.6.0"></script>
+
+
+
+  
+
+
+  <script src="/js/src/bootstrap.js?v=6.6.0"></script>
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  <script>
+    // Popup Window;
+    var isfetched = false;
+    var isXml = true;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length === 0) {
+      search_path = "search.xml";
+    } else if (/json$/i.test(search_path)) {
+      isXml = false;
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    var onPopupClose = function (e) {
+      $('.popup').hide();
+      $('#local-search-input').val('');
+      $('.search-result-list').remove();
+      $('#no-result').remove();
+      $(".local-search-pop-overlay").remove();
+      $('body').css('overflow', '');
+    }
+
+    function proceedsearch() {
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay"></div>')
+        .css('overflow', 'hidden');
+      $('.search-popup-overlay').click(onPopupClose);
+      $('.popup').toggle();
+      var $localSearchInput = $('#local-search-input');
+      $localSearchInput.attr("autocapitalize", "none");
+      $localSearchInput.attr("autocorrect", "off");
+      $localSearchInput.focus();
+    }
+
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+      'use strict';
+
+      // start loading animation
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay">' +
+          '<div id="search-loading-icon">' +
+          '<i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>' +
+          '</div>' +
+          '</div>')
+        .css('overflow', 'hidden');
+      $("#search-loading-icon").css('margin', '20% auto 0 auto').css('text-align', 'center');
+
+      
+
+      $.ajax({
+        url: path,
+        dataType: isXml ? "xml" : "json",
+        async: true,
+        success: function(res) {
+          // get the contents from search data
+          isfetched = true;
+          $('.popup').detach().appendTo('.header-inner');
+          var datas = isXml ? $("entry", res).map(function() {
+            return {
+              title: $("title", this).text(),
+              content: $("content",this).text(),
+              url: $("url" , this).text()
+            };
+          }).get() : res;
+          var input = document.getElementById(search_id);
+          var resultContent = document.getElementById(content_id);
+          var inputEventFunction = function() {
+            var searchText = input.value.trim().toLowerCase();
+            var keywords = searchText.split(/[\s\-]+/);
+            if (keywords.length > 1) {
+              keywords.push(searchText);
+            }
+            var resultItems = [];
+            if (searchText.length > 0) {
+              // perform local searching
+              datas.forEach(function(data) {
+                var isMatch = false;
+                var hitCount = 0;
+                var searchTextCount = 0;
+                var title = data.title.trim();
+                var titleInLowerCase = title.toLowerCase();
+                var content = data.content.trim().replace(/<[^>]+>/g,"");
+                
+                var contentInLowerCase = content.toLowerCase();
+                var articleUrl = decodeURIComponent(data.url);
+                var indexOfTitle = [];
+                var indexOfContent = [];
+                // only match articles with not empty titles
+                if(title != '') {
+                  keywords.forEach(function(keyword) {
+                    function getIndexByWord(word, text, caseSensitive) {
+                      var wordLen = word.length;
+                      if (wordLen === 0) {
+                        return [];
+                      }
+                      var startPosition = 0, position = [], index = [];
+                      if (!caseSensitive) {
+                        text = text.toLowerCase();
+                        word = word.toLowerCase();
+                      }
+                      while ((position = text.indexOf(word, startPosition)) > -1) {
+                        index.push({position: position, word: word});
+                        startPosition = position + wordLen;
+                      }
+                      return index;
+                    }
+
+                    indexOfTitle = indexOfTitle.concat(getIndexByWord(keyword, titleInLowerCase, false));
+                    indexOfContent = indexOfContent.concat(getIndexByWord(keyword, contentInLowerCase, false));
+                  });
+                  if (indexOfTitle.length > 0 || indexOfContent.length > 0) {
+                    isMatch = true;
+                    hitCount = indexOfTitle.length + indexOfContent.length;
+                  }
+                }
+
+                // show search results
+
+                if (isMatch) {
+                  // sort index by position of keyword
+
+                  [indexOfTitle, indexOfContent].forEach(function (index) {
+                    index.sort(function (itemLeft, itemRight) {
+                      if (itemRight.position !== itemLeft.position) {
+                        return itemRight.position - itemLeft.position;
+                      } else {
+                        return itemLeft.word.length - itemRight.word.length;
+                      }
+                    });
+                  });
+
+                  // merge hits into slices
+
+                  function mergeIntoSlice(text, start, end, index) {
+                    var item = index[index.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    var hits = [];
+                    var searchTextCountInSlice = 0;
+                    while (position + word.length <= end && index.length != 0) {
+                      if (word === searchText) {
+                        searchTextCountInSlice++;
+                      }
+                      hits.push({position: position, length: word.length});
+                      var wordEnd = position + word.length;
+
+                      // move to next position of hit
+
+                      index.pop();
+                      while (index.length != 0) {
+                        item = index[index.length - 1];
+                        position = item.position;
+                        word = item.word;
+                        if (wordEnd > position) {
+                          index.pop();
+                        } else {
+                          break;
+                        }
+                      }
+                    }
+                    searchTextCount += searchTextCountInSlice;
+                    return {
+                      hits: hits,
+                      start: start,
+                      end: end,
+                      searchTextCount: searchTextCountInSlice
+                    };
+                  }
+
+                  var slicesOfTitle = [];
+                  if (indexOfTitle.length != 0) {
+                    slicesOfTitle.push(mergeIntoSlice(title, 0, title.length, indexOfTitle));
+                  }
+
+                  var slicesOfContent = [];
+                  while (indexOfContent.length != 0) {
+                    var item = indexOfContent[indexOfContent.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    // cut out 100 characters
+                    var start = position - 20;
+                    var end = position + 80;
+                    if(start < 0){
+                      start = 0;
+                    }
+                    if (end < position + word.length) {
+                      end = position + word.length;
+                    }
+                    if(end > content.length){
+                      end = content.length;
+                    }
+                    slicesOfContent.push(mergeIntoSlice(content, start, end, indexOfContent));
+                  }
+
+                  // sort slices in content by search text's count and hits' count
+
+                  slicesOfContent.sort(function (sliceLeft, sliceRight) {
+                    if (sliceLeft.searchTextCount !== sliceRight.searchTextCount) {
+                      return sliceRight.searchTextCount - sliceLeft.searchTextCount;
+                    } else if (sliceLeft.hits.length !== sliceRight.hits.length) {
+                      return sliceRight.hits.length - sliceLeft.hits.length;
+                    } else {
+                      return sliceLeft.start - sliceRight.start;
+                    }
+                  });
+
+                  // select top N slices in content
+
+                  var upperBound = parseInt('1');
+                  if (upperBound >= 0) {
+                    slicesOfContent = slicesOfContent.slice(0, upperBound);
+                  }
+
+                  // highlight title and content
+
+                  function highlightKeyword(text, slice) {
+                    var result = '';
+                    var prevEnd = slice.start;
+                    slice.hits.forEach(function (hit) {
+                      result += text.substring(prevEnd, hit.position);
+                      var end = hit.position + hit.length;
+                      result += '<b class="search-keyword">' + text.substring(hit.position, end) + '</b>';
+                      prevEnd = end;
+                    });
+                    result += text.substring(prevEnd, slice.end);
+                    return result;
+                  }
+
+                  var resultItem = '';
+
+                  if (slicesOfTitle.length != 0) {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + highlightKeyword(title, slicesOfTitle[0]) + "</a>";
+                  } else {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + title + "</a>";
+                  }
+
+                  slicesOfContent.forEach(function (slice) {
+                    resultItem += "<a href='" + articleUrl + "'>" +
+                      "<p class=\"search-result\">" + highlightKeyword(content, slice) +
+                      "...</p>" + "</a>";
+                  });
+
+                  resultItem += "</li>";
+                  resultItems.push({
+                    item: resultItem,
+                    searchTextCount: searchTextCount,
+                    hitCount: hitCount,
+                    id: resultItems.length
+                  });
+                }
+              })
+            };
+            if (keywords.length === 1 && keywords[0] === "") {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>'
+            } else if (resultItems.length === 0) {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>'
+            } else {
+              resultItems.sort(function (resultLeft, resultRight) {
+                if (resultLeft.searchTextCount !== resultRight.searchTextCount) {
+                  return resultRight.searchTextCount - resultLeft.searchTextCount;
+                } else if (resultLeft.hitCount !== resultRight.hitCount) {
+                  return resultRight.hitCount - resultLeft.hitCount;
+                } else {
+                  return resultRight.id - resultLeft.id;
+                }
+              });
+              var searchResultList = '<ul class=\"search-result-list\">';
+              resultItems.forEach(function (result) {
+                searchResultList += result.item;
+              })
+              searchResultList += "</ul>";
+              resultContent.innerHTML = searchResultList;
+            }
+          }
+
+          if ('auto' === 'auto') {
+            input.addEventListener('input', inputEventFunction);
+          } else {
+            $('.search-icon').click(inputEventFunction);
+            input.addEventListener('keypress', function (event) {
+              if (event.keyCode === 13) {
+                inputEventFunction();
+              }
+            });
+          }
+
+          // remove loading animation
+          $(".local-search-pop-overlay").remove();
+          $('body').css('overflow', '');
+
+          proceedsearch();
+        }
+      });
+    }
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched === false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+    });
+
+    $('.popup-btn-close').click(onPopupClose);
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+    $(document).on('keyup', function (event) {
+      var shouldDismissSearchPopup = event.which === 27 &&
+        $('.search-popup').is(':visible');
+      if (shouldDismissSearchPopup) {
+        onPopupClose();
+      }
+    });
+  </script>
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+  
+
+  
+
+
+  
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>
