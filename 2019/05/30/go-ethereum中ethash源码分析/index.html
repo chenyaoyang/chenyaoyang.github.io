@@ -1,0 +1,1481 @@
+<!DOCTYPE html>
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+<html class="theme-next pisces use-motion" lang="zh-CN">
+<head><meta name="generator" content="Hexo 3.8.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+    
+      
+    
+
+    
+  
+
+  
+
+  
+    
+      
+    
+
+    
+  
+
+  
+    
+      
+    
+
+    
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Monda:300,300italic,400,400italic,700,700italic|Roboto Slab:300,300italic,400,400italic,700,700italic|Dancing Script:300,300italic,400,400italic,700,700italic|Consolas:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css">
+
+<link href="/css/main.css?v=6.6.0" rel="stylesheet" type="text/css">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=6.6.0">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=6.6.0">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=6.6.0">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=6.6.0" color="#222">
+
+
+
+
+
+
+
+
+
+<script id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    version: '6.6.0',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: false,
+    fastclick: false,
+    lazyload: false,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+  
+
+
+
+
+  <meta name="keywords" content="区块链,go,以太坊,go-ethereum">
+<meta property="og:type" content="article">
+<meta property="og:title" content="go-ethereum中ethash源码分析">
+<meta property="og:url" content="http://yoursite.com/2019/05/30/go-ethereum中ethash源码分析/index.html">
+<meta property="og:site_name" content="AmorFati">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:image" content="https://raw.githubusercontent.com/chenyaoyang/blog-pic/master/head/ben-klea-1633206-unsplash.jpg">
+<meta property="og:image" content="https://raw.githubusercontent.com/chenyaoyang/blog-pic/master/head/verify-gaslimit.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/chenyaoyang/blog-pic/master/head/pow1.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/chenyaoyang/blog-pic/master/head/reward.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/chenyaoyang/blog-pic/master/head/difficulty.png">
+<meta property="og:updated_time" content="2019-05-30T07:35:21.660Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="go-ethereum中ethash源码分析">
+<meta name="twitter:image" content="https://raw.githubusercontent.com/chenyaoyang/blog-pic/master/head/ben-klea-1633206-unsplash.jpg">
+
+
+
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2019/05/30/go-ethereum中ethash源码分析/">
+
+
+
+<script id="page.configurations">
+  CONFIG.page = {
+    sidebar: "",
+  };
+</script>
+
+  <title>go-ethereum中ethash源码分析 | AmorFati</title>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  <noscript>
+  <style>
+    .use-motion .motion-element,
+    .use-motion .brand,
+    .use-motion .menu-item,
+    .sidebar-inner,
+    .use-motion .post-block,
+    .use-motion .pagination,
+    .use-motion .comments,
+    .use-motion .post-header,
+    .use-motion .post-body,
+    .use-motion .collection-title { opacity: initial; }
+
+    .use-motion .logo,
+    .use-motion .site-title,
+    .use-motion .site-subtitle {
+      opacity: initial;
+      top: initial;
+    }
+
+    .use-motion .logo-line-before i { left: initial; }
+    .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope="" itemtype="http://schema.org/WebPage" lang="zh-CN">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope="" itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">AmorFati</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+    
+      
+        <p class="site-subtitle">风吹过窗前的书，又翻过一页</p>
+      
+    
+    
+  </div>
+
+  <div class="site-nav-toggle">
+    <button aria-label="切换导航栏">
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  
+    <ul id="menu" class="menu">
+      
+        
+        
+        
+          
+          <li class="menu-item menu-item-home">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/" rel="section"><i class="menu-item-icon fa fa-fw fa-home"></i> <br>首页</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-about">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/about/" rel="section"><i class="menu-item-icon fa fa-fw fa-user"></i> <br>关于</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-tags">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/tags/" rel="section"><i class="menu-item-icon fa fa-fw fa-tags"></i> <br>标签</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-categories">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/categories/" rel="section"><i class="menu-item-icon fa fa-fw fa-th"></i> <br>分类</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-archives">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/archives/" rel="section"><i class="menu-item-icon fa fa-fw fa-archive"></i> <br>归档</a>
+
+  </li>
+
+      
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br>搜索</a>
+        </li>
+      
+    </ul>
+  
+
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup search-popup local-search-popup">
+  <div class="local-search-header clearfix">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+    <div class="local-search-input-wrapper">
+      <input autocomplete="off" placeholder="搜索..." spellcheck="false" type="text" id="local-search-input">
+    </div>
+  </div>
+  <div id="local-search-result"></div>
+</div>
+
+
+
+    </div>
+  
+</nav>
+
+
+
+  
+
+
+
+</div>
+    </header>
+
+    
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+            
+
+          
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  
+
+  <article class="post post-type-normal" itemscope="" itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/05/30/go-ethereum中ethash源码分析/">
+
+    <span hidden itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="AmorFati">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/assets/img/icon.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope="" itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="AmorFati">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">go-ethereum中ethash源码分析
+
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+
+            
+            
+            
+
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+
+              
+                
+              
+
+              <time title="创建时间：2019-05-30 15:31:05 / 修改时间：15:35:21" itemprop="dateCreated datePublished" datetime="2019-05-30T15:31:05+08:00">2019-05-30</time>
+            
+
+            
+              
+
+              
+            
+          </span>
+
+          
+            <span class="post-category">
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope="" itemtype="http://schema.org/Thing"><a href="/categories/go-ethereum源码学习/" itemprop="url" rel="index"><span itemprop="name">go-ethereum源码学习</span></a></span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p><img src="https://raw.githubusercontent.com/chenyaoyang/blog-pic/master/head/ben-klea-1633206-unsplash.jpg" alt=""><br><a id="more"></a><br>本文代码大部分集中在consensus目录下</p>
+<h1 id="Engine"><a href="#Engine" class="headerlink" title="Engine"></a>Engine</h1><p>Engine就是以太坊中共识引擎，在构建Ethereum时被创建使用CreateConsensusEngine方法<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line">CreateConsensusEngine(ctx, chainConfig, &amp;config.Ethash, config.MinerNotify, config.MinerNoverify, chainDb),</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">CreateConsensusEngine</span><span class="params">(ctx *node.ServiceContext, chainConfig *params.ChainConfig, config *ethash.Config, notify []<span class="keyword">string</span>, noverify <span class="keyword">bool</span>, db ethdb.Database)</span> <span class="title">consensus</span>.<span class="title">Engine</span></span> &#123;</span><br><span class="line">	<span class="keyword">if</span> chainConfig.Clique != <span class="literal">nil</span> &#123;</span><br><span class="line">		<span class="keyword">return</span> clique.New(chainConfig.Clique, db)</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">switch</span> config.PowMode &#123;</span><br><span class="line">	<span class="keyword">case</span> ethash.ModeFake:</span><br><span class="line">		log.Warn(<span class="string">"Ethash used in fake mode"</span>)</span><br><span class="line">		<span class="keyword">return</span> ethash.NewFaker()</span><br><span class="line">	<span class="keyword">case</span> ethash.ModeTest:</span><br><span class="line">		log.Warn(<span class="string">"Ethash used in test mode"</span>)</span><br><span class="line">		<span class="keyword">return</span> ethash.NewTester(<span class="literal">nil</span>, noverify)</span><br><span class="line">	<span class="keyword">case</span> ethash.ModeShared:</span><br><span class="line">		log.Warn(<span class="string">"Ethash used in shared mode"</span>)</span><br><span class="line">		<span class="keyword">return</span> ethash.NewShared()</span><br><span class="line">	<span class="keyword">default</span>:</span><br><span class="line">		engine := ethash.New(ethash.Config&#123;</span><br><span class="line">			CacheDir:       ctx.ResolvePath(config.CacheDir),</span><br><span class="line">			CachesInMem:    config.CachesInMem,</span><br><span class="line">			CachesOnDisk:   config.CachesOnDisk,</span><br><span class="line">			DatasetDir:     config.DatasetDir,</span><br><span class="line">			DatasetsInMem:  config.DatasetsInMem,</span><br><span class="line">			DatasetsOnDisk: config.DatasetsOnDisk,</span><br><span class="line">		&#125;, notify, noverify)</span><br><span class="line">		engine.SetThreads(<span class="number">-1</span>) <span class="comment">// Disable CPU mining</span></span><br><span class="line">		<span class="keyword">return</span> engine</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>首先如果需要PoA共识的话，创建clique对象。对于PoW共识的话根据不同模式创建不同的ethash对象。</p>
+<p>对于CreateConsensusEngine是返回的一个Engine类型对象，它是一个接口，定义如下<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// go-ethereum\consensus\consensus.go</span></span><br><span class="line"><span class="keyword">type</span> Engine <span class="keyword">interface</span> &#123;</span><br><span class="line">	Author(header *types.Header) (common.Address, error)</span><br><span class="line"></span><br><span class="line">	VerifyHeader(chain ChainReader, header *types.Header, seal <span class="keyword">bool</span>) error</span><br><span class="line"></span><br><span class="line">	VerifyHeaders(chain ChainReader, headers []*types.Header, seals []<span class="keyword">bool</span>) (<span class="keyword">chan</span>&lt;- <span class="keyword">struct</span>&#123;&#125;, &lt;-<span class="keyword">chan</span> error)</span><br><span class="line"></span><br><span class="line">	VerifyUncles(chain ChainReader, block *types.Block) error</span><br><span class="line"></span><br><span class="line">	VerifySeal(chain ChainReader, header *types.Header) error</span><br><span class="line"></span><br><span class="line">	Prepare(chain ChainReader, header *types.Header) error</span><br><span class="line"></span><br><span class="line">	Finalize(chain ChainReader, header *types.Header, state *state.StateDB, txs []*types.Transaction,</span><br><span class="line">		uncles []*types.Header, receipts []*types.Receipt) (*types.Block, error)</span><br><span class="line"></span><br><span class="line">	Seal(chain ChainReader, block *types.Block, results <span class="keyword">chan</span>&lt;- *types.Block, stop &lt;-<span class="keyword">chan</span> <span class="keyword">struct</span>&#123;&#125;) error</span><br><span class="line"></span><br><span class="line">	SealHash(header *types.Header) common.Hash</span><br><span class="line"></span><br><span class="line">	CalcDifficulty(chain ChainReader, time <span class="keyword">uint64</span>, parent *types.Header) *big.Int</span><br><span class="line"></span><br><span class="line">	APIs(chain ChainReader) []rpc.API</span><br><span class="line"></span><br><span class="line">	Close() error</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>Author是返回挖出该区块的地址，接下来几个Verify开头的方法是用来验证对错的。Prepare用于填充区块头的难度字段。Finalize是发放奖励和组装区块。Seal用来打包区块。SealHash返回打包区块的hash。CalcDifficulty计算新区快的应有难度。</p>
+<p>与Engine一起定义的还有一个PoW接口，它除了继承了Engine接口内容，还多一个Hashrate方法用于返回当前挖矿的hash率。</p>
+<h2 id="New"><a href="#New" class="headerlink" title="New"></a>New</h2><p>本文主要介绍Ethash源码，先看其New方法：<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">New</span><span class="params">(config Config, notify []<span class="keyword">string</span>, noverify <span class="keyword">bool</span>)</span> *<span class="title">Ethash</span></span> &#123;</span><br><span class="line">	<span class="keyword">if</span> config.CachesInMem &lt;= <span class="number">0</span> &#123;</span><br><span class="line">		log.Warn(<span class="string">"One ethash cache must always be in memory"</span>, <span class="string">"requested"</span>, config.CachesInMem)</span><br><span class="line">		config.CachesInMem = <span class="number">1</span></span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">if</span> config.CacheDir != <span class="string">""</span> &amp;&amp; config.CachesOnDisk &gt; <span class="number">0</span> &#123;</span><br><span class="line">		log.Info(<span class="string">"Disk storage enabled for ethash caches"</span>, <span class="string">"dir"</span>, config.CacheDir, <span class="string">"count"</span>, config.CachesOnDisk)</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">if</span> config.DatasetDir != <span class="string">""</span> &amp;&amp; config.DatasetsOnDisk &gt; <span class="number">0</span> &#123;</span><br><span class="line">		log.Info(<span class="string">"Disk storage enabled for ethash DAGs"</span>, <span class="string">"dir"</span>, config.DatasetDir, <span class="string">"count"</span>, config.DatasetsOnDisk)</span><br><span class="line">	&#125;</span><br><span class="line">	ethash := &amp;Ethash&#123;</span><br><span class="line">		config:       config,</span><br><span class="line">		caches:       newlru(<span class="string">"cache"</span>, config.CachesInMem, newCache),</span><br><span class="line">		datasets:     newlru(<span class="string">"dataset"</span>, config.DatasetsInMem, newDataset),</span><br><span class="line">		update:       <span class="built_in">make</span>(<span class="keyword">chan</span> <span class="keyword">struct</span>&#123;&#125;),</span><br><span class="line">		hashrate:     metrics.NewMeterForced(),</span><br><span class="line">		workCh:       <span class="built_in">make</span>(<span class="keyword">chan</span> *sealTask),</span><br><span class="line">		fetchWorkCh:  <span class="built_in">make</span>(<span class="keyword">chan</span> *sealWork),</span><br><span class="line">		submitWorkCh: <span class="built_in">make</span>(<span class="keyword">chan</span> *mineResult),</span><br><span class="line">		fetchRateCh:  <span class="built_in">make</span>(<span class="keyword">chan</span> <span class="keyword">chan</span> <span class="keyword">uint64</span>),</span><br><span class="line">		submitRateCh: <span class="built_in">make</span>(<span class="keyword">chan</span> *hashrate),</span><br><span class="line">		exitCh:       <span class="built_in">make</span>(<span class="keyword">chan</span> <span class="keyword">chan</span> error),</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">go</span> ethash.remote(notify, noverify)</span><br><span class="line">	<span class="keyword">return</span> ethash</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>主要就是根据config信息构建一个ethash对象，我们简单回顾一下ethash的配置，首先在eth.DefaultConfig中加载了一部分默认配置信息<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// go-ethereum\eth\config.go</span></span><br><span class="line"><span class="keyword">var</span> DefaultConfig = Config&#123;</span><br><span class="line">	SyncMode: downloader.FastSync,</span><br><span class="line">	Ethash: ethash.Config&#123;</span><br><span class="line">		CacheDir:       <span class="string">"ethash"</span>,</span><br><span class="line">		CachesInMem:    <span class="number">2</span>,</span><br><span class="line">		CachesOnDisk:   <span class="number">3</span>,</span><br><span class="line">		DatasetsInMem:  <span class="number">1</span>,</span><br><span class="line">		DatasetsOnDisk: <span class="number">2</span>,</span><br><span class="line">	&#125;,</span><br><span class="line">	NetworkId:      <span class="number">1</span>,</span><br><span class="line">	LightPeers:     <span class="number">100</span>,</span><br><span class="line">	DatabaseCache:  <span class="number">512</span>,</span><br><span class="line">	TrieCleanCache: <span class="number">256</span>,</span><br><span class="line">	TrieDirtyCache: <span class="number">256</span>,</span><br><span class="line">	TrieTimeout:    <span class="number">60</span> * time.Minute,</span><br><span class="line">	MinerGasFloor:  <span class="number">8000000</span>,</span><br><span class="line">	MinerGasCeil:   <span class="number">8000000</span>,</span><br><span class="line">	MinerGasPrice:  big.NewInt(params.GWei),</span><br><span class="line">	MinerRecommit:  <span class="number">3</span> * time.Second,</span><br><span class="line"></span><br><span class="line">	TxPool: core.DefaultTxPoolConfig,</span><br><span class="line">	GPO: gasprice.Config&#123;</span><br><span class="line">		Blocks:     <span class="number">20</span>,</span><br><span class="line">		Percentile: <span class="number">60</span>,</span><br><span class="line">	&#125;,</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>这里给出了构建ethash的几个关键参数，还有一个config.DatasetDir是在go-ethereum\eth\config.go的init中初始化，默认是在/home/.ethash。除此之外还有一些列用户可以设定的参数，需要在启动以太坊节点后根据固定参数设置，在go-ethereum\cmd\utils\flags.go的SetEthConfig中加载参数，一般我们都没有指定特殊参数。new方法最后启动了一个goroutine运行remote方法，我们稍后再讲</p>
+<h2 id="Author"><a href="#Author" class="headerlink" title="Author"></a>Author</h2><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(ethash *Ethash)</span> <span class="title">Author</span><span class="params">(header *types.Header)</span> <span class="params">(common.Address, error)</span></span> &#123;</span><br><span class="line">	<span class="keyword">return</span> header.Coinbase, <span class="literal">nil</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>这个很简单就是返回区块头的Coinbase字段</p>
+<h2 id="VerifyHeader"><a href="#VerifyHeader" class="headerlink" title="VerifyHeader"></a>VerifyHeader</h2><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(ethash *Ethash)</span> <span class="title">VerifyHeader</span><span class="params">(chain consensus.ChainReader, header *types.Header, seal <span class="keyword">bool</span>)</span> <span class="title">error</span></span> &#123;</span><br><span class="line">	<span class="keyword">if</span> ethash.config.PowMode == ModeFullFake &#123;</span><br><span class="line">		<span class="keyword">return</span> <span class="literal">nil</span></span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	number := header.Number.Uint64()</span><br><span class="line">	<span class="keyword">if</span> chain.GetHeader(header.Hash(), number) != <span class="literal">nil</span> &#123;</span><br><span class="line">		<span class="keyword">return</span> <span class="literal">nil</span></span><br><span class="line">	&#125;</span><br><span class="line">	parent := chain.GetHeader(header.ParentHash, number<span class="number">-1</span>)</span><br><span class="line">	<span class="keyword">if</span> parent == <span class="literal">nil</span> &#123;</span><br><span class="line">		<span class="keyword">return</span> consensus.ErrUnknownAncestor</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">return</span> ethash.verifyHeader(chain, header, parent, <span class="literal">false</span>, seal)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>首先对于ModeFullFake模式下的共识对任何区块头都予以放行，不进行检测。对于需要检测的区块头，首先获取可区块的高度，接着从本地尝试获取对应高度和hash的区块头，如果能获取到，说明该区块正确。之后在本地检查了父块，如果找不到返回ErrUnknownAncestor错误。</p>
+<p>接下来如果能找到父块，则调用verifyHeader方法进行检测</p>
+<h2 id="verifyHeader"><a href="#verifyHeader" class="headerlink" title="verifyHeader"></a>verifyHeader</h2><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(ethash *Ethash)</span> <span class="title">verifyHeader</span><span class="params">(chain consensus.ChainReader, header, parent *types.Header, uncle <span class="keyword">bool</span>, seal <span class="keyword">bool</span>)</span> <span class="title">error</span></span> &#123;</span><br><span class="line">	<span class="keyword">if</span> <span class="keyword">uint64</span>(<span class="built_in">len</span>(header.Extra)) &gt; params.MaximumExtraDataSize &#123;</span><br><span class="line">		<span class="keyword">return</span> fmt.Errorf(<span class="string">"extra-data too long: %d &gt; %d"</span>, <span class="built_in">len</span>(header.Extra), params.MaximumExtraDataSize)</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">if</span> uncle &#123;</span><br><span class="line">		<span class="keyword">if</span> header.Time.Cmp(math.MaxBig256) &gt; <span class="number">0</span> &#123;</span><br><span class="line">			<span class="keyword">return</span> errLargeBlockTime</span><br><span class="line">		&#125;</span><br><span class="line">	&#125; <span class="keyword">else</span> &#123;</span><br><span class="line">		<span class="keyword">if</span> header.Time.Cmp(big.NewInt(time.Now().Add(allowedFutureBlockTime).Unix())) &gt; <span class="number">0</span> &#123;</span><br><span class="line">			<span class="keyword">return</span> consensus.ErrFutureBlock</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">if</span> header.Time.Cmp(parent.Time) &lt;= <span class="number">0</span> &#123;</span><br><span class="line">		<span class="keyword">return</span> errZeroBlockTime</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	expected := ethash.CalcDifficulty(chain, header.Time.Uint64(), parent)</span><br><span class="line"></span><br><span class="line">	<span class="keyword">if</span> expected.Cmp(header.Difficulty) != <span class="number">0</span> &#123;</span><br><span class="line">		<span class="keyword">return</span> fmt.Errorf(<span class="string">"invalid difficulty: have %v, want %v"</span>, header.Difficulty, expected)</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="built_in">cap</span> := <span class="keyword">uint64</span>(<span class="number">0x7fffffffffffffff</span>)</span><br><span class="line">	<span class="keyword">if</span> header.GasLimit &gt; <span class="built_in">cap</span> &#123;</span><br><span class="line">		<span class="keyword">return</span> fmt.Errorf(<span class="string">"invalid gasLimit: have %v, max %v"</span>, header.GasLimit, <span class="built_in">cap</span>)</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">if</span> header.GasUsed &gt; header.GasLimit &#123;</span><br><span class="line">		<span class="keyword">return</span> fmt.Errorf(<span class="string">"invalid gasUsed: have %d, gasLimit %d"</span>, header.GasUsed, header.GasLimit)</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	diff := <span class="keyword">int64</span>(parent.GasLimit) - <span class="keyword">int64</span>(header.GasLimit)</span><br><span class="line">	<span class="keyword">if</span> diff &lt; <span class="number">0</span> &#123;</span><br><span class="line">		diff *= <span class="number">-1</span></span><br><span class="line">	&#125;</span><br><span class="line">	limit := parent.GasLimit / params.GasLimitBoundDivisor</span><br><span class="line"></span><br><span class="line">	<span class="keyword">if</span> <span class="keyword">uint64</span>(diff) &gt;= limit || header.GasLimit &lt; params.MinGasLimit &#123;</span><br><span class="line">		<span class="keyword">return</span> fmt.Errorf(<span class="string">"invalid gas limit: have %d, want %d += %d"</span>, header.GasLimit, parent.GasLimit, limit)</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">if</span> diff := <span class="built_in">new</span>(big.Int).Sub(header.Number, parent.Number); diff.Cmp(big.NewInt(<span class="number">1</span>)) != <span class="number">0</span> &#123;</span><br><span class="line">		<span class="keyword">return</span> consensus.ErrInvalidNumber</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">if</span> seal &#123;</span><br><span class="line">		<span class="keyword">if</span> err := ethash.VerifySeal(chain, header); err != <span class="literal">nil</span> &#123;</span><br><span class="line">			<span class="keyword">return</span> err</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">if</span> err := misc.VerifyDAOHeaderExtraData(chain.Config(), header); err != <span class="literal">nil</span> &#123;</span><br><span class="line">		<span class="keyword">return</span> err</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">if</span> err := misc.VerifyForkHashes(chain.Config(), header, uncle); err != <span class="literal">nil</span> &#123;</span><br><span class="line">		<span class="keyword">return</span> err</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">return</span> <span class="literal">nil</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>这个是区块头验证的主要地方，基本遵循黄皮书4.3.4的所述。分以下几步：</p>
+<ol>
+<li>验证额外数据长度度：在区块头有一个额外数据的字段Extra，它的长度要小于32字节</li>
+<li>验证时间戳：时间戳最基本的要求是要大于父块的时间戳。其次对于如果是一个叔块，时间戳不能太大，代码中要求不大于2的256次方。对于普通区块，不能为未来15秒之外的区块。</li>
+<li>验证总难度：首先调用CalcDifficulty计算应该难度，然后判断是否相等，关于难度的计算稍后介绍。</li>
+<li>验证gas限制：首先要求不大于2^63-1，但不能小于5000。其次gaslimit还和父块中的gaslimit相关，先关公式如下：<img src="https://raw.githubusercontent.com/chenyaoyang/blog-pic/master/head/verify-gaslimit.png" alt=""></li>
+<li>验证gas用量：要求小于gasLimit即可</li>
+<li>验证区块高度：要求等于父块高度加一</li>
+<li>其他验证：如果方法参数seal为true，执行VerifySeal方法，稍后介绍</li>
+<li>验证分叉</li>
+</ol>
+<h2 id="VerifyHeaders"><a href="#VerifyHeaders" class="headerlink" title="VerifyHeaders"></a>VerifyHeaders</h2><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(ethash *Ethash)</span> <span class="title">VerifyHeaders</span><span class="params">(chain consensus.ChainReader, headers []*types.Header, seals []<span class="keyword">bool</span>)</span> <span class="params">(<span class="keyword">chan</span>&lt;- <span class="keyword">struct</span>&#123;&#125;, &lt;-<span class="keyword">chan</span> error)</span></span> &#123;</span><br><span class="line">	<span class="keyword">if</span> ethash.config.PowMode == ModeFullFake || <span class="built_in">len</span>(headers) == <span class="number">0</span> &#123;</span><br><span class="line">		abort, results := <span class="built_in">make</span>(<span class="keyword">chan</span> <span class="keyword">struct</span>&#123;&#125;), <span class="built_in">make</span>(<span class="keyword">chan</span> error, <span class="built_in">len</span>(headers))</span><br><span class="line">		<span class="keyword">for</span> i := <span class="number">0</span>; i &lt; <span class="built_in">len</span>(headers); i++ &#123;</span><br><span class="line">			results &lt;- <span class="literal">nil</span></span><br><span class="line">		&#125;</span><br><span class="line">		<span class="keyword">return</span> abort, results</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	workers := runtime.GOMAXPROCS(<span class="number">0</span>)</span><br><span class="line">	<span class="keyword">if</span> <span class="built_in">len</span>(headers) &lt; workers &#123;</span><br><span class="line">		workers = <span class="built_in">len</span>(headers)</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">var</span> (</span><br><span class="line">		inputs = <span class="built_in">make</span>(<span class="keyword">chan</span> <span class="keyword">int</span>)</span><br><span class="line">		done   = <span class="built_in">make</span>(<span class="keyword">chan</span> <span class="keyword">int</span>, workers)</span><br><span class="line">		errors = <span class="built_in">make</span>([]error, <span class="built_in">len</span>(headers))</span><br><span class="line">		abort  = <span class="built_in">make</span>(<span class="keyword">chan</span> <span class="keyword">struct</span>&#123;&#125;)</span><br><span class="line">	)</span><br><span class="line">	<span class="keyword">for</span> i := <span class="number">0</span>; i &lt; workers; i++ &#123;</span><br><span class="line">		<span class="keyword">go</span> <span class="function"><span class="keyword">func</span><span class="params">()</span></span> &#123;</span><br><span class="line">			<span class="keyword">for</span> index := <span class="keyword">range</span> inputs &#123;</span><br><span class="line">				errors[index] = ethash.verifyHeaderWorker(chain, headers, seals, index)</span><br><span class="line">				done &lt;- index</span><br><span class="line">			&#125;</span><br><span class="line">		&#125;()</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	errorsOut := <span class="built_in">make</span>(<span class="keyword">chan</span> error, <span class="built_in">len</span>(headers))</span><br><span class="line">	<span class="keyword">go</span> <span class="function"><span class="keyword">func</span><span class="params">()</span></span> &#123;</span><br><span class="line">		<span class="keyword">defer</span> <span class="built_in">close</span>(inputs)</span><br><span class="line">		<span class="keyword">var</span> (</span><br><span class="line">			in, out = <span class="number">0</span>, <span class="number">0</span></span><br><span class="line">			checked = <span class="built_in">make</span>([]<span class="keyword">bool</span>, <span class="built_in">len</span>(headers))</span><br><span class="line">			inputs  = inputs</span><br><span class="line">		)</span><br><span class="line">		<span class="keyword">for</span> &#123;</span><br><span class="line">			<span class="keyword">select</span> &#123;</span><br><span class="line">			<span class="keyword">case</span> inputs &lt;- in:</span><br><span class="line">				<span class="keyword">if</span> in++; in == <span class="built_in">len</span>(headers) &#123;</span><br><span class="line">					inputs = <span class="literal">nil</span></span><br><span class="line">				&#125;</span><br><span class="line">			<span class="keyword">case</span> index := &lt;-done:</span><br><span class="line">				<span class="keyword">for</span> checked[index] = <span class="literal">true</span>; checked[out]; out++ &#123;</span><br><span class="line">					errorsOut &lt;- errors[out]</span><br><span class="line">					<span class="keyword">if</span> out == <span class="built_in">len</span>(headers)<span class="number">-1</span> &#123;</span><br><span class="line">						<span class="keyword">return</span></span><br><span class="line">					&#125;</span><br><span class="line">				&#125;</span><br><span class="line">			<span class="keyword">case</span> &lt;-abort:</span><br><span class="line">				<span class="keyword">return</span></span><br><span class="line">			&#125;</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;()</span><br><span class="line">	<span class="keyword">return</span> abort, errorsOut</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>这个是批量验证。首先还是对ModeFullFake模式不进行实质的验证，直接放行。接着利用一个循环，并发的执行verifyHeaderWorker方法：<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(ethash *Ethash)</span> <span class="title">verifyHeaderWorker</span><span class="params">(chain consensus.ChainReader, headers []*types.Header, seals []<span class="keyword">bool</span>, index <span class="keyword">int</span>)</span> <span class="title">error</span></span> &#123;</span><br><span class="line">	<span class="keyword">var</span> parent *types.Header</span><br><span class="line">	<span class="keyword">if</span> index == <span class="number">0</span> &#123;</span><br><span class="line">		parent = chain.GetHeader(headers[<span class="number">0</span>].ParentHash, headers[<span class="number">0</span>].Number.Uint64()<span class="number">-1</span>)</span><br><span class="line">	&#125; <span class="keyword">else</span> <span class="keyword">if</span> headers[index<span class="number">-1</span>].Hash() == headers[index].ParentHash &#123;</span><br><span class="line">		parent = headers[index<span class="number">-1</span>]</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">if</span> parent == <span class="literal">nil</span> &#123;</span><br><span class="line">		<span class="keyword">return</span> consensus.ErrUnknownAncestor</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">if</span> chain.GetHeader(headers[index].Hash(), headers[index].Number.Uint64()) != <span class="literal">nil</span> &#123;</span><br><span class="line">		<span class="keyword">return</span> <span class="literal">nil</span> <span class="comment">// known block</span></span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">return</span> ethash.verifyHeader(chain, headers[index], parent, <span class="literal">false</span>, seals[index])</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>这里逻辑很简单，根据index验证相应的区块头，首先获取父区块，然后要验证的区块在本地是否存在，之后调用verifyHeader方法。</p>
+<p>回到VerifyHeaders，前面的那个并发程序后河面这个匿名方法是组合使用。手下前面的for循环启动了workers个goroutine，workers表示目前可用的cpu核心数，这样做是为了尽量满负荷运行，加速验证过程。但是每个线程都在从inputs这个channel读数据的时候阻塞，这时第二个匿名函数开始执行，首先他向inputs中写入数据，写入的是要验证的区块头的index，这样前面的验证线程可以结束阻塞执行verifyHeaderWorker方法。在验证完成后，将结果写入errors中，并向done赋值，这样又触发匿名方法中select中的逻辑，这里讲错误放入errorsOut，并由errorsOut最终返回。</p>
+<h2 id="VerifyUncles"><a href="#VerifyUncles" class="headerlink" title="VerifyUncles"></a>VerifyUncles</h2><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(ethash *Ethash)</span> <span class="title">VerifyUncles</span><span class="params">(chain consensus.ChainReader, block *types.Block)</span> <span class="title">error</span></span> &#123;</span><br><span class="line">	<span class="keyword">if</span> ethash.config.PowMode == ModeFullFake &#123;</span><br><span class="line">		<span class="keyword">return</span> <span class="literal">nil</span></span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">if</span> <span class="built_in">len</span>(block.Uncles()) &gt; maxUncles &#123;</span><br><span class="line">		<span class="keyword">return</span> errTooManyUncles</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	uncles, ancestors := mapset.NewSet(), <span class="built_in">make</span>(<span class="keyword">map</span>[common.Hash]*types.Header)</span><br><span class="line"></span><br><span class="line">	number, parent := block.NumberU64()<span class="number">-1</span>, block.ParentHash()</span><br><span class="line">	<span class="keyword">for</span> i := <span class="number">0</span>; i &lt; <span class="number">7</span>; i++ &#123;</span><br><span class="line">		ancestor := chain.GetBlock(parent, number)</span><br><span class="line">		<span class="keyword">if</span> ancestor == <span class="literal">nil</span> &#123;</span><br><span class="line">			<span class="keyword">break</span></span><br><span class="line">		&#125;</span><br><span class="line">		ancestors[ancestor.Hash()] = ancestor.Header()</span><br><span class="line">		<span class="keyword">for</span> _, uncle := <span class="keyword">range</span> ancestor.Uncles() &#123;</span><br><span class="line">			uncles.Add(uncle.Hash())</span><br><span class="line">		&#125;</span><br><span class="line">		parent, number = ancestor.ParentHash(), number<span class="number">-1</span></span><br><span class="line">	&#125;</span><br><span class="line">	ancestors[block.Hash()] = block.Header()</span><br><span class="line">	uncles.Add(block.Hash())</span><br><span class="line"></span><br><span class="line">	<span class="keyword">for</span> _, uncle := <span class="keyword">range</span> block.Uncles() &#123;</span><br><span class="line">		hash := uncle.Hash()</span><br><span class="line">		<span class="keyword">if</span> uncles.Contains(hash) &#123;</span><br><span class="line">			<span class="keyword">return</span> errDuplicateUncle</span><br><span class="line">		&#125;</span><br><span class="line">		uncles.Add(hash)</span><br><span class="line"></span><br><span class="line">		<span class="keyword">if</span> ancestors[hash] != <span class="literal">nil</span> &#123;</span><br><span class="line">			<span class="keyword">return</span> errUncleIsAncestor</span><br><span class="line">		&#125;</span><br><span class="line">		<span class="keyword">if</span> ancestors[uncle.ParentHash] == <span class="literal">nil</span> || uncle.ParentHash == block.ParentHash() &#123;</span><br><span class="line">			<span class="keyword">return</span> errDanglingUncle</span><br><span class="line">		&#125;</span><br><span class="line">		<span class="keyword">if</span> err := ethash.verifyHeader(chain, uncle, ancestors[uncle.ParentHash], <span class="literal">true</span>, <span class="literal">true</span>); err != <span class="literal">nil</span> &#123;</span><br><span class="line">			<span class="keyword">return</span> err</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">return</span> <span class="literal">nil</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>这是验证叔块的。首先也是对于ModeFullFake模式直接放行。然后检查该块的叔块数量，如果大于2报错。接着寻找了该块的父块高度和hash。之后收集了该块的祖先，最高7代。ancestors是一个map，key是hash类型，value是header类型，它存储着从该块的父块开始连续寻找7个祖先块的区块头，最后将自己也放入在内。uncles存储着每一代祖先的所有叔块hash以及该块自己的hash。</p>
+<p>之后遍历该块的所有叔块，对于每个叔块，首先验证是否已经在uncles内，uncles存的是该块祖先的叔块，所以他的叔块不应包含在内。在之后验证是否在ancestors，因为ancestors是其直接祖先块，所以也不能成为其叔块。在之后叔块的父块时候包含在ancestors内，或者叔块的父块等于该块的父块，这都是不和逻辑的。最后校验每个叔块是否正确，调用verifyHeader方法</p>
+<h2 id="VerifySeal"><a href="#VerifySeal" class="headerlink" title="VerifySeal"></a>VerifySeal</h2><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(ethash *Ethash)</span> <span class="title">VerifySeal</span><span class="params">(chain consensus.ChainReader, header *types.Header)</span> <span class="title">error</span></span> &#123;</span><br><span class="line">	<span class="keyword">return</span> ethash.verifySeal(chain, header, <span class="literal">false</span>)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(ethash *Ethash)</span> <span class="title">verifySeal</span><span class="params">(chain consensus.ChainReader, header *types.Header, fulldag <span class="keyword">bool</span>)</span> <span class="title">error</span></span> &#123;</span><br><span class="line">	<span class="keyword">if</span> ethash.config.PowMode == ModeFake || ethash.config.PowMode == ModeFullFake &#123;</span><br><span class="line">		time.Sleep(ethash.fakeDelay)</span><br><span class="line">		<span class="keyword">if</span> ethash.fakeFail == header.Number.Uint64() &#123;</span><br><span class="line">			<span class="keyword">return</span> errInvalidPoW</span><br><span class="line">		&#125;</span><br><span class="line">		<span class="keyword">return</span> <span class="literal">nil</span></span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">if</span> ethash.shared != <span class="literal">nil</span> &#123;</span><br><span class="line">		<span class="keyword">return</span> ethash.shared.verifySeal(chain, header, fulldag)</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">if</span> header.Difficulty.Sign() &lt;= <span class="number">0</span> &#123;</span><br><span class="line">		<span class="keyword">return</span> errInvalidDifficulty</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	number := header.Number.Uint64()</span><br><span class="line"></span><br><span class="line">	<span class="keyword">var</span> (</span><br><span class="line">		digest []<span class="keyword">byte</span></span><br><span class="line">		result []<span class="keyword">byte</span></span><br><span class="line">	)</span><br><span class="line"></span><br><span class="line">	<span class="keyword">if</span> fulldag &#123;</span><br><span class="line">		dataset := ethash.dataset(number, <span class="literal">true</span>)</span><br><span class="line">		<span class="keyword">if</span> dataset.generated() &#123;</span><br><span class="line">			digest, result = hashimotoFull(dataset.dataset, ethash.SealHash(header).Bytes(), header.Nonce.Uint64())</span><br><span class="line"></span><br><span class="line">			runtime.KeepAlive(dataset)</span><br><span class="line">		&#125; <span class="keyword">else</span> &#123;</span><br><span class="line">			<span class="comment">// Dataset not yet generated, don't hang, use a cache instead</span></span><br><span class="line">			fulldag = <span class="literal">false</span></span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">if</span> !fulldag &#123;</span><br><span class="line">		cache := ethash.cache(number)</span><br><span class="line"></span><br><span class="line">		size := datasetSize(number)</span><br><span class="line">		<span class="keyword">if</span> ethash.config.PowMode == ModeTest &#123;</span><br><span class="line">			size = <span class="number">32</span> * <span class="number">1024</span></span><br><span class="line">		&#125;</span><br><span class="line">		digest, result = hashimotoLight(size, cache.cache, ethash.SealHash(header).Bytes(), header.Nonce.Uint64())</span><br><span class="line"></span><br><span class="line">		runtime.KeepAlive(cache)</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">if</span> !bytes.Equal(header.MixDigest[:], digest) &#123;</span><br><span class="line">		<span class="keyword">return</span> errInvalidMixDigest</span><br><span class="line">	&#125;</span><br><span class="line">	target := <span class="built_in">new</span>(big.Int).Div(two256, header.Difficulty)</span><br><span class="line">	<span class="keyword">if</span> <span class="built_in">new</span>(big.Int).SetBytes(result).Cmp(target) &gt; <span class="number">0</span> &#123;</span><br><span class="line">		<span class="keyword">return</span> errInvalidPoW</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">return</span> <span class="literal">nil</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>这个方法用来检测区块是否满足PoW的难度要求，主要是验证nonce。首先对于ModeFake和ModeFullFake不进行检测。另外如果是shared模式，则采用对应的verifySeal方法。接下来检测区块头的难度值必须大于0.接下来根据fulldag的具体情况执行不同逻辑。</p>
+<p>如果fullgdag为true，则先加载对应数据集，如果数据集已经产生则使用hashimotoFull进行验证，否则fulldag置为false。如果fullgad为false，则加载对应的随机数集cache，然后计算数据集大小，之后用hashimotoLight进行验证。这两处都用了KeepAlive方法，这是告诉编译器不要回收给定代码的内存。</p>
+<p>验证之后返回两个结果digest和result，按照下面公式进行验证：</p>
+<p><img src="https://raw.githubusercontent.com/chenyaoyang/blog-pic/master/head/pow1.png" alt="">。</p>
+<p>其中的n就是result，m就是digest。Hd表示该区块的难度；Hm表示该区块头的mixHash字段，是一个256位的哈希值，用来与nonce一起证明当前区块已经承载了足够的计算量。上图中的PoW函数的第一个参数表示不包含nonce和mixHash的区块头，也就是SealHash方法所产生的。</p>
+<h2 id="Prepare"><a href="#Prepare" class="headerlink" title="Prepare"></a>Prepare</h2><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(ethash *Ethash)</span> <span class="title">Prepare</span><span class="params">(chain consensus.ChainReader, header *types.Header)</span> <span class="title">error</span></span> &#123;</span><br><span class="line">	parent := chain.GetHeader(header.ParentHash, header.Number.Uint64()<span class="number">-1</span>)</span><br><span class="line">	<span class="keyword">if</span> parent == <span class="literal">nil</span> &#123;</span><br><span class="line">		<span class="keyword">return</span> consensus.ErrUnknownAncestor</span><br><span class="line">	&#125;</span><br><span class="line">	header.Difficulty = ethash.CalcDifficulty(chain, header.Time.Uint64(), parent)</span><br><span class="line">	<span class="keyword">return</span> <span class="literal">nil</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>这个方法首先查找了给定区块头的父区块，然后计算了难度。</p>
+<h2 id="Finalize"><a href="#Finalize" class="headerlink" title="Finalize"></a>Finalize</h2><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(ethash *Ethash)</span> <span class="title">Finalize</span><span class="params">(chain consensus.ChainReader, header *types.Header, state *state.StateDB, txs []*types.Transaction, uncles []*types.Header, receipts []*types.Receipt)</span> <span class="params">(*types.Block, error)</span></span> &#123;</span><br><span class="line">	accumulateRewards(chain.Config(), state, header, uncles)</span><br><span class="line">	header.Root = state.IntermediateRoot(chain.Config().IsEIP158(header.Number))</span><br><span class="line"></span><br><span class="line">	<span class="keyword">return</span> types.NewBlock(header, txs, uncles, receipts), <span class="literal">nil</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>首先调用accumulateRewards发放奖励：<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">accumulateRewards</span><span class="params">(config *params.ChainConfig, state *state.StateDB, header *types.Header, uncles []*types.Header)</span></span> &#123;</span><br><span class="line">	blockReward := FrontierBlockReward</span><br><span class="line">	<span class="keyword">if</span> config.IsByzantium(header.Number) &#123;</span><br><span class="line">		blockReward = ByzantiumBlockReward</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">if</span> config.IsConstantinople(header.Number) &#123;</span><br><span class="line">		blockReward = ConstantinopleBlockReward</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	reward := <span class="built_in">new</span>(big.Int).Set(blockReward)</span><br><span class="line">	r := <span class="built_in">new</span>(big.Int)</span><br><span class="line">	<span class="keyword">for</span> _, uncle := <span class="keyword">range</span> uncles &#123;</span><br><span class="line">		r.Add(uncle.Number, big8)</span><br><span class="line">		r.Sub(r, header.Number)</span><br><span class="line">		r.Mul(r, blockReward)</span><br><span class="line">		r.Div(r, big8)</span><br><span class="line">		state.AddBalance(uncle.Coinbase, r)</span><br><span class="line"></span><br><span class="line">		r.Div(blockReward, big32)</span><br><span class="line">		reward.Add(reward, r)</span><br><span class="line">	&#125;</span><br><span class="line">	state.AddBalance(header.Coinbase, reward)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>先根据区块高度决定基本的区块奖励，详细奖励发放的细节见黄皮书11.3节描述。如果是拜占庭版本也就是区块高度大于4370000，每个区块基本奖励为3以太币。如果是君士坦丁堡版本，也就是区块高度大于7280000，每个区块基本奖励为2以太币。如果区块高度低于4370000，则是5以太币。之后遍历所有叔块，每多一个叔块，奖励提高三十二分之一的基本区块奖励。对于每个叔块也有其相应奖励，公式如下：</p>
+<p><img src="https://raw.githubusercontent.com/chenyaoyang/blog-pic/master/head/reward.png" alt=""></p>
+<p>上面公式用Ui表示叔块高度，BHi表示当前区块高度，Rblock表示表示基本区块奖励。每计算一个叔块用state的AddBalance修改对应地址的余额。最后修改该区块头的coinbase余额，奖励发放完毕。</p>
+<p>回到Finalize，计算新状态的状态树根hash，然后染回一个新的区块。</p>
+<h2 id="CalcDifficulty"><a href="#CalcDifficulty" class="headerlink" title="CalcDifficulty"></a>CalcDifficulty</h2><p>这是一个计算难度的方法，用于计算一个区块应有的难度。<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(ethash *Ethash)</span> <span class="title">CalcDifficulty</span><span class="params">(chain consensus.ChainReader, time <span class="keyword">uint64</span>, parent *types.Header)</span> *<span class="title">big</span>.<span class="title">Int</span></span> &#123;</span><br><span class="line">	<span class="keyword">return</span> CalcDifficulty(chain.Config(), time, parent)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">CalcDifficulty</span><span class="params">(config *params.ChainConfig, time <span class="keyword">uint64</span>, parent *types.Header)</span> *<span class="title">big</span>.<span class="title">Int</span></span> &#123;</span><br><span class="line">	next := <span class="built_in">new</span>(big.Int).Add(parent.Number, big1)</span><br><span class="line">	<span class="keyword">switch</span> &#123;</span><br><span class="line">	<span class="keyword">case</span> config.IsConstantinople(next):</span><br><span class="line">		<span class="keyword">return</span> calcDifficultyConstantinople(time, parent)</span><br><span class="line">	<span class="keyword">case</span> config.IsByzantium(next):</span><br><span class="line">		<span class="keyword">return</span> calcDifficultyByzantium(time, parent)</span><br><span class="line">	<span class="keyword">case</span> config.IsHomestead(next):</span><br><span class="line">		<span class="keyword">return</span> calcDifficultyHomestead(time, parent)</span><br><span class="line">	<span class="keyword">default</span>:</span><br><span class="line">		<span class="keyword">return</span> calcDifficultyFrontier(time, parent)</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>这里首先计算该区块多对应的版本号，简单说一下不同版本的划分，高度在7280000以上的为君士坦丁堡版本；高度在4370000以上的为拜占庭版本；高度在1150000以上的为家园(Homestead)版本；最后高度在1150000一下的为前沿(Frontier)版本。其中君士坦丁堡版本和拜占庭版本都调用了makeDifficultyCalculator方法，区别是其中的参数不同，这个参数为了推迟难度炸弹的来临，关于难度计算是根据黄皮书中的公式计算的，这里讲一下公式，公式如下：</p>
+<p><img src="https://raw.githubusercontent.com/chenyaoyang/blog-pic/master/head/difficulty.png" alt=""></p>
+<p>公式(41)描述了难度的计算，首先创世区块为131072，转为16进制表示就是0x‭20000，这就是官网给的创世区块json示例中的难度值。对于非创世区块则在两个值中取一个最大值。第一个值就是创世区块的难度。第二个值由三部分组成：</p>
+<ol>
+<li>P(H)Hd表示父区块难度</li>
+<li>x表示父区块的难度除以2048并向下取整。与x相乘的有一个系数，由公式(44)计算。这个公式中y有父区块的叔块数量决定，如果叔块数量为0则取1，否则取2.公式(44)中的Hs表示当前区块的时间戳，P(H)Hs表示父区块的时间戳。</li>
+<li>第三部分由公式(45)(46)联合计算，这里在以太坊初始版本中没有公式(46)，直接是用区块高度除以100000，由于是做指数运算，会使第三部分的值每十万个区块指数增长一次，难度值会越来越夸张，所以从拜占庭版本开始对区块高度减去一个值，拜占庭版本是3000000，君士坦丁堡版本是5000000。公式中的Hi就是区块高度。</li>
+</ol>
+<p>区块的难度就由上面的公式计算的，代码也都是一些数学运算，这里不再叙述了。</p>
+<p>关于难度计算通过公式可以看到也是动态调整的，首先它是基于父块的难度，然后难度的第二部分，当两个区块时间间隔过近时，x的系数为正，加大难度；当两个区块时间间隔过远时，x的系数为负数，减小难度值。最后一部分则会根据区块高度稳定增加一定的难度。</p>
+<h2 id="Seal"><a href="#Seal" class="headerlink" title="Seal"></a>Seal</h2><p>这个方法就是尝试找到一个nonce去满足PoW要求，然后封装一个区块<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(ethash *Ethash)</span> <span class="title">Seal</span><span class="params">(chain consensus.ChainReader, block *types.Block, results <span class="keyword">chan</span>&lt;- *types.Block, stop &lt;-<span class="keyword">chan</span> <span class="keyword">struct</span>&#123;&#125;)</span> <span class="title">error</span></span> &#123;</span><br><span class="line">	<span class="keyword">if</span> ethash.config.PowMode == ModeFake || ethash.config.PowMode == ModeFullFake &#123;</span><br><span class="line">		header := block.Header()</span><br><span class="line">		header.Nonce, header.MixDigest = types.BlockNonce&#123;&#125;, common.Hash&#123;&#125;</span><br><span class="line">		<span class="keyword">select</span> &#123;</span><br><span class="line">		<span class="keyword">case</span> results &lt;- block.WithSeal(header):</span><br><span class="line">		<span class="keyword">default</span>:</span><br><span class="line">			log.Warn(<span class="string">"Sealing result is not read by miner"</span>, <span class="string">"mode"</span>, <span class="string">"fake"</span>, <span class="string">"sealhash"</span>, ethash.SealHash(block.Header()))</span><br><span class="line">		&#125;</span><br><span class="line">		<span class="keyword">return</span> <span class="literal">nil</span></span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">if</span> ethash.shared != <span class="literal">nil</span> &#123;</span><br><span class="line">		<span class="keyword">return</span> ethash.shared.Seal(chain, block, results, stop)</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	abort := <span class="built_in">make</span>(<span class="keyword">chan</span> <span class="keyword">struct</span>&#123;&#125;)</span><br><span class="line"></span><br><span class="line">	ethash.lock.Lock()</span><br><span class="line">	threads := ethash.threads</span><br><span class="line">	<span class="keyword">if</span> ethash.rand == <span class="literal">nil</span> &#123;</span><br><span class="line">		seed, err := crand.Int(crand.Reader, big.NewInt(math.MaxInt64))</span><br><span class="line">		<span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">			ethash.lock.Unlock()</span><br><span class="line">			<span class="keyword">return</span> err</span><br><span class="line">		&#125;</span><br><span class="line">		ethash.rand = rand.New(rand.NewSource(seed.Int64()))</span><br><span class="line">	&#125;</span><br><span class="line">	ethash.lock.Unlock()</span><br><span class="line">	<span class="keyword">if</span> threads == <span class="number">0</span> &#123;</span><br><span class="line">		threads = runtime.NumCPU()</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">if</span> threads &lt; <span class="number">0</span> &#123;</span><br><span class="line">		threads = <span class="number">0</span> <span class="comment">// Allows disabling local mining without extra logic around local/remote</span></span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">if</span> ethash.workCh != <span class="literal">nil</span> &#123;</span><br><span class="line">		ethash.workCh &lt;- &amp;sealTask&#123;block: block, results: results&#125;</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">var</span> (</span><br><span class="line">		pend   sync.WaitGroup</span><br><span class="line">		locals = <span class="built_in">make</span>(<span class="keyword">chan</span> *types.Block)</span><br><span class="line">	)</span><br><span class="line">	<span class="keyword">for</span> i := <span class="number">0</span>; i &lt; threads; i++ &#123;</span><br><span class="line">		pend.Add(<span class="number">1</span>)</span><br><span class="line">		<span class="keyword">go</span> <span class="function"><span class="keyword">func</span><span class="params">(id <span class="keyword">int</span>, nonce <span class="keyword">uint64</span>)</span></span> &#123;</span><br><span class="line">			<span class="keyword">defer</span> pend.Done()</span><br><span class="line">			ethash.mine(block, id, nonce, abort, locals)</span><br><span class="line">		&#125;(i, <span class="keyword">uint64</span>(ethash.rand.Int63()))</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">go</span> <span class="function"><span class="keyword">func</span><span class="params">()</span></span> &#123;</span><br><span class="line">		<span class="keyword">var</span> result *types.Block</span><br><span class="line">		<span class="keyword">select</span> &#123;</span><br><span class="line">		<span class="keyword">case</span> &lt;-stop:</span><br><span class="line">			<span class="built_in">close</span>(abort)</span><br><span class="line">		<span class="keyword">case</span> result = &lt;-locals:</span><br><span class="line">			<span class="keyword">select</span> &#123;</span><br><span class="line">			<span class="keyword">case</span> results &lt;- result:</span><br><span class="line">			<span class="keyword">default</span>:</span><br><span class="line">				log.Warn(<span class="string">"Sealing result is not read by miner"</span>, <span class="string">"mode"</span>, <span class="string">"local"</span>, <span class="string">"sealhash"</span>, ethash.SealHash(block.Header()))</span><br><span class="line">			&#125;</span><br><span class="line">			<span class="built_in">close</span>(abort)</span><br><span class="line">		<span class="keyword">case</span> &lt;-ethash.update:</span><br><span class="line">			<span class="built_in">close</span>(abort)</span><br><span class="line">			<span class="keyword">if</span> err := ethash.Seal(chain, block, results, stop); err != <span class="literal">nil</span> &#123;</span><br><span class="line">				log.Error(<span class="string">"Failed to restart sealing after update"</span>, <span class="string">"err"</span>, err)</span><br><span class="line">			&#125;</span><br><span class="line">		&#125;</span><br><span class="line">		pend.Wait()</span><br><span class="line">	&#125;()</span><br><span class="line">	<span class="keyword">return</span> <span class="literal">nil</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>首先对于ModeFake或ModeFullFake模式，直接打包一个区块，nonce为0。另外如果为shared模式则调用对应的Seal方法。</p>
+<p>接下来ethash.threads获取挖矿线程数，如果为0的话表示线程数等于cpu核数，如果小于0则禁用。接着如果随机数种子为空，则生成一个。接着启动threads个goroutine去执行mine方法。另外在外面还有一个独立的goroutine执行一个匿名方法，用于接受信号执行响应逻辑。stop读到信号表示终止操作；locals读到信号表示有线程找到了合法值；update收到信号表示进行重启。最后这个方法会等待前面执行mine的goroutine都结束才会退出。</p>
+<h2 id="mine"><a href="#mine" class="headerlink" title="mine"></a>mine</h2><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(ethash *Ethash)</span> <span class="title">mine</span><span class="params">(block *types.Block, id <span class="keyword">int</span>, seed <span class="keyword">uint64</span>, abort <span class="keyword">chan</span> <span class="keyword">struct</span>&#123;&#125;, found <span class="keyword">chan</span> *types.Block)</span></span> &#123;</span><br><span class="line">	<span class="keyword">var</span> (</span><br><span class="line">		header  = block.Header()</span><br><span class="line">		hash    = ethash.SealHash(header).Bytes()</span><br><span class="line">		target  = <span class="built_in">new</span>(big.Int).Div(two256, header.Difficulty)</span><br><span class="line">		number  = header.Number.Uint64()</span><br><span class="line">		dataset = ethash.dataset(number, <span class="literal">false</span>)</span><br><span class="line">	)</span><br><span class="line"></span><br><span class="line">	<span class="keyword">var</span> (</span><br><span class="line">		attempts = <span class="keyword">int64</span>(<span class="number">0</span>)</span><br><span class="line">		nonce    = seed</span><br><span class="line">	)</span><br><span class="line">	logger := log.New(<span class="string">"miner"</span>, id)</span><br><span class="line">	logger.Trace(<span class="string">"Started ethash search for new nonces"</span>, <span class="string">"seed"</span>, seed)</span><br><span class="line">search:</span><br><span class="line">	<span class="keyword">for</span> &#123;</span><br><span class="line">		<span class="keyword">select</span> &#123;</span><br><span class="line">		<span class="keyword">case</span> &lt;-abort:</span><br><span class="line">			logger.Trace(<span class="string">"Ethash nonce search aborted"</span>, <span class="string">"attempts"</span>, nonce-seed)</span><br><span class="line">			ethash.hashrate.Mark(attempts)</span><br><span class="line">			<span class="keyword">break</span> search</span><br><span class="line"></span><br><span class="line">		<span class="keyword">default</span>:</span><br><span class="line">			attempts++</span><br><span class="line">			<span class="keyword">if</span> (attempts % (<span class="number">1</span> &lt;&lt; <span class="number">15</span>)) == <span class="number">0</span> &#123;</span><br><span class="line">				ethash.hashrate.Mark(attempts)</span><br><span class="line">				attempts = <span class="number">0</span></span><br><span class="line">			&#125;</span><br><span class="line">			digest, result := hashimotoFull(dataset.dataset, hash, nonce)</span><br><span class="line">			<span class="keyword">if</span> <span class="built_in">new</span>(big.Int).SetBytes(result).Cmp(target) &lt;= <span class="number">0</span> &#123;</span><br><span class="line">				header = types.CopyHeader(header)</span><br><span class="line">				header.Nonce = types.EncodeNonce(nonce)</span><br><span class="line">				header.MixDigest = common.BytesToHash(digest)</span><br><span class="line"></span><br><span class="line">				<span class="keyword">select</span> &#123;</span><br><span class="line">				<span class="keyword">case</span> found &lt;- block.WithSeal(header):</span><br><span class="line">					logger.Trace(<span class="string">"Ethash nonce found and reported"</span>, <span class="string">"attempts"</span>, nonce-seed, <span class="string">"nonce"</span>, nonce)</span><br><span class="line">				<span class="keyword">case</span> &lt;-abort:</span><br><span class="line">					logger.Trace(<span class="string">"Ethash nonce found but discarded"</span>, <span class="string">"attempts"</span>, nonce-seed, <span class="string">"nonce"</span>, nonce)</span><br><span class="line">				&#125;</span><br><span class="line">				<span class="keyword">break</span> search</span><br><span class="line">			&#125;</span><br><span class="line">			nonce++</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">	runtime.KeepAlive(dataset)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>这个方法才是实际上寻找nonce的方法，基本逻辑从后面的for循环开始，从给定的seed开始，每次加一，利用hashimotoFull计算digest和result，就和前面的VerifySeal方法一样，只要result小于target即可。target等于2^256除以区块的难度。</p>
+<p>如果找到的话给区块头补充nonce和misdigest字段，并通过WithSeal产生一个区块赋值给found，found就是前面Seal中的locals。</p>
+<h1 id="Ethash算法"><a href="#Ethash算法" class="headerlink" title="Ethash算法"></a>Ethash算法</h1><p><a href="https://github.com/ethereum/wiki/wiki/Ethash" target="_blank" rel="noopener">官方文档</a>有详细的叙述，这里简单描述一下。</p>
+<p>Ethash是以太坊中PoW的主要算法，基本流程如下：</p>
+<ol>
+<li>根据区块高度计算出一个seed</li>
+<li>根据seed产生一个16MB伪随机数据集cache</li>
+<li>根据cache产生一个1GB大小的数据集DAG，一般完全节点需要DAG，轻客户端只需要cache</li>
+<li>从DAG中随机选出元素，对其进行hash运算，看是否满足要求</li>
+<li>数据集30000个区块更新一次，约100小时，并且会线性增长，DAG每次增长8MB，cache每次128KB。（之所以是100小时，目的是为了在18月左右增长一倍，符合摩尔定律）</li>
+</ol>
+<h2 id="数据结构"><a href="#数据结构" class="headerlink" title="数据结构"></a>数据结构</h2><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">type</span> cache <span class="keyword">struct</span> &#123;</span><br><span class="line">	epoch <span class="keyword">uint64</span>    <span class="comment">// Epoch for which this cache is relevant</span></span><br><span class="line">	dump  *os.File  <span class="comment">// File descriptor of the memory mapped cache</span></span><br><span class="line">	mmap  mmap.MMap <span class="comment">// Memory map itself to unmap before releasing</span></span><br><span class="line">	cache []<span class="keyword">uint32</span>  <span class="comment">// The actual cache data content (may be memory mapped)</span></span><br><span class="line">	once  sync.Once <span class="comment">// Ensures the cache is generated only once</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">type</span> dataset <span class="keyword">struct</span> &#123;</span><br><span class="line">	epoch   <span class="keyword">uint64</span>    <span class="comment">// Epoch for which this cache is relevant</span></span><br><span class="line">	dump    *os.File  <span class="comment">// File descriptor of the memory mapped cache</span></span><br><span class="line">	mmap    mmap.MMap <span class="comment">// Memory map itself to unmap before releasing</span></span><br><span class="line">	dataset []<span class="keyword">uint32</span>  <span class="comment">// The actual cache data content</span></span><br><span class="line">	once    sync.Once <span class="comment">// Ensures the cache is generated only once</span></span><br><span class="line">	done    <span class="keyword">uint32</span>    <span class="comment">// Atomic flag to determine generation status</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h2 id="cache生成"><a href="#cache生成" class="headerlink" title="cache生成"></a>cache生成</h2><p>前面在verifySeal方法中就通过cache获取了对应的cache<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(ethash *Ethash)</span> <span class="title">cache</span><span class="params">(block <span class="keyword">uint64</span>)</span> *<span class="title">cache</span></span> &#123;</span><br><span class="line">	epoch := block / epochLength</span><br><span class="line">	currentI, futureI := ethash.caches.get(epoch)</span><br><span class="line">	current := currentI.(*cache)</span><br><span class="line"></span><br><span class="line">	current.generate(ethash.config.CacheDir, ethash.config.CachesOnDisk, ethash.config.PowMode == ModeTest)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">	<span class="keyword">if</span> futureI != <span class="literal">nil</span> &#123;</span><br><span class="line">		future := futureI.(*cache)</span><br><span class="line">		<span class="keyword">go</span> future.generate(ethash.config.CacheDir, ethash.config.CachesOnDisk, ethash.config.PowMode == ModeTest)</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">return</span> current</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>第一步计算了代数，就是区块高度除以30000，然后从caches从尝试获取cache，caches的get获取所需代数及下一代的cache。<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(lru *lru)</span> <span class="title">get</span><span class="params">(epoch <span class="keyword">uint64</span>)</span> <span class="params">(item, future <span class="keyword">interface</span>&#123;&#125;)</span></span> &#123;</span><br><span class="line">	lru.mu.Lock()</span><br><span class="line">	<span class="keyword">defer</span> lru.mu.Unlock()</span><br><span class="line"></span><br><span class="line">	item, ok := lru.cache.Get(epoch)</span><br><span class="line">	<span class="keyword">if</span> !ok &#123;</span><br><span class="line">		<span class="keyword">if</span> lru.future &gt; <span class="number">0</span> &amp;&amp; lru.future == epoch &#123;</span><br><span class="line">			item = lru.futureItem</span><br><span class="line">		&#125; <span class="keyword">else</span> &#123;</span><br><span class="line">			log.Trace(<span class="string">"Requiring new ethash "</span>+lru.what, <span class="string">"epoch"</span>, epoch)</span><br><span class="line">			item = lru.<span class="built_in">new</span>(epoch)</span><br><span class="line">		&#125;</span><br><span class="line">		lru.cache.Add(epoch, item)</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">if</span> epoch &lt; maxEpoch<span class="number">-1</span> &amp;&amp; lru.future &lt; epoch+<span class="number">1</span> &#123;</span><br><span class="line">		log.Trace(<span class="string">"Requiring new future ethash "</span>+lru.what, <span class="string">"epoch"</span>, epoch+<span class="number">1</span>)</span><br><span class="line">		future = lru.<span class="built_in">new</span>(epoch + <span class="number">1</span>)</span><br><span class="line">		lru.future = epoch + <span class="number">1</span></span><br><span class="line">		lru.futureItem = future</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">return</span> item, future</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>lru.cache是一个lru类型的缓存，先从中获取指定代数的，如果没有尝试从futureItem中获取，futureItem永远存储着下一代的cache，当然最开始为空。如果都没有新建一个。不管从哪里取到的话，如果代数低于最大代数，而且future需要更新的话，就更新future与futureItem。</p>
+<p>我们再看新建方法：<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">newCache</span><span class="params">(epoch <span class="keyword">uint64</span>)</span> <span class="title">interface</span></span>&#123;&#125; &#123;</span><br><span class="line">	<span class="keyword">return</span> &amp;cache&#123;epoch: epoch&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>就是新建一个cache对象。回到cache方法，调用了generate方法<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(c *cache)</span> <span class="title">generate</span><span class="params">(dir <span class="keyword">string</span>, limit <span class="keyword">int</span>, test <span class="keyword">bool</span>)</span></span> &#123;</span><br><span class="line">	c.once.Do(<span class="function"><span class="keyword">func</span><span class="params">()</span></span> &#123;</span><br><span class="line">		size := cacheSize(c.epoch*epochLength + <span class="number">1</span>)</span><br><span class="line">		seed := seedHash(c.epoch*epochLength + <span class="number">1</span>)</span><br><span class="line">		<span class="keyword">if</span> test &#123;</span><br><span class="line">			size = <span class="number">1024</span></span><br><span class="line">		&#125;</span><br><span class="line"></span><br><span class="line">		<span class="keyword">if</span> dir == <span class="string">""</span> &#123;</span><br><span class="line">			c.cache = <span class="built_in">make</span>([]<span class="keyword">uint32</span>, size/<span class="number">4</span>)</span><br><span class="line">			generateCache(c.cache, c.epoch, seed)</span><br><span class="line">			<span class="keyword">return</span></span><br><span class="line">		&#125;</span><br><span class="line"></span><br><span class="line">		<span class="keyword">var</span> endian <span class="keyword">string</span></span><br><span class="line">		<span class="keyword">if</span> !isLittleEndian() &#123;</span><br><span class="line">			endian = <span class="string">".be"</span></span><br><span class="line">		&#125;</span><br><span class="line">		path := filepath.Join(dir, fmt.Sprintf(<span class="string">"cache-R%d-%x%s"</span>, algorithmRevision, seed[:<span class="number">8</span>], endian))</span><br><span class="line">		logger := log.New(<span class="string">"epoch"</span>, c.epoch)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">		runtime.SetFinalizer(c, (*cache).finalizer)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">		<span class="keyword">var</span> err error</span><br><span class="line">		c.dump, c.mmap, c.cache, err = memoryMap(path)</span><br><span class="line">		<span class="keyword">if</span> err == <span class="literal">nil</span> &#123;</span><br><span class="line">			logger.Debug(<span class="string">"Loaded old ethash cache from disk"</span>)</span><br><span class="line">			<span class="keyword">return</span></span><br><span class="line">		&#125;</span><br><span class="line">		logger.Debug(<span class="string">"Failed to load old ethash cache"</span>, <span class="string">"err"</span>, err)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">		c.dump, c.mmap, c.cache, err = memoryMapAndGenerate(path, size, <span class="function"><span class="keyword">func</span><span class="params">(buffer []<span class="keyword">uint32</span>)</span></span> &#123; generateCache(buffer, c.epoch, seed) &#125;)</span><br><span class="line">		<span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">			logger.Error(<span class="string">"Failed to generate mapped ethash cache"</span>, <span class="string">"err"</span>, err)</span><br><span class="line"></span><br><span class="line">			c.cache = <span class="built_in">make</span>([]<span class="keyword">uint32</span>, size/<span class="number">4</span>)</span><br><span class="line">			generateCache(c.cache, c.epoch, seed)</span><br><span class="line">		&#125;</span><br><span class="line"></span><br><span class="line">		<span class="keyword">for</span> ep := <span class="keyword">int</span>(c.epoch) - limit; ep &gt;= <span class="number">0</span>; ep-- &#123;</span><br><span class="line">			seed := seedHash(<span class="keyword">uint64</span>(ep)*epochLength + <span class="number">1</span>)</span><br><span class="line">			path := filepath.Join(dir, fmt.Sprintf(<span class="string">"cache-R%d-%x%s"</span>, algorithmRevision, seed[:<span class="number">8</span>], endian))</span><br><span class="line">			os.Remove(path)</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>首先计算了cache大小，使用cacheSize方法，如果代数小于2048（按30000块一代，2048代有61440000个区块，需要二十几年才能生成）则根据预先计算好的表查找，否则先计算size = 初始值(128MB) + 128KB * 代数 - 64B，然后验证size/64取整后是否为质数，否则size减去128在验证，循环递减直到size/64取整后为质数。对于测试模式直接设为1024.</p>
+<p>第二步计算了seed，如果是第零代区块，直接返回一个空的长度为32的字节数组。否则对那个空字节数组循环做n次keccak256哈希运算，n就是区块所在代数。总之seed是一个256位的数据</p>
+<p>接着组装了本地的存储文件，接下来的runtime.SetFinalizer方法是设置cache被回收时执行的方法。接着调用memoryMap将加载文件并在内存中映射，这个方法如果不报错说明之前在磁盘有旧文件，可以直接用。否则需要生成cache文件。<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">memoryMapAndGenerate</span><span class="params">(path <span class="keyword">string</span>, size <span class="keyword">uint64</span>, generator <span class="keyword">func</span>(buffer []<span class="keyword">uint32</span>)</span>) <span class="params">(*os.File, mmap.MMap, []<span class="keyword">uint32</span>, error)</span></span> &#123;</span><br><span class="line">	<span class="keyword">if</span> err := os.MkdirAll(filepath.Dir(path), <span class="number">0755</span>); err != <span class="literal">nil</span> &#123;</span><br><span class="line">		<span class="keyword">return</span> <span class="literal">nil</span>, <span class="literal">nil</span>, <span class="literal">nil</span>, err</span><br><span class="line">	&#125;</span><br><span class="line">	temp := path + <span class="string">"."</span> + strconv.Itoa(rand.Int())</span><br><span class="line"></span><br><span class="line">	dump, err := os.Create(temp)</span><br><span class="line">	<span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">		<span class="keyword">return</span> <span class="literal">nil</span>, <span class="literal">nil</span>, <span class="literal">nil</span>, err</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">if</span> err = dump.Truncate(<span class="keyword">int64</span>(<span class="built_in">len</span>(dumpMagic))*<span class="number">4</span> + <span class="keyword">int64</span>(size)); err != <span class="literal">nil</span> &#123;</span><br><span class="line">		<span class="keyword">return</span> <span class="literal">nil</span>, <span class="literal">nil</span>, <span class="literal">nil</span>, err</span><br><span class="line">	&#125;</span><br><span class="line">	mem, buffer, err := memoryMapFile(dump, <span class="literal">true</span>)</span><br><span class="line">	<span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">		dump.Close()</span><br><span class="line">		<span class="keyword">return</span> <span class="literal">nil</span>, <span class="literal">nil</span>, <span class="literal">nil</span>, err</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="built_in">copy</span>(buffer, dumpMagic)</span><br><span class="line"></span><br><span class="line">	data := buffer[<span class="built_in">len</span>(dumpMagic):]</span><br><span class="line">	generator(data)</span><br><span class="line"></span><br><span class="line">	<span class="keyword">if</span> err := mem.Unmap(); err != <span class="literal">nil</span> &#123;</span><br><span class="line">		<span class="keyword">return</span> <span class="literal">nil</span>, <span class="literal">nil</span>, <span class="literal">nil</span>, err</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">if</span> err := dump.Close(); err != <span class="literal">nil</span> &#123;</span><br><span class="line">		<span class="keyword">return</span> <span class="literal">nil</span>, <span class="literal">nil</span>, <span class="literal">nil</span>, err</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">if</span> err := os.Rename(temp, path); err != <span class="literal">nil</span> &#123;</span><br><span class="line">		<span class="keyword">return</span> <span class="literal">nil</span>, <span class="literal">nil</span>, <span class="literal">nil</span>, err</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">return</span> memoryMap(path)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>首先创建目录，然后创建一个临时文件，接着调用Truncate方法修改临时文件大小，大小为8+size。接着映射该临时文件到内存，用的是memoryMapFile方法，我们具体看一下：<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">memoryMapFile</span><span class="params">(file *os.File, write <span class="keyword">bool</span>)</span> <span class="params">(mmap.MMap, []<span class="keyword">uint32</span>, error)</span></span> &#123;</span><br><span class="line"></span><br><span class="line">	flag := mmap.RDONLY</span><br><span class="line">	<span class="keyword">if</span> write &#123;</span><br><span class="line">		flag = mmap.RDWR</span><br><span class="line">	&#125;</span><br><span class="line">	mem, err := mmap.Map(file, flag, <span class="number">0</span>)</span><br><span class="line">	<span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">		<span class="keyword">return</span> <span class="literal">nil</span>, <span class="literal">nil</span>, err</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	header := *(*reflect.SliceHeader)(unsafe.Pointer(&amp;mem))</span><br><span class="line">	header.Len /= <span class="number">4</span></span><br><span class="line">	header.Cap /= <span class="number">4</span></span><br><span class="line"></span><br><span class="line">	<span class="keyword">return</span> mem, *(*[]<span class="keyword">uint32</span>)(unsafe.Pointer(&amp;header)), <span class="literal">nil</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>首先设置模式，只读或是可读写。接着调用mmap.Map方法，这是”github.com/edsrzf/mmap-go”的库。mmap将一个文件或者其它对象映射进内存，让用户程序直接访问设备内存，这种机制，相比较在用户空间和内核空间互相拷贝数据，效率更高。Map方法返回一个MMap对象，翻阅源码实际就是字节数组。接下来将MMap转为一个切片（切片实际就是SliceHeader类型），这里将切片的长度和容器都缩减到原来四分之一，这是因为原来是字节数组，后面要改为uin32数组，之后有将修改过的切片转为32位无符号整形数组连同MMap一起返回。</p>
+<p>回到memoryMapAndGenerate中，这里将dumpMagic拷贝到刚才返回的那个uint32数组中，dumpMagic是预置的一个含有两个魔法数的数组。接着调用generator生成数据，实际上是generateCache方法<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">generateCache</span><span class="params">(dest []<span class="keyword">uint32</span>, epoch <span class="keyword">uint64</span>, seed []<span class="keyword">byte</span>)</span></span> &#123;</span><br><span class="line">	logger := log.New(<span class="string">"epoch"</span>, epoch)</span><br><span class="line"></span><br><span class="line">	start := time.Now()</span><br><span class="line">	<span class="keyword">defer</span> <span class="function"><span class="keyword">func</span><span class="params">()</span></span> &#123;</span><br><span class="line">		elapsed := time.Since(start)</span><br><span class="line"></span><br><span class="line">		logFn := logger.Debug</span><br><span class="line">		<span class="keyword">if</span> elapsed &gt; <span class="number">3</span>*time.Second &#123;</span><br><span class="line">			logFn = logger.Info</span><br><span class="line">		&#125;</span><br><span class="line">		logFn(<span class="string">"Generated ethash verification cache"</span>, <span class="string">"elapsed"</span>, common.PrettyDuration(elapsed))</span><br><span class="line">	&#125;()</span><br><span class="line"></span><br><span class="line">	header := *(*reflect.SliceHeader)(unsafe.Pointer(&amp;dest))</span><br><span class="line">	header.Len *= <span class="number">4</span></span><br><span class="line">	header.Cap *= <span class="number">4</span></span><br><span class="line">	cache := *(*[]<span class="keyword">byte</span>)(unsafe.Pointer(&amp;header))</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">	size := <span class="keyword">uint64</span>(<span class="built_in">len</span>(cache))</span><br><span class="line">	rows := <span class="keyword">int</span>(size) / hashBytes</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">	<span class="keyword">var</span> progress <span class="keyword">uint32</span></span><br><span class="line"></span><br><span class="line">	done := <span class="built_in">make</span>(<span class="keyword">chan</span> <span class="keyword">struct</span>&#123;&#125;)</span><br><span class="line">	<span class="keyword">defer</span> <span class="built_in">close</span>(done)</span><br><span class="line"></span><br><span class="line">	<span class="keyword">go</span> <span class="function"><span class="keyword">func</span><span class="params">()</span></span> &#123;</span><br><span class="line">		<span class="keyword">for</span> &#123;</span><br><span class="line">			<span class="keyword">select</span> &#123;</span><br><span class="line">			<span class="keyword">case</span> &lt;-done:</span><br><span class="line">				<span class="keyword">return</span></span><br><span class="line">			<span class="keyword">case</span> &lt;-time.After(<span class="number">3</span> * time.Second):</span><br><span class="line">				logger.Info(<span class="string">"Generating ethash verification cache"</span>, <span class="string">"percentage"</span>, atomic.LoadUint32(&amp;progress)*<span class="number">100</span>/<span class="keyword">uint32</span>(rows)/<span class="number">4</span>, <span class="string">"elapsed"</span>, common.PrettyDuration(time.Since(start)))</span><br><span class="line">			&#125;</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;()</span><br><span class="line"></span><br><span class="line">	keccak512 := makeHasher(sha3.NewLegacyKeccak512())</span><br><span class="line"></span><br><span class="line">	keccak512(cache, seed)</span><br><span class="line">	<span class="keyword">for</span> offset := <span class="keyword">uint64</span>(hashBytes); offset &lt; size; offset += hashBytes &#123;</span><br><span class="line">		keccak512(cache[offset:], cache[offset-hashBytes:offset])</span><br><span class="line">		atomic.AddUint32(&amp;progress, <span class="number">1</span>)</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	temp := <span class="built_in">make</span>([]<span class="keyword">byte</span>, hashBytes)</span><br><span class="line"></span><br><span class="line">	<span class="keyword">for</span> i := <span class="number">0</span>; i &lt; cacheRounds; i++ &#123;</span><br><span class="line">		<span class="keyword">for</span> j := <span class="number">0</span>; j &lt; rows; j++ &#123;</span><br><span class="line">			<span class="keyword">var</span> (</span><br><span class="line">				srcOff = ((j - <span class="number">1</span> + rows) % rows) * hashBytes</span><br><span class="line">				dstOff = j * hashBytes</span><br><span class="line">				xorOff = (binary.LittleEndian.Uint32(cache[dstOff:]) % <span class="keyword">uint32</span>(rows)) * hashBytes</span><br><span class="line">			)</span><br><span class="line">			bitutil.XORBytes(temp, cache[srcOff:srcOff+hashBytes], cache[xorOff:xorOff+hashBytes])</span><br><span class="line">			keccak512(cache[dstOff:], temp)</span><br><span class="line"></span><br><span class="line">			atomic.AddUint32(&amp;progress, <span class="number">1</span>)</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">if</span> !isLittleEndian() &#123;</span><br><span class="line">		swap(cache)</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>传入的参数有三个。第一个就是生成的数据要填充的数组，也就是前面映射文件时返回的一个数组，第二个是区块所在代数，第三个是开始计算的种子。cache生成流程如下：</p>
+<ol>
+<li><p>第一步将传进来的数组转为切片，然后长度和容量都乘以4。这里有几个大小需要注意，首先创建临时文件时大小是8+size，映射完返回的buffer容量是2+cap/4，之后前两个字节被写入固定值，之后剩余cap/4容量被传过来，这里又乘以4，进行了恢复，目的是为了将uint32数组转为字节数组，一个uint32等于4个字节长度。之后再将切片转为字节数组。然后计算大小size和轮数rows。接着启动一个goroutine，里面有一个for-select结构，每3秒打印一个log，显示cache生成进度。</p>
+</li>
+<li><p>第二步，准备一个hash函数–keccak512，keccak512(cache, seed)方法表示对seed计算hash值并写入cache中。此时cache的前512位也就是前64个字节</p>
+</li>
+<li><p>第三步开始一个循环，对cache进行预填充，每512位一组即64字节，第一组是对seed进行hash后的结果，之后每一组都是对前一组的hash。</p>
+</li>
+<li><p>第四步开始主循环，外循环有3轮，内循环轮数为第一步计算的rows。这一步连同上一步合起来是一种叫RandMemoHash的函数，是一种内存困难型的计算，详细内容参见<a href="http://www.hashcash.org/papers/memohash.pdf" target="_blank" rel="noopener">原文</a>或者<a href="https://blog.grapefruit.tk/2019/05/22/%E4%B8%A5%E6%A0%BC%E7%9A%84%E5%86%85%E5%AD%98%E5%9B%B0%E9%9A%BE%E5%9E%8B%E5%93%88%E5%B8%8C%E5%87%BD%E6%95%B0/" target="_blank" rel="noopener">译文</a>。这里不再叙述，只是说一下几个方法的作用，XORBytes接受三个参数，作用是将第二个和第三个参数异或后的结果放入第一个参数中。keccak512是对第二个参数做hash运算，结果放入第一个参数。</p>
+</li>
+</ol>
+<p>经过上面第四步的循环后，cache被填满，最后还要保证cache中的数据时小端模式。注意cache是由header转换类型而来的，header则是的dest转换类型而来的，所以最后dest中也填满了数据。</p>
+<p>最后cache中是若干组数据，每组有64个字节，也就是512位数据。</p>
+<p>再回到memoryMapAndGenerate中，经过generator方法后，data填充了数据，data是buffer从2开始的切片，buffer前两个索引被放入的魔法数字，此时buffer也是有数据的。接着解除映射，这一步会将刚才内存中的数据写入文件，但注意此时还是那个temp临时文件，这里对其重命名，然后调用memoryMap<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">memoryMap</span><span class="params">(path <span class="keyword">string</span>)</span> <span class="params">(*os.File, mmap.MMap, []<span class="keyword">uint32</span>, error)</span></span> &#123;</span><br><span class="line">	file, err := os.OpenFile(path, os.O_RDONLY, <span class="number">0644</span>)</span><br><span class="line">	<span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">		<span class="keyword">return</span> <span class="literal">nil</span>, <span class="literal">nil</span>, <span class="literal">nil</span>, err</span><br><span class="line">	&#125;</span><br><span class="line">	mem, buffer, err := memoryMapFile(file, <span class="literal">false</span>)</span><br><span class="line">	<span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">		file.Close()</span><br><span class="line">		<span class="keyword">return</span> <span class="literal">nil</span>, <span class="literal">nil</span>, <span class="literal">nil</span>, err</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">for</span> i, magic := <span class="keyword">range</span> dumpMagic &#123;</span><br><span class="line">		<span class="keyword">if</span> buffer[i] != magic &#123;</span><br><span class="line">			mem.Unmap()</span><br><span class="line">			file.Close()</span><br><span class="line">			<span class="keyword">return</span> <span class="literal">nil</span>, <span class="literal">nil</span>, <span class="literal">nil</span>, ErrInvalidDumpMagic</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">return</span> file, mem, buffer[<span class="built_in">len</span>(dumpMagic):], err</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>这里再次对文件进行映射，只不过这次时只读模式，然后检查开头两个魔法数字来判断格式是否正确，然后返回文件句柄，映射对象，实际数据。</p>
+<p>再往前回到cache的generate方法，memoryMapAndGenerate结束后，返回的几个值分别赋给了cache的几个成员，其中cache就是实际数据。接着判断前一步是否有错，有错的话则不映射文件直接生成数据。最后删除之前一些旧的文件。</p>
+<p>最后回到Ethash的cache方法，此时我们只是生成的当前代的cache，接下来，为了方便，我们在生成下一代的cache，不过是在一个独立的goroutine中生成，方法一样，最后返回当前代的cache。</p>
+<h2 id="dataset生成"><a href="#dataset生成" class="headerlink" title="dataset生成"></a>dataset生成</h2><p>同样在verifySeal方法中也有获取dateset的方法，用的是ethash的dataset方法<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(ethash *Ethash)</span> <span class="title">dataset</span><span class="params">(block <span class="keyword">uint64</span>, async <span class="keyword">bool</span>)</span> *<span class="title">dataset</span></span> &#123;</span><br><span class="line">	epoch := block / epochLength</span><br><span class="line">	currentI, futureI := ethash.datasets.get(epoch)</span><br><span class="line">	current := currentI.(*dataset)</span><br><span class="line"></span><br><span class="line">	<span class="keyword">if</span> async &amp;&amp; !current.generated() &#123;</span><br><span class="line">		<span class="keyword">go</span> <span class="function"><span class="keyword">func</span><span class="params">()</span></span> &#123;</span><br><span class="line">			current.generate(ethash.config.DatasetDir, ethash.config.DatasetsOnDisk, ethash.config.PowMode == ModeTest)</span><br><span class="line"></span><br><span class="line">			<span class="keyword">if</span> futureI != <span class="literal">nil</span> &#123;</span><br><span class="line">				future := futureI.(*dataset)</span><br><span class="line">				future.generate(ethash.config.DatasetDir, ethash.config.DatasetsOnDisk, ethash.config.PowMode == ModeTest)</span><br><span class="line">			&#125;</span><br><span class="line">		&#125;()</span><br><span class="line">	&#125; <span class="keyword">else</span> &#123;</span><br><span class="line">		current.generate(ethash.config.DatasetDir, ethash.config.DatasetsOnDisk, ethash.config.PowMode == ModeTest)</span><br><span class="line"></span><br><span class="line">		<span class="keyword">if</span> futureI != <span class="literal">nil</span> &#123;</span><br><span class="line">			future := futureI.(*dataset)</span><br><span class="line">			<span class="keyword">go</span> future.generate(ethash.config.DatasetDir, ethash.config.DatasetsOnDisk, ethash.config.PowMode == ModeTest)</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">return</span> current</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>前三行和cache一样，都尝试获取当前和下一代的数据集，接着判断当前代的dataset是否已经生成，没有的话调用generate<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(d *dataset)</span> <span class="title">generate</span><span class="params">(dir <span class="keyword">string</span>, limit <span class="keyword">int</span>, test <span class="keyword">bool</span>)</span></span> &#123;</span><br><span class="line">	d.once.Do(<span class="function"><span class="keyword">func</span><span class="params">()</span></span> &#123;</span><br><span class="line">		<span class="keyword">defer</span> atomic.StoreUint32(&amp;d.done, <span class="number">1</span>)</span><br><span class="line"></span><br><span class="line">		csize := cacheSize(d.epoch*epochLength + <span class="number">1</span>)</span><br><span class="line">		dsize := datasetSize(d.epoch*epochLength + <span class="number">1</span>)</span><br><span class="line">		seed := seedHash(d.epoch*epochLength + <span class="number">1</span>)</span><br><span class="line">		<span class="keyword">if</span> test &#123;</span><br><span class="line">			csize = <span class="number">1024</span></span><br><span class="line">			dsize = <span class="number">32</span> * <span class="number">1024</span></span><br><span class="line">		&#125;</span><br><span class="line"></span><br><span class="line">		<span class="keyword">if</span> dir == <span class="string">""</span> &#123;</span><br><span class="line">			cache := <span class="built_in">make</span>([]<span class="keyword">uint32</span>, csize/<span class="number">4</span>)</span><br><span class="line">			generateCache(cache, d.epoch, seed)</span><br><span class="line"></span><br><span class="line">			d.dataset = <span class="built_in">make</span>([]<span class="keyword">uint32</span>, dsize/<span class="number">4</span>)</span><br><span class="line">			generateDataset(d.dataset, d.epoch, cache)</span><br><span class="line"></span><br><span class="line">			<span class="keyword">return</span></span><br><span class="line">		&#125;</span><br><span class="line"></span><br><span class="line">		<span class="keyword">var</span> endian <span class="keyword">string</span></span><br><span class="line">		<span class="keyword">if</span> !isLittleEndian() &#123;</span><br><span class="line">			endian = <span class="string">".be"</span></span><br><span class="line">		&#125;</span><br><span class="line">		path := filepath.Join(dir, fmt.Sprintf(<span class="string">"full-R%d-%x%s"</span>, algorithmRevision, seed[:<span class="number">8</span>], endian))</span><br><span class="line">		logger := log.New(<span class="string">"epoch"</span>, d.epoch)</span><br><span class="line"></span><br><span class="line">		runtime.SetFinalizer(d, (*dataset).finalizer)</span><br><span class="line"></span><br><span class="line">		d.dump, d.mmap, d.dataset, err = memoryMap(path)</span><br><span class="line">		<span class="keyword">if</span> err == <span class="literal">nil</span> &#123;</span><br><span class="line">			logger.Debug(<span class="string">"Loaded old ethash dataset from disk"</span>)</span><br><span class="line">			<span class="keyword">return</span></span><br><span class="line">		&#125;</span><br><span class="line">		logger.Debug(<span class="string">"Failed to load old ethash dataset"</span>, <span class="string">"err"</span>, err)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">		cache := <span class="built_in">make</span>([]<span class="keyword">uint32</span>, csize/<span class="number">4</span>)</span><br><span class="line">		generateCache(cache, d.epoch, seed)</span><br><span class="line"></span><br><span class="line">		d.dump, d.mmap, d.dataset, err = memoryMapAndGenerate(path, dsize, <span class="function"><span class="keyword">func</span><span class="params">(buffer []<span class="keyword">uint32</span>)</span></span> &#123; generateDataset(buffer, d.epoch, cache) &#125;)</span><br><span class="line">		<span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">			logger.Error(<span class="string">"Failed to generate mapped ethash dataset"</span>, <span class="string">"err"</span>, err)</span><br><span class="line"></span><br><span class="line">			d.dataset = <span class="built_in">make</span>([]<span class="keyword">uint32</span>, dsize/<span class="number">2</span>)</span><br><span class="line">			generateDataset(d.dataset, d.epoch, cache)</span><br><span class="line">		&#125;</span><br><span class="line"></span><br><span class="line">		<span class="keyword">for</span> ep := <span class="keyword">int</span>(d.epoch) - limit; ep &gt;= <span class="number">0</span>; ep-- &#123;</span><br><span class="line">			seed := seedHash(<span class="keyword">uint64</span>(ep)*epochLength + <span class="number">1</span>)</span><br><span class="line">			path := filepath.Join(dir, fmt.Sprintf(<span class="string">"full-R%d-%x%s"</span>, algorithmRevision, seed[:<span class="number">8</span>], endian))</span><br><span class="line">			os.Remove(path)</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>这里首先计算了对应代的cache大小和种子seed，和前面cache中一样，不在叙述。除此之外还计算了dateset大小：<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">datasetSize</span><span class="params">(block <span class="keyword">uint64</span>)</span> <span class="title">uint64</span></span> &#123;</span><br><span class="line">	epoch := <span class="keyword">int</span>(block / epochLength)</span><br><span class="line">	<span class="keyword">if</span> epoch &lt; maxEpoch &#123;</span><br><span class="line">		<span class="keyword">return</span> datasetSizes[epoch]</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">return</span> calcDatasetSize(epoch)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">calcDatasetSize</span><span class="params">(epoch <span class="keyword">int</span>)</span> <span class="title">uint64</span></span> &#123;</span><br><span class="line">	size := datasetInitBytes + datasetGrowthBytes*<span class="keyword">uint64</span>(epoch) - mixBytes</span><br><span class="line">	<span class="keyword">for</span> !<span class="built_in">new</span>(big.Int).SetUint64(size / mixBytes).ProbablyPrime(<span class="number">1</span>) &#123; <span class="comment">// Always accurate for n &lt; 2^64</span></span><br><span class="line">		size -= <span class="number">2</span> * mixBytes</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">return</span> size</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>和计算cachesize一样，对于2048代以内是查表，超过2048代是size=1GB+8MB*代数-128B，同样还是要求size除以128为质数，否则减去256在判断，如此循环直到为质数为止。</p>
+<p>回到generate中，如果是测试模式，则设置cache的大小为1024，dateset大小为32*1024。接着如果没有指定目录的话，则不用文件映射，直接先生成一个cache，之后再生成dateset<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">generateDataset</span><span class="params">(dest []<span class="keyword">uint32</span>, epoch <span class="keyword">uint64</span>, cache []<span class="keyword">uint32</span>)</span></span> &#123;</span><br><span class="line">	logger := log.New(<span class="string">"epoch"</span>, epoch)</span><br><span class="line"></span><br><span class="line">	start := time.Now()</span><br><span class="line">	<span class="keyword">defer</span> <span class="function"><span class="keyword">func</span><span class="params">()</span></span> &#123;</span><br><span class="line">		elapsed := time.Since(start)</span><br><span class="line"></span><br><span class="line">		logFn := logger.Debug</span><br><span class="line">		<span class="keyword">if</span> elapsed &gt; <span class="number">3</span>*time.Second &#123;</span><br><span class="line">			logFn = logger.Info</span><br><span class="line">		&#125;</span><br><span class="line">		logFn(<span class="string">"Generated ethash verification cache"</span>, <span class="string">"elapsed"</span>, common.PrettyDuration(elapsed))</span><br><span class="line">	&#125;()</span><br><span class="line"></span><br><span class="line">	swapped := !isLittleEndian()</span><br><span class="line"></span><br><span class="line">	header := *(*reflect.SliceHeader)(unsafe.Pointer(&amp;dest))</span><br><span class="line">	header.Len *= <span class="number">4</span></span><br><span class="line">	header.Cap *= <span class="number">4</span></span><br><span class="line">	dataset := *(*[]<span class="keyword">byte</span>)(unsafe.Pointer(&amp;header))</span><br><span class="line"></span><br><span class="line">	threads := runtime.NumCPU()</span><br><span class="line">	size := <span class="keyword">uint64</span>(<span class="built_in">len</span>(dataset))</span><br><span class="line"></span><br><span class="line">	<span class="keyword">var</span> pend sync.WaitGroup</span><br><span class="line">	pend.Add(threads)</span><br><span class="line"></span><br><span class="line">	<span class="keyword">var</span> progress <span class="keyword">uint32</span></span><br><span class="line">	<span class="keyword">for</span> i := <span class="number">0</span>; i &lt; threads; i++ &#123;</span><br><span class="line">		<span class="keyword">go</span> <span class="function"><span class="keyword">func</span><span class="params">(id <span class="keyword">int</span>)</span></span> &#123;</span><br><span class="line">			<span class="keyword">defer</span> pend.Done()</span><br><span class="line"></span><br><span class="line">			keccak512 := makeHasher(sha3.NewLegacyKeccak512())</span><br><span class="line"></span><br><span class="line">			batch := <span class="keyword">uint32</span>((size + hashBytes*<span class="keyword">uint64</span>(threads) - <span class="number">1</span>) / (hashBytes * <span class="keyword">uint64</span>(threads)))</span><br><span class="line">			first := <span class="keyword">uint32</span>(id) * batch</span><br><span class="line">			limit := first + batch</span><br><span class="line">			<span class="keyword">if</span> limit &gt; <span class="keyword">uint32</span>(size/hashBytes) &#123;</span><br><span class="line">				limit = <span class="keyword">uint32</span>(size / hashBytes)</span><br><span class="line">			&#125;</span><br><span class="line"></span><br><span class="line">			percent := <span class="keyword">uint32</span>(size / hashBytes / <span class="number">100</span>)</span><br><span class="line">			<span class="keyword">for</span> index := first; index &lt; limit; index++ &#123;</span><br><span class="line">				item := generateDatasetItem(cache, index, keccak512)</span><br><span class="line">				<span class="keyword">if</span> swapped &#123;</span><br><span class="line">					swap(item)</span><br><span class="line">				&#125;</span><br><span class="line">				<span class="built_in">copy</span>(dataset[index*hashBytes:], item)</span><br><span class="line"></span><br><span class="line">				<span class="keyword">if</span> status := atomic.AddUint32(&amp;progress, <span class="number">1</span>); status%percent == <span class="number">0</span> &#123;</span><br><span class="line">					logger.Info(<span class="string">"Generating DAG in progress"</span>, <span class="string">"percentage"</span>, <span class="keyword">uint64</span>(status*<span class="number">100</span>)/(size/hashBytes), <span class="string">"elapsed"</span>, common.PrettyDuration(time.Since(start)))</span><br><span class="line">				&#125;</span><br><span class="line">			&#125;</span><br><span class="line">		&#125;(i)</span><br><span class="line">	&#125;</span><br><span class="line">	pend.Wait()</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>这里首先对传入的dest也就是要存放数据的数组进行处理，先转为切片，修改其长度和容量，都是扩大4倍，之后再转为字节数组类型。接着获取cpu核数记为threads，获取数据集大小，然后启动threads个独立的goroutine。</p>
+<p>首先dataset的整体数据结构和cache类似，都是按64字节也就是512位为一组，这里为了实现多线程并行计算，在每个goroutine中计算了需要计算的组数，然后循环调用generateDatasetItem生成每一组数据：<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">generateDatasetItem</span><span class="params">(cache []<span class="keyword">uint32</span>, index <span class="keyword">uint32</span>, keccak512 hasher)</span> []<span class="title">byte</span></span> &#123;</span><br><span class="line">	rows := <span class="keyword">uint32</span>(<span class="built_in">len</span>(cache) / hashWords)</span><br><span class="line"></span><br><span class="line">	mix := <span class="built_in">make</span>([]<span class="keyword">byte</span>, hashBytes)</span><br><span class="line"></span><br><span class="line">	binary.LittleEndian.PutUint32(mix, cache[(index%rows)*hashWords]^index)</span><br><span class="line">	<span class="keyword">for</span> i := <span class="number">1</span>; i &lt; hashWords; i++ &#123;</span><br><span class="line">		binary.LittleEndian.PutUint32(mix[i*<span class="number">4</span>:], cache[(index%rows)*hashWords+<span class="keyword">uint32</span>(i)])</span><br><span class="line">	&#125;</span><br><span class="line">	keccak512(mix, mix)</span><br><span class="line"></span><br><span class="line">	intMix := <span class="built_in">make</span>([]<span class="keyword">uint32</span>, hashWords)</span><br><span class="line">	<span class="keyword">for</span> i := <span class="number">0</span>; i &lt; <span class="built_in">len</span>(intMix); i++ &#123;</span><br><span class="line">		intMix[i] = binary.LittleEndian.Uint32(mix[i*<span class="number">4</span>:])</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">for</span> i := <span class="keyword">uint32</span>(<span class="number">0</span>); i &lt; datasetParents; i++ &#123;</span><br><span class="line">		parent := fnv(index^i, intMix[i%<span class="number">16</span>]) % rows</span><br><span class="line">		fnvHash(intMix, cache[parent*hashWords:])</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">for</span> i, val := <span class="keyword">range</span> intMix &#123;</span><br><span class="line">		binary.LittleEndian.PutUint32(mix[i*<span class="number">4</span>:], val)</span><br><span class="line">	&#125;</span><br><span class="line">	keccak512(mix, mix)</span><br><span class="line">	<span class="keyword">return</span> mix</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>首先把cache中的数据每16个视作一行，计算cache的总行数，由于cache每个元素时32位，16个也即是512位，也就是cache中的一组。这里初始化了一个含有64字节的数组mix，总长度也就是512位。接着按照一定规则计算mix，基本原则是充分利用cache中足够多的数据。</p>
+<p>接着把mix中的数据放入一个长度为16的32位整型数组intmix，总长度也是512位。然后有一个循环，每次循环都利用了所谓的fnv和fnvhash函数，总循环为256次，目的还是尽可能多的使用cache中数据。每次循环的结果还是放在intmix中。（<a href="https://en.wikipedia.org/wiki/Fowler%E2%80%93Noll%E2%80%93Vo_hash_function" target="_blank" rel="noopener">fnv</a>全称Fowler–Noll–Vo，也是一种hash函数，他计算速度非常快，冲突率较低，也就是对于相似的数据也能产生大量的差别，其分散性较好，之所以用它是为了能较为随机的从数据集中取数据，避免数据间的使用率差别较大）</p>
+<p>最后将intmix的数据写入mix中，再对mix做一次哈希运算，最后得到一个512位的数据，就是dataset中一组数据。</p>
+<p>数据集的生成算法借鉴了Hashimoto算法，要想了解更多请参考<a href="http://diyhpl.us/~bryan/papers2/bitcoin/meh/hashimoto.pdf" target="_blank" rel="noopener">Hashimoto算法</a>，译文<a href="https://blog.grapefruit.tk/2019/05/23/Hashimoto%EF%BC%9AIO%E9%99%90%E5%88%B6%E7%9A%84%E5%B7%A5%E4%BD%9C%E8%AF%81%E6%98%8E/" target="_blank" rel="noopener">见这里</a></p>
+<p>回到generateDataset中，调用generateDatasetItem之后，获取了一组数据，将其放到dateset对应位置，经过若干次上面过程后一个完整的dataset得以生成。</p>
+<p>回到dataset的generate方法中，刚才我们分析的是没有指定数据存储路径的流程，接下来我们在看一下有数据路径的流程。</p>
+<p>首先构建文件的最终路径，然后调用memoryMap进行映射，这一步和cache相同，如果没有错误说明原本就有，直接返回，读取的数据放入dataset相应字段中。如果读不到数据或有错，则先用generateCache生成cache数据，在使用memoryMapAndGenerate生成空文件，并进行映射然后生成dataset数据进行填充，流程和cache一样，不在叙述。只不过和前面直接生成数据不同的是，这里在数据开头写入了64位的魔法数字，和cache一样。最后尝试旧的数据文件，和cache一样的流程。</p>
+<p>最后回到ethash的dataset方法，在这里主要是分了同步还是异步，逻辑都还是一样，只不过异步的是在一个单独的goroutine中执行的。最后生成完当代的dateset后，又根据具体需要生成了下一代数据。</p>
+<h2 id="hashimotoFull"><a href="#hashimotoFull" class="headerlink" title="hashimotoFull"></a>hashimotoFull</h2><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">hashimotoFull</span><span class="params">(dataset []<span class="keyword">uint32</span>, hash []<span class="keyword">byte</span>, nonce <span class="keyword">uint64</span>)</span> <span class="params">([]<span class="keyword">byte</span>, []<span class="keyword">byte</span>)</span></span> &#123;</span><br><span class="line">	lookup := <span class="function"><span class="keyword">func</span><span class="params">(index <span class="keyword">uint32</span>)</span> []<span class="title">uint32</span></span> &#123;</span><br><span class="line">		offset := index * hashWords</span><br><span class="line">		<span class="keyword">return</span> dataset[offset : offset+hashWords]</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">return</span> hashimoto(hash, nonce, <span class="keyword">uint64</span>(<span class="built_in">len</span>(dataset))*<span class="number">4</span>, lookup)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>这是在全节点中节点有完整dateset数据集时的验证方法，直接调用了hashimoto方法</p>
+<h2 id="hashimotoLight"><a href="#hashimotoLight" class="headerlink" title="hashimotoLight"></a>hashimotoLight</h2><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">hashimotoLight</span><span class="params">(size <span class="keyword">uint64</span>, cache []<span class="keyword">uint32</span>, hash []<span class="keyword">byte</span>, nonce <span class="keyword">uint64</span>)</span> <span class="params">([]<span class="keyword">byte</span>, []<span class="keyword">byte</span>)</span></span> &#123;</span><br><span class="line">	keccak512 := makeHasher(sha3.NewLegacyKeccak512())</span><br><span class="line"></span><br><span class="line">	lookup := <span class="function"><span class="keyword">func</span><span class="params">(index <span class="keyword">uint32</span>)</span> []<span class="title">uint32</span></span> &#123;</span><br><span class="line">		rawData := generateDatasetItem(cache, index, keccak512)</span><br><span class="line"></span><br><span class="line">		data := <span class="built_in">make</span>([]<span class="keyword">uint32</span>, <span class="built_in">len</span>(rawData)/<span class="number">4</span>)</span><br><span class="line">		<span class="keyword">for</span> i := <span class="number">0</span>; i &lt; <span class="built_in">len</span>(data); i++ &#123;</span><br><span class="line">			data[i] = binary.LittleEndian.Uint32(rawData[i*<span class="number">4</span>:])</span><br><span class="line">		&#125;</span><br><span class="line">		<span class="keyword">return</span> data</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">return</span> hashimoto(hash, nonce, size, lookup)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>这是没有完整dataset之后cache的轻节点的验证方法，也是直接调用了hashimoto方法，和hashimotoFull的区别是lookup的差别</p>
+<h2 id="hashimoto"><a href="#hashimoto" class="headerlink" title="hashimoto"></a>hashimoto</h2><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">hashimoto</span><span class="params">(hash []<span class="keyword">byte</span>, nonce <span class="keyword">uint64</span>, size <span class="keyword">uint64</span>, lookup <span class="keyword">func</span>(index <span class="keyword">uint32</span>)</span> []<span class="title">uint32</span>) <span class="params">([]<span class="keyword">byte</span>, []<span class="keyword">byte</span>)</span></span> &#123;</span><br><span class="line">	rows := <span class="keyword">uint32</span>(size / mixBytes)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">	seed := <span class="built_in">make</span>([]<span class="keyword">byte</span>, <span class="number">40</span>)</span><br><span class="line">	<span class="built_in">copy</span>(seed, hash)</span><br><span class="line">	binary.LittleEndian.PutUint64(seed[<span class="number">32</span>:], nonce)</span><br><span class="line"></span><br><span class="line">	seed = crypto.Keccak512(seed)</span><br><span class="line">	seedHead := binary.LittleEndian.Uint32(seed)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">	mix := <span class="built_in">make</span>([]<span class="keyword">uint32</span>, mixBytes/<span class="number">4</span>)</span><br><span class="line">	<span class="keyword">for</span> i := <span class="number">0</span>; i &lt; <span class="built_in">len</span>(mix); i++ &#123;</span><br><span class="line">		mix[i] = binary.LittleEndian.Uint32(seed[i%<span class="number">16</span>*<span class="number">4</span>:])</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	temp := <span class="built_in">make</span>([]<span class="keyword">uint32</span>, <span class="built_in">len</span>(mix))</span><br><span class="line"></span><br><span class="line">	<span class="keyword">for</span> i := <span class="number">0</span>; i &lt; loopAccesses; i++ &#123;</span><br><span class="line">		parent := fnv(<span class="keyword">uint32</span>(i)^seedHead, mix[i%<span class="built_in">len</span>(mix)]) % rows</span><br><span class="line">		<span class="keyword">for</span> j := <span class="keyword">uint32</span>(<span class="number">0</span>); j &lt; mixBytes/hashBytes; j++ &#123;</span><br><span class="line">			<span class="built_in">copy</span>(temp[j*hashWords:], lookup(<span class="number">2</span>*parent+j))</span><br><span class="line">		&#125;</span><br><span class="line">		fnvHash(mix, temp)</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">for</span> i := <span class="number">0</span>; i &lt; <span class="built_in">len</span>(mix); i += <span class="number">4</span> &#123;</span><br><span class="line">		mix[i/<span class="number">4</span>] = fnv(fnv(fnv(mix[i], mix[i+<span class="number">1</span>]), mix[i+<span class="number">2</span>]), mix[i+<span class="number">3</span>])</span><br><span class="line">	&#125;</span><br><span class="line">	mix = mix[:<span class="built_in">len</span>(mix)/<span class="number">4</span>]</span><br><span class="line"></span><br><span class="line">	digest := <span class="built_in">make</span>([]<span class="keyword">byte</span>, common.HashLength)</span><br><span class="line">	<span class="keyword">for</span> i, val := <span class="keyword">range</span> mix &#123;</span><br><span class="line">		binary.LittleEndian.PutUint32(digest[i*<span class="number">4</span>:], val)</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">return</span> digest, crypto.Keccak256(<span class="built_in">append</span>(seed, digest...))</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>首先根据给定的头部hash和nonce计算seed，头部hash是32字节，nonce是8字节，将其拼接后做一次keccak512哈希运算，得到一个长度为64的字节数组。接着创建了一个无符号32位整型数组，长度是32。然后将seed中的数据数据放入mix中，由于mix总位数是seed的两倍，所以mix先后放置了两个seed的数据内容。</p>
+<p>继续向下，设置一个和mix大小一样的临时数组。开始了64次循环，每次循环还是fnv和fnvhash进行运算，其中循环中fnv即其后的那个循环是为了对temp进行填充，fnvhash是为了利用temp对mix进行运算，最后结果放入mix中。关键一点是在lookup中。对于节点有完整dataset时，lookup实现如下<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">lookup := <span class="function"><span class="keyword">func</span><span class="params">(index <span class="keyword">uint32</span>)</span> []<span class="title">uint32</span></span> &#123;</span><br><span class="line">		offset := index * hashWords</span><br><span class="line">		<span class="keyword">return</span> dataset[offset : offset+hashWords]</span><br><span class="line">	&#125;</span><br></pre></td></tr></table></figure></p>
+<p>很简单就是输入一个索引，然后从dateset中取一组数据（16个uint32数据，共512位）。对于没有完整dateset时，实现如下：<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">lookup := <span class="function"><span class="keyword">func</span><span class="params">(index <span class="keyword">uint32</span>)</span> []<span class="title">uint32</span></span> &#123;</span><br><span class="line">		rawData := generateDatasetItem(cache, index, keccak512)</span><br><span class="line"></span><br><span class="line">		data := <span class="built_in">make</span>([]<span class="keyword">uint32</span>, <span class="built_in">len</span>(rawData)/<span class="number">4</span>)</span><br><span class="line">		<span class="keyword">for</span> i := <span class="number">0</span>; i &lt; <span class="built_in">len</span>(data); i++ &#123;</span><br><span class="line">			data[i] = binary.LittleEndian.Uint32(rawData[i*<span class="number">4</span>:])</span><br><span class="line">		&#125;</span><br><span class="line">		<span class="keyword">return</span> data</span><br><span class="line">	&#125;</span><br></pre></td></tr></table></figure></p>
+<p>由于没有完整的数据，我们要根据索引去临时计算一个数据，调用的是generateDatasetItem方法，这个计算量以及内存占用都是比较少的。</p>
+<p>回到hshimoto中，之所以用fnv以及lookup只是为了能随机的从dateset中取一个数据，这样对于挖矿节点，最优的方法是在内存中完整保留dataset数据副本，这就是内存困难型工作证明函数。经过64轮的fnv、lookup及fnvhash运算，最后得到的还是mix数组，接着对mix进行压缩，压缩为之前的四分之一，也就是128位，这就是区块头的MixDigest字段。最后将seed（512位）和digest拼接进行一次keccak256运算得到一个256位的值，挖矿也就是将这个值和难度值比较。</p>
+<p>这里我们简要分析一下，从dataset中取数据的索引由parent和j构成，parent由seedhead（seed的前四个字节按小端序组成）和mix（mix由seed经过简单的操作生成），j则是0或1。而seed是由头结点hash和nonce组成。所以对于验证节点，只需一个完整的cache数据，然后在那64轮循环中，每次循环根据索引从cache中计算0dateset的某组数据。而对于挖矿节点，虽然也可以和验证节点一样每次都计算一组，但是由于每次是从整个dataset中随机选一组数据，虽然是伪随机的，但是也难以预测，所以最好的方法是能是保存整个数据集副本，这样就实现了内存困难型计算。</p>
+<p>最后在验证过程中既要小于难度值，又要等于digest，所以也就强迫挖矿节点按照刚才流程来进行计算。因为最后和难度值比较的数只是seed和某个128位的值拼接后hash的结果，所以如果不比较digest，挖矿节点只用不断尝试nonce，然后计算出seed即可，digest就是使用dateset的一个证明。</p>
+<h2 id="geth生成数据集"><a href="#geth生成数据集" class="headerlink" title="geth生成数据集"></a>geth生成数据集</h2><p>为了方便我们测试，geth提供了生成数据集的命令，只用指定区块号即可<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">geth makecache 36000 ethash/</span><br><span class="line">geth makedag 36000 ethash/</span><br></pre></td></tr></table></figure></p>
+<h2 id="关于大小端"><a href="#关于大小端" class="headerlink" title="关于大小端"></a>关于大小端</h2><p>无论是cache还是dateset中的数据都是按照小端模式存储的。所谓小端模式就是在低地址中存放低位，相反低地址存放高位就是大端模式。对于0x01020304这个数，04就是低位，01就是高位。源码中也给出了测试我们的机器是大端还是小端的代码：<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">isLittleEndian</span><span class="params">()</span> <span class="title">bool</span></span> &#123;</span><br><span class="line">	n := <span class="keyword">uint32</span>(<span class="number">0x01020304</span>)</span><br><span class="line">	<span class="keyword">return</span> *(*<span class="keyword">byte</span>)(unsafe.Pointer(&amp;n)) == <span class="number">0x04</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>很简单，就是存一个数，然后取低地址看是否是低位即可，这里的取低地址就是通过指针转为字节类型，由于32位整型转为8位字节，只保留的低位数据。</p>
+<p>关于为什么要使用小端模式，实际上无论大小端都可以，但是在计算数据集的时候存在多次uin32与[]byte的转换，如果不统一一下格式，在不同机器上就会有不同结果。同样源码也给出了转为小端模式的代码<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">swap</span><span class="params">(buffer []<span class="keyword">byte</span>)</span></span> &#123;</span><br><span class="line">	<span class="keyword">for</span> i := <span class="number">0</span>; i &lt; <span class="built_in">len</span>(buffer); i += <span class="number">4</span> &#123;</span><br><span class="line">		binary.BigEndian.PutUint32(buffer[i:], binary.LittleEndian.Uint32(buffer[i:]))</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(littleEndian)</span> <span class="title">Uint32</span><span class="params">(b []<span class="keyword">byte</span>)</span> <span class="title">uint32</span></span> &#123;</span><br><span class="line">	_ = b[<span class="number">3</span>] <span class="comment">// bounds check hint to compiler; see golang.org/issue/14808</span></span><br><span class="line">	<span class="keyword">return</span> <span class="keyword">uint32</span>(b[<span class="number">0</span>]) | <span class="keyword">uint32</span>(b[<span class="number">1</span>])&lt;&lt;<span class="number">8</span> | <span class="keyword">uint32</span>(b[<span class="number">2</span>])&lt;&lt;<span class="number">16</span> | <span class="keyword">uint32</span>(b[<span class="number">3</span>])&lt;&lt;<span class="number">24</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>实际就是利用了littleEndian中的方法翻一下顺序即可。</p>
+<blockquote>
+<p>题图来自unsplash：<a href="https://unsplash.com/photos/kDJ4i77UPe0" target="_blank" rel="noopener">https://unsplash.com/photos/kDJ4i77UPe0</a></p>
+</blockquote>
+
+      
+    </div>
+
+    
+
+    
+    
+    
+
+    
+
+    
+      
+    
+    
+      <div>
+        <div style="padding: 10px 0; margin: 20px auto; width: 90%; text-align: center;">
+  <div>谢谢你请我吃糖</div>
+  <button id="rewardButton" disable="enable" onclick="var qr = document.getElementById('QR'); if (qr.style.display === 'none') {qr.style.display='block';} else {qr.style.display='none'}">
+    <span>打赏</span>
+  </button>
+  <div id="QR" style="display: none;">
+
+    
+      <div id="wechat" style="display: inline-block">
+        <img id="wechat_qr" src="/assets/img/wechatpay.jpg" alt="AmorFati 微信支付">
+        <p>微信支付</p>
+      </div>
+    
+
+    
+      <div id="alipay" style="display: inline-block">
+        <img id="alipay_qr" src="/assets/img/alipay.jpg" alt="AmorFati 支付宝">
+        <p>支付宝</p>
+      </div>
+    
+
+    
+
+  </div>
+</div>
+
+      </div>
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/区块链/" rel="tag"># 区块链</a>
+          
+            <a href="/tags/go/" rel="tag"># go</a>
+          
+            <a href="/tags/以太坊/" rel="tag"># 以太坊</a>
+          
+            <a href="/tags/go-ethereum/" rel="tag"># go-ethereum</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2019/05/30/golang文件锁/" rel="next" title="golang文件锁">
+                <i class="fa fa-chevron-left"></i> golang文件锁
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+  </div>
+
+
+          </div>
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image" src="/assets/img/icon.jpg" alt="AmorFati">
+            
+              <p class="site-author-name" itemprop="name">AmorFati</p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          
+            <nav class="site-state motion-element">
+              
+                <div class="site-state-item site-state-posts">
+                
+                  <a href="/archives/">
+                
+                    <span class="site-state-item-count">43</span>
+                    <span class="site-state-item-name">日志</span>
+                  </a>
+                </div>
+              
+
+              
+                
+                
+                <div class="site-state-item site-state-categories">
+                  <a href="/categories/index.html">
+                    
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">7</span>
+                    <span class="site-state-item-name">分类</span>
+                  </a>
+                </div>
+              
+
+              
+                
+                
+                <div class="site-state-item site-state-tags">
+                  <a href="/tags/index.html">
+                    
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">11</span>
+                    <span class="site-state-item-name">标签</span>
+                  </a>
+                </div>
+              
+            </nav>
+          
+
+          
+
+          
+            <div class="links-of-author motion-element">
+              
+                <span class="links-of-author-item">
+                  
+                  
+                    
+                  
+                  
+                    
+                  
+                  <a href="https://github.com/chenyaoyang" title="GitHub &rarr; https://github.com/chenyaoyang" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i>GitHub</a>
+                </span>
+              
+                <span class="links-of-author-item">
+                  
+                  
+                    
+                  
+                  
+                    
+                  
+                  <a href="mailto:chenyang4346@foxmail.com" title="E-Mail &rarr; mailto:chenyang4346@foxmail.com" rel="noopener" target="_blank"><i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+                </span>
+              
+                <span class="links-of-author-item">
+                  
+                  
+                    
+                  
+                  
+                    
+                  
+                  <a href="https://www.jianshu.com/u/52c1bec4559c" title="简书 &rarr; https://www.jianshu.com/u/52c1bec4559c" rel="noopener" target="_blank"><i class="fa fa-fw fa-globe"></i>简书</a>
+                </span>
+              
+            </div>
+          
+
+          
+
+          
+          
+
+          
+            
+          
+          
+
+        </div>
+      </div>
+
+      
+      <!--noindex-->
+        <div class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+            
+            
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#Engine"><span class="nav-number">1.</span> <span class="nav-text">Engine</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#New"><span class="nav-number">1.1.</span> <span class="nav-text">New</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Author"><span class="nav-number">1.2.</span> <span class="nav-text">Author</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#VerifyHeader"><span class="nav-number">1.3.</span> <span class="nav-text">VerifyHeader</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#verifyHeader"><span class="nav-number">1.4.</span> <span class="nav-text">verifyHeader</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#VerifyHeaders"><span class="nav-number">1.5.</span> <span class="nav-text">VerifyHeaders</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#VerifyUncles"><span class="nav-number">1.6.</span> <span class="nav-text">VerifyUncles</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#VerifySeal"><span class="nav-number">1.7.</span> <span class="nav-text">VerifySeal</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Prepare"><span class="nav-number">1.8.</span> <span class="nav-text">Prepare</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Finalize"><span class="nav-number">1.9.</span> <span class="nav-text">Finalize</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#CalcDifficulty"><span class="nav-number">1.10.</span> <span class="nav-text">CalcDifficulty</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Seal"><span class="nav-number">1.11.</span> <span class="nav-text">Seal</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#mine"><span class="nav-number">1.12.</span> <span class="nav-text">mine</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Ethash算法"><span class="nav-number">2.</span> <span class="nav-text">Ethash算法</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#数据结构"><span class="nav-number">2.1.</span> <span class="nav-text">数据结构</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#cache生成"><span class="nav-number">2.2.</span> <span class="nav-text">cache生成</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#dataset生成"><span class="nav-number">2.3.</span> <span class="nav-text">dataset生成</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#hashimotoFull"><span class="nav-number">2.4.</span> <span class="nav-text">hashimotoFull</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#hashimotoLight"><span class="nav-number">2.5.</span> <span class="nav-text">hashimotoLight</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#hashimoto"><span class="nav-number">2.6.</span> <span class="nav-text">hashimoto</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#geth生成数据集"><span class="nav-number">2.7.</span> <span class="nav-text">geth生成数据集</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#关于大小端"><span class="nav-number">2.8.</span> <span class="nav-text">关于大小端</span></a></li></ol></li></ol></div>
+            
+
+          </div>
+        </div>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; 2018 – <span itemprop="copyrightYear">2019</span>
+  <span class="with-love" id="animate">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">AmorFati</span>
+
+  
+
+  
+</div>
+
+
+  <div class="powered-by">由 <a href="https://hexo.io" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v3.8.0</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 – <a href="https://theme-next.org" class="theme-link" rel="noopener" target="_blank">NexT.Pisces</a> v6.6.0</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+    
+
+    
+  </div>
+
+  
+
+<script>
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+
+  
+
+
+  <script src="/js/src/utils.js?v=6.6.0"></script>
+
+  <script src="/js/src/motion.js?v=6.6.0"></script>
+
+
+
+  
+  
+
+
+  <script src="/js/src/affix.js?v=6.6.0"></script>
+
+  <script src="/js/src/schemes/pisces.js?v=6.6.0"></script>
+
+
+
+  
+  <script src="/js/src/scrollspy.js?v=6.6.0"></script>
+<script src="/js/src/post-details.js?v=6.6.0"></script>
+
+
+
+  
+
+
+  <script src="/js/src/bootstrap.js?v=6.6.0"></script>
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  <script>
+    // Popup Window;
+    var isfetched = false;
+    var isXml = true;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length === 0) {
+      search_path = "search.xml";
+    } else if (/json$/i.test(search_path)) {
+      isXml = false;
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    var onPopupClose = function (e) {
+      $('.popup').hide();
+      $('#local-search-input').val('');
+      $('.search-result-list').remove();
+      $('#no-result').remove();
+      $(".local-search-pop-overlay").remove();
+      $('body').css('overflow', '');
+    }
+
+    function proceedsearch() {
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay"></div>')
+        .css('overflow', 'hidden');
+      $('.search-popup-overlay').click(onPopupClose);
+      $('.popup').toggle();
+      var $localSearchInput = $('#local-search-input');
+      $localSearchInput.attr("autocapitalize", "none");
+      $localSearchInput.attr("autocorrect", "off");
+      $localSearchInput.focus();
+    }
+
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+      'use strict';
+
+      // start loading animation
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay">' +
+          '<div id="search-loading-icon">' +
+          '<i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>' +
+          '</div>' +
+          '</div>')
+        .css('overflow', 'hidden');
+      $("#search-loading-icon").css('margin', '20% auto 0 auto').css('text-align', 'center');
+
+      
+
+      $.ajax({
+        url: path,
+        dataType: isXml ? "xml" : "json",
+        async: true,
+        success: function(res) {
+          // get the contents from search data
+          isfetched = true;
+          $('.popup').detach().appendTo('.header-inner');
+          var datas = isXml ? $("entry", res).map(function() {
+            return {
+              title: $("title", this).text(),
+              content: $("content",this).text(),
+              url: $("url" , this).text()
+            };
+          }).get() : res;
+          var input = document.getElementById(search_id);
+          var resultContent = document.getElementById(content_id);
+          var inputEventFunction = function() {
+            var searchText = input.value.trim().toLowerCase();
+            var keywords = searchText.split(/[\s\-]+/);
+            if (keywords.length > 1) {
+              keywords.push(searchText);
+            }
+            var resultItems = [];
+            if (searchText.length > 0) {
+              // perform local searching
+              datas.forEach(function(data) {
+                var isMatch = false;
+                var hitCount = 0;
+                var searchTextCount = 0;
+                var title = data.title.trim();
+                var titleInLowerCase = title.toLowerCase();
+                var content = data.content.trim().replace(/<[^>]+>/g,"");
+                
+                var contentInLowerCase = content.toLowerCase();
+                var articleUrl = decodeURIComponent(data.url);
+                var indexOfTitle = [];
+                var indexOfContent = [];
+                // only match articles with not empty titles
+                if(title != '') {
+                  keywords.forEach(function(keyword) {
+                    function getIndexByWord(word, text, caseSensitive) {
+                      var wordLen = word.length;
+                      if (wordLen === 0) {
+                        return [];
+                      }
+                      var startPosition = 0, position = [], index = [];
+                      if (!caseSensitive) {
+                        text = text.toLowerCase();
+                        word = word.toLowerCase();
+                      }
+                      while ((position = text.indexOf(word, startPosition)) > -1) {
+                        index.push({position: position, word: word});
+                        startPosition = position + wordLen;
+                      }
+                      return index;
+                    }
+
+                    indexOfTitle = indexOfTitle.concat(getIndexByWord(keyword, titleInLowerCase, false));
+                    indexOfContent = indexOfContent.concat(getIndexByWord(keyword, contentInLowerCase, false));
+                  });
+                  if (indexOfTitle.length > 0 || indexOfContent.length > 0) {
+                    isMatch = true;
+                    hitCount = indexOfTitle.length + indexOfContent.length;
+                  }
+                }
+
+                // show search results
+
+                if (isMatch) {
+                  // sort index by position of keyword
+
+                  [indexOfTitle, indexOfContent].forEach(function (index) {
+                    index.sort(function (itemLeft, itemRight) {
+                      if (itemRight.position !== itemLeft.position) {
+                        return itemRight.position - itemLeft.position;
+                      } else {
+                        return itemLeft.word.length - itemRight.word.length;
+                      }
+                    });
+                  });
+
+                  // merge hits into slices
+
+                  function mergeIntoSlice(text, start, end, index) {
+                    var item = index[index.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    var hits = [];
+                    var searchTextCountInSlice = 0;
+                    while (position + word.length <= end && index.length != 0) {
+                      if (word === searchText) {
+                        searchTextCountInSlice++;
+                      }
+                      hits.push({position: position, length: word.length});
+                      var wordEnd = position + word.length;
+
+                      // move to next position of hit
+
+                      index.pop();
+                      while (index.length != 0) {
+                        item = index[index.length - 1];
+                        position = item.position;
+                        word = item.word;
+                        if (wordEnd > position) {
+                          index.pop();
+                        } else {
+                          break;
+                        }
+                      }
+                    }
+                    searchTextCount += searchTextCountInSlice;
+                    return {
+                      hits: hits,
+                      start: start,
+                      end: end,
+                      searchTextCount: searchTextCountInSlice
+                    };
+                  }
+
+                  var slicesOfTitle = [];
+                  if (indexOfTitle.length != 0) {
+                    slicesOfTitle.push(mergeIntoSlice(title, 0, title.length, indexOfTitle));
+                  }
+
+                  var slicesOfContent = [];
+                  while (indexOfContent.length != 0) {
+                    var item = indexOfContent[indexOfContent.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    // cut out 100 characters
+                    var start = position - 20;
+                    var end = position + 80;
+                    if(start < 0){
+                      start = 0;
+                    }
+                    if (end < position + word.length) {
+                      end = position + word.length;
+                    }
+                    if(end > content.length){
+                      end = content.length;
+                    }
+                    slicesOfContent.push(mergeIntoSlice(content, start, end, indexOfContent));
+                  }
+
+                  // sort slices in content by search text's count and hits' count
+
+                  slicesOfContent.sort(function (sliceLeft, sliceRight) {
+                    if (sliceLeft.searchTextCount !== sliceRight.searchTextCount) {
+                      return sliceRight.searchTextCount - sliceLeft.searchTextCount;
+                    } else if (sliceLeft.hits.length !== sliceRight.hits.length) {
+                      return sliceRight.hits.length - sliceLeft.hits.length;
+                    } else {
+                      return sliceLeft.start - sliceRight.start;
+                    }
+                  });
+
+                  // select top N slices in content
+
+                  var upperBound = parseInt('1');
+                  if (upperBound >= 0) {
+                    slicesOfContent = slicesOfContent.slice(0, upperBound);
+                  }
+
+                  // highlight title and content
+
+                  function highlightKeyword(text, slice) {
+                    var result = '';
+                    var prevEnd = slice.start;
+                    slice.hits.forEach(function (hit) {
+                      result += text.substring(prevEnd, hit.position);
+                      var end = hit.position + hit.length;
+                      result += '<b class="search-keyword">' + text.substring(hit.position, end) + '</b>';
+                      prevEnd = end;
+                    });
+                    result += text.substring(prevEnd, slice.end);
+                    return result;
+                  }
+
+                  var resultItem = '';
+
+                  if (slicesOfTitle.length != 0) {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + highlightKeyword(title, slicesOfTitle[0]) + "</a>";
+                  } else {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + title + "</a>";
+                  }
+
+                  slicesOfContent.forEach(function (slice) {
+                    resultItem += "<a href='" + articleUrl + "'>" +
+                      "<p class=\"search-result\">" + highlightKeyword(content, slice) +
+                      "...</p>" + "</a>";
+                  });
+
+                  resultItem += "</li>";
+                  resultItems.push({
+                    item: resultItem,
+                    searchTextCount: searchTextCount,
+                    hitCount: hitCount,
+                    id: resultItems.length
+                  });
+                }
+              })
+            };
+            if (keywords.length === 1 && keywords[0] === "") {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>'
+            } else if (resultItems.length === 0) {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>'
+            } else {
+              resultItems.sort(function (resultLeft, resultRight) {
+                if (resultLeft.searchTextCount !== resultRight.searchTextCount) {
+                  return resultRight.searchTextCount - resultLeft.searchTextCount;
+                } else if (resultLeft.hitCount !== resultRight.hitCount) {
+                  return resultRight.hitCount - resultLeft.hitCount;
+                } else {
+                  return resultRight.id - resultLeft.id;
+                }
+              });
+              var searchResultList = '<ul class=\"search-result-list\">';
+              resultItems.forEach(function (result) {
+                searchResultList += result.item;
+              })
+              searchResultList += "</ul>";
+              resultContent.innerHTML = searchResultList;
+            }
+          }
+
+          if ('auto' === 'auto') {
+            input.addEventListener('input', inputEventFunction);
+          } else {
+            $('.search-icon').click(inputEventFunction);
+            input.addEventListener('keypress', function (event) {
+              if (event.keyCode === 13) {
+                inputEventFunction();
+              }
+            });
+          }
+
+          // remove loading animation
+          $(".local-search-pop-overlay").remove();
+          $('body').css('overflow', '');
+
+          proceedsearch();
+        }
+      });
+    }
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched === false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+    });
+
+    $('.popup-btn-close').click(onPopupClose);
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+    $(document).on('keyup', function (event) {
+      var shouldDismissSearchPopup = event.which === 27 &&
+        $('.search-popup').is(':visible');
+      if (shouldDismissSearchPopup) {
+        onPopupClose();
+      }
+    });
+  </script>
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+  
+
+  
+
+
+  
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>
