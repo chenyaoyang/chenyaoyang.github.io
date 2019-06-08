@@ -1,0 +1,1389 @@
+<!DOCTYPE html>
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+<html class="theme-next pisces use-motion" lang="zh-CN">
+<head><meta name="generator" content="Hexo 3.8.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+    
+      
+    
+
+    
+  
+
+  
+
+  
+    
+      
+    
+
+    
+  
+
+  
+    
+      
+    
+
+    
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Monda:300,300italic,400,400italic,700,700italic|Roboto Slab:300,300italic,400,400italic,700,700italic|Dancing Script:300,300italic,400,400italic,700,700italic|Consolas:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css">
+
+<link href="/css/main.css?v=6.6.0" rel="stylesheet" type="text/css">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=6.6.0">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=6.6.0">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=6.6.0">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=6.6.0" color="#222">
+
+
+
+
+
+
+
+
+
+<script id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    version: '6.6.0',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: false,
+    fastclick: false,
+    lazyload: false,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+  
+
+
+
+
+  <meta name="keywords" content="区块链,go,以太坊,go-ethereum">
+<meta property="og:type" content="article">
+<meta property="og:title" content="go-ethereum中geth启动流程分析">
+<meta property="og:url" content="http://yoursite.com/2019/06/08/go-ethereum中geth启动流程分析/index.html">
+<meta property="og:site_name" content="AmorFati">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:image" content="https://raw.githubusercontent.com/chenyaoyang/blog-pic/master/201906/ian-dooley-407846-unsplash.jpg">
+<meta property="og:image" content="https://raw.githubusercontent.com/chenyaoyang/blog-pic/master/201906/5111131-c9d1092adc965601.png">
+<meta property="og:updated_time" content="2019-06-08T08:09:50.282Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="go-ethereum中geth启动流程分析">
+<meta name="twitter:image" content="https://raw.githubusercontent.com/chenyaoyang/blog-pic/master/201906/ian-dooley-407846-unsplash.jpg">
+
+
+
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2019/06/08/go-ethereum中geth启动流程分析/">
+
+
+
+<script id="page.configurations">
+  CONFIG.page = {
+    sidebar: "",
+  };
+</script>
+
+  <title>go-ethereum中geth启动流程分析 | AmorFati</title>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  <noscript>
+  <style>
+    .use-motion .motion-element,
+    .use-motion .brand,
+    .use-motion .menu-item,
+    .sidebar-inner,
+    .use-motion .post-block,
+    .use-motion .pagination,
+    .use-motion .comments,
+    .use-motion .post-header,
+    .use-motion .post-body,
+    .use-motion .collection-title { opacity: initial; }
+
+    .use-motion .logo,
+    .use-motion .site-title,
+    .use-motion .site-subtitle {
+      opacity: initial;
+      top: initial;
+    }
+
+    .use-motion .logo-line-before i { left: initial; }
+    .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope="" itemtype="http://schema.org/WebPage" lang="zh-CN">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope="" itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">AmorFati</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+    
+      
+        <p class="site-subtitle">风吹过窗前的书，又翻过一页</p>
+      
+    
+    
+  </div>
+
+  <div class="site-nav-toggle">
+    <button aria-label="切换导航栏">
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  
+    <ul id="menu" class="menu">
+      
+        
+        
+        
+          
+          <li class="menu-item menu-item-home">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/" rel="section"><i class="menu-item-icon fa fa-fw fa-home"></i> <br>首页</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-about">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/about/" rel="section"><i class="menu-item-icon fa fa-fw fa-user"></i> <br>关于</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-tags">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/tags/" rel="section"><i class="menu-item-icon fa fa-fw fa-tags"></i> <br>标签</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-categories">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/categories/" rel="section"><i class="menu-item-icon fa fa-fw fa-th"></i> <br>分类</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-archives">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/archives/" rel="section"><i class="menu-item-icon fa fa-fw fa-archive"></i> <br>归档</a>
+
+  </li>
+
+      
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br>搜索</a>
+        </li>
+      
+    </ul>
+  
+
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup search-popup local-search-popup">
+  <div class="local-search-header clearfix">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+    <div class="local-search-input-wrapper">
+      <input autocomplete="off" placeholder="搜索..." spellcheck="false" type="text" id="local-search-input">
+    </div>
+  </div>
+  <div id="local-search-result"></div>
+</div>
+
+
+
+    </div>
+  
+</nav>
+
+
+
+  
+
+
+
+</div>
+    </header>
+
+    
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+            
+
+          
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  
+
+  <article class="post post-type-normal" itemscope="" itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/06/08/go-ethereum中geth启动流程分析/">
+
+    <span hidden itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="AmorFati">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/assets/img/icon.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope="" itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="AmorFati">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">go-ethereum中geth启动流程分析
+
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+
+            
+            
+            
+
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+
+              
+                
+              
+
+              <time title="创建时间：2019-06-08 16:04:59 / 修改时间：16:09:50" itemprop="dateCreated datePublished" datetime="2019-06-08T16:04:59+08:00">2019-06-08</time>
+            
+
+            
+              
+
+              
+            
+          </span>
+
+          
+            <span class="post-category">
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope="" itemtype="http://schema.org/Thing"><a href="/categories/go-ethereum源码学习/" itemprop="url" rel="index"><span itemprop="name">go-ethereum源码学习</span></a></span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p><img src="https://raw.githubusercontent.com/chenyaoyang/blog-pic/master/201906/ian-dooley-407846-unsplash.jpg" alt=""><br><a id="more"></a><br>geth是go-ethereum的一个重要工具，根据<a href="https://github.com/ethereum/go-ethereum" target="_blank" rel="noopener">官方文档</a>的说明，他是进入Ethereum网络的入口，也就是Ethereum的一个节点程序。如果直接输入geth运行，则会默认启动一个全节点，并以fast模式同步数据。我们从这个命令入手，学习一下geth的启动流程。</p>
+<h1 id="main-go"><a href="#main-go" class="headerlink" title="main.go"></a>main.go</h1><p>通过对geth命令的分析，我们了解到geth是一个CLI程序，程序的定义主要在go-ethereum\cmd\geth\main.go里面，在init函数中定义了大量子命令，用于实现下图所示的功能：</p>
+<p><img src="https://raw.githubusercontent.com/chenyaoyang/blog-pic/master/201906/5111131-c9d1092adc965601.png" alt="geth子命令"></p>
+<p>但是如果我们不指定任何子命令，直接输入geth并运行，则会执行app.Action指定的内容：<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// go-ethereum\cmd\geth\main.go</span></span><br><span class="line">app.Action = geth</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">geth</span><span class="params">(ctx *cli.Context)</span> <span class="title">error</span></span> &#123;</span><br><span class="line">	<span class="keyword">if</span> args := ctx.Args(); <span class="built_in">len</span>(args) &gt; <span class="number">0</span> &#123; </span><br><span class="line">		<span class="keyword">return</span> fmt.Errorf(<span class="string">"invalid command: %q"</span>, args[<span class="number">0</span>])</span><br><span class="line">	&#125;</span><br><span class="line">	node := makeFullNode(ctx)</span><br><span class="line">	<span class="keyword">defer</span> node.Close()</span><br><span class="line">	startNode(ctx, node)</span><br><span class="line">	node.Wait()</span><br><span class="line">	<span class="keyword">return</span> <span class="literal">nil</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>geth的逻辑很简单，执行geth时不能有其他未解析的命令。之后调用makeFullNode创建一个全节点，然后启动节点，最后调用wait阻塞。</p>
+<h1 id="创建节点"><a href="#创建节点" class="headerlink" title="创建节点"></a>创建节点</h1><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// go-ethereum\cmd\geth\config.go</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">makeFullNode</span><span class="params">(ctx *cli.Context)</span> *<span class="title">node</span>.<span class="title">Node</span></span> &#123;</span><br><span class="line">	stack, cfg := makeConfigNode(ctx)</span><br><span class="line">	<span class="keyword">if</span> ctx.GlobalIsSet(utils.ConstantinopleOverrideFlag.Name) &#123;</span><br><span class="line">		cfg.Eth.ConstantinopleOverride = <span class="built_in">new</span>(big.Int).SetUint64(ctx.GlobalUint64(utils.ConstantinopleOverrideFlag.Name))</span><br><span class="line">	&#125;</span><br><span class="line">	</span><br><span class="line">	utils.RegisterEthService(stack, &amp;cfg.Eth) </span><br><span class="line">	</span><br><span class="line">	<span class="keyword">if</span> ctx.GlobalBool(utils.DashboardEnabledFlag.Name) &#123;</span><br><span class="line">		utils.RegisterDashboardService(stack, &amp;cfg.Dashboard, gitCommit)</span><br><span class="line">	&#125;</span><br><span class="line">	</span><br><span class="line">	shhEnabled := enableWhisper(ctx)</span><br><span class="line"></span><br><span class="line">	shhAutoEnabled := !ctx.GlobalIsSet(utils.WhisperEnabledFlag.Name) &amp;&amp; ctx.GlobalIsSet(utils.DeveloperFlag.Name)</span><br><span class="line"></span><br><span class="line">	<span class="keyword">if</span> shhEnabled || shhAutoEnabled &#123;</span><br><span class="line"></span><br><span class="line">		<span class="keyword">if</span> ctx.GlobalIsSet(utils.WhisperMaxMessageSizeFlag.Name) &#123;</span><br><span class="line">			cfg.Shh.MaxMessageSize = <span class="keyword">uint32</span>(ctx.Int(utils.WhisperMaxMessageSizeFlag.Name))</span><br><span class="line">		&#125;</span><br><span class="line">		<span class="keyword">if</span> ctx.GlobalIsSet(utils.WhisperMinPOWFlag.Name) &#123;</span><br><span class="line">			cfg.Shh.MinimumAcceptedPOW = ctx.Float64(utils.WhisperMinPOWFlag.Name)</span><br><span class="line">		&#125;</span><br><span class="line">		<span class="keyword">if</span> ctx.GlobalIsSet(utils.WhisperRestrictConnectionBetweenLightClientsFlag.Name) &#123;</span><br><span class="line">			cfg.Shh.RestrictConnectionBetweenLightClients = <span class="literal">true</span></span><br><span class="line">		&#125;</span><br><span class="line">		utils.RegisterShhService(stack, &amp;cfg.Shh)</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">if</span> ctx.GlobalIsSet(utils.GraphQLEnabledFlag.Name) &#123;</span><br><span class="line">		<span class="keyword">if</span> err := graphql.RegisterGraphQLService(stack, cfg.Node.GraphQLEndpoint(), cfg.Node.GraphQLCors, cfg.Node.GraphQLVirtualHosts, cfg.Node.HTTPTimeouts); err != <span class="literal">nil</span> &#123;</span><br><span class="line">			utils.Fatalf(<span class="string">"Failed to register the Ethereum service: %v"</span>, err)</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">if</span> cfg.Ethstats.URL != <span class="string">""</span> &#123;</span><br><span class="line">		utils.RegisterEthStatsService(stack, cfg.Ethstats.URL)</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">return</span> stack</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>这里首先调用了makeConfigNode方法配置出一个节点，详见后文。节点对象生成后，利用RegisterEthService方法注册eth服务。接着根据需要注册dashboard服务，一般情况不开启此服务，需要额外启动。再往下判断是否启动whisper，条件时使用shh、shh.maxmessagesize、shh.pow或shh.restrict-light任意一个选项，或者没有显式设置shh但是启用了开发者模式（使用了–dev选项），此时配置shh然后注册shh服务。在往下如果使用了–graphql选项，则注册GraphQL服务，随后如果需要注册ethstats服务。</p>
+<p>最后回顾可知makeFullNode主要做了这样几件事：加载配置，创建节点，注册服务。关于注册服务，默认只注册了eth服务。</p>
+<h2 id="makeConfigNode"><a href="#makeConfigNode" class="headerlink" title="makeConfigNode"></a>makeConfigNode</h2><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">makeConfigNode</span><span class="params">(ctx *cli.Context)</span> <span class="params">(*node.Node, gethConfig)</span></span> &#123;</span><br><span class="line"></span><br><span class="line">	cfg := gethConfig&#123;</span><br><span class="line">		Eth: eth.DefaultConfig, </span><br><span class="line">		Shh:       whisper.DefaultConfig,   </span><br><span class="line">		Node:      defaultNodeConfig(),    </span><br><span class="line">		Dashboard: dashboard.DefaultConfig,</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">if</span> file := ctx.GlobalString(configFileFlag.Name); file != <span class="string">""</span> &#123;</span><br><span class="line">		<span class="keyword">if</span> err := loadConfig(file, &amp;cfg); err != <span class="literal">nil</span> &#123;</span><br><span class="line">			utils.Fatalf(<span class="string">"%v"</span>, err)</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	utils.SetULC(ctx, &amp;cfg.Eth)  <span class="keyword">go</span>-ethereum\cmd\utils\flags.<span class="keyword">go</span></span><br><span class="line">	utils.SetNodeConfig(ctx, &amp;cfg.Node)</span><br><span class="line">	stack, err := node.New(&amp;cfg.Node) </span><br><span class="line"></span><br><span class="line">	<span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">		utils.Fatalf(<span class="string">"Failed to create the protocol stack: %v"</span>, err)</span><br><span class="line">	&#125;</span><br><span class="line">	utils.SetEthConfig(ctx, stack, &amp;cfg.Eth)</span><br><span class="line">	<span class="keyword">if</span> ctx.GlobalIsSet(utils.EthStatsURLFlag.Name) &#123;</span><br><span class="line">		cfg.Ethstats.URL = ctx.GlobalString(utils.EthStatsURLFlag.Name)</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	utils.SetShhConfig(ctx, stack, &amp;cfg.Shh)</span><br><span class="line">	utils.SetDashboardConfig(ctx, &amp;cfg.Dashboard)</span><br><span class="line"></span><br><span class="line">	<span class="keyword">return</span> stack, cfg</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>第一步加载默认配置，创建了一个gethConfig对象，包含了eth、shh（即whisper）、node和dashboard的配置。如下：<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//eth的默认配置如下</span></span><br><span class="line"><span class="keyword">var</span> DefaultConfig = Config&#123;</span><br><span class="line">	SyncMode: downloader.FastSync, </span><br><span class="line">	Ethash: ethash.Config&#123; </span><br><span class="line">		CacheDir:       <span class="string">"ethash"</span>,</span><br><span class="line">		CachesInMem:    <span class="number">2</span>,</span><br><span class="line">		CachesOnDisk:   <span class="number">3</span>,</span><br><span class="line">		DatasetsInMem:  <span class="number">1</span>,</span><br><span class="line">		DatasetsOnDisk: <span class="number">2</span>,</span><br><span class="line">	&#125;,</span><br><span class="line">	NetworkId:      <span class="number">1</span>,</span><br><span class="line">	LightPeers:     <span class="number">100</span>,</span><br><span class="line">	DatabaseCache:  <span class="number">512</span>,</span><br><span class="line">	TrieCleanCache: <span class="number">256</span>,</span><br><span class="line">	TrieDirtyCache: <span class="number">256</span>,</span><br><span class="line">	TrieTimeout:    <span class="number">60</span> * time.Minute,</span><br><span class="line">	MinerGasFloor:  <span class="number">8000000</span>,</span><br><span class="line">	MinerGasCeil:   <span class="number">8000000</span>,</span><br><span class="line">	MinerGasPrice:  big.NewInt(params.GWei),</span><br><span class="line">	MinerRecommit:  <span class="number">3</span> * time.Second,</span><br><span class="line"></span><br><span class="line">	TxPool: core.DefaultTxPoolConfig,</span><br><span class="line">	GPO: gasprice.Config&#123;</span><br><span class="line">		Blocks:     <span class="number">20</span>,</span><br><span class="line">		Percentile: <span class="number">60</span>,</span><br><span class="line">	&#125;,</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">//shh配置</span></span><br><span class="line"><span class="keyword">var</span> DefaultConfig = Config&#123;</span><br><span class="line">	MaxMessageSize:                        DefaultMaxMessageSize,</span><br><span class="line">	MinimumAcceptedPOW:                    DefaultMinimumPoW,</span><br><span class="line">	RestrictConnectionBetweenLightClients: <span class="literal">true</span>,</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">//node配置</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">defaultNodeConfig</span><span class="params">()</span> <span class="title">node</span>.<span class="title">Config</span></span> &#123;</span><br><span class="line">	cfg := node.DefaultConfig  <span class="comment">//节点默认设置</span></span><br><span class="line"></span><br><span class="line">	cfg.Name = clientIdentifier <span class="comment">//节点名，"geth"</span></span><br><span class="line">	cfg.Version = params.VersionWithCommit(gitCommit) <span class="comment">//节点版本号</span></span><br><span class="line">	cfg.HTTPModules = <span class="built_in">append</span>(cfg.HTTPModules, <span class="string">"eth"</span>, <span class="string">"shh"</span>) <span class="comment">//httprpc默认提供的接口</span></span><br><span class="line">	cfg.WSModules = <span class="built_in">append</span>(cfg.WSModules, <span class="string">"eth"</span>, <span class="string">"shh"</span>)     <span class="comment">//websocketrpc默认提供的接口</span></span><br><span class="line">	cfg.IPCPath = <span class="string">"geth.ipc"</span> <span class="comment">//ipcrpc文件名</span></span><br><span class="line">	<span class="keyword">return</span> cfg</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">var</span> DefaultConfig = Config&#123;</span><br><span class="line">	DataDir:          DefaultDataDir(), <span class="comment">//默认节点目录 /home/.ethereum</span></span><br><span class="line">	HTTPPort:         DefaultHTTPPort, <span class="comment">//httprpc默认端口 8545</span></span><br><span class="line">	HTTPModules:      []<span class="keyword">string</span>&#123;<span class="string">"net"</span>, <span class="string">"web3"</span>&#125;,  <span class="comment">//httprpc默认提供的接口</span></span><br><span class="line">	HTTPVirtualHosts: []<span class="keyword">string</span>&#123;<span class="string">"localhost"</span>&#125;, <span class="comment">//httpcrpc默认服务地址</span></span><br><span class="line">	HTTPTimeouts:     rpc.DefaultHTTPTimeouts, <span class="comment">//httprpc默认超时时间,读超时30秒，写超时30秒，空闲超时120秒</span></span><br><span class="line">	WSPort:           DefaultWSPort, <span class="comment">//wsrpc默认端口，8546</span></span><br><span class="line">	WSModules:        []<span class="keyword">string</span>&#123;<span class="string">"net"</span>, <span class="string">"web3"</span>&#125;,<span class="comment">//wscrpc默认服务地址</span></span><br><span class="line">	P2P: p2p.Config&#123;</span><br><span class="line">		ListenAddr: <span class="string">":30303"</span>, <span class="comment">//p2p网络默认端口30303</span></span><br><span class="line">		MaxPeers:   <span class="number">25</span>, <span class="comment">//默认最大连接数 25</span></span><br><span class="line">		NAT:        nat.Any(), <span class="comment">//默认端口映射</span></span><br><span class="line">	&#125;,</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">//dashboard配置</span></span><br><span class="line"><span class="keyword">var</span> DefaultConfig = Config&#123;</span><br><span class="line">	Host:    <span class="string">"localhost"</span>,</span><br><span class="line">	Port:    <span class="number">8080</span>,</span><br><span class="line">	Refresh: <span class="number">5</span> * time.Second,</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>加载完默认配置后，再加载外部配置文件，就是–config指定的文件，toml格式。</p>
+<p>接着就是架子我们给定配置。首先设置eth，之后设置node。这都是我们在执行geth命令时指定的选项，只与能设置那些值，<a href="https://github.com/ethereum/go-ethereum/wiki/Command-Line-Options" target="_blank" rel="noopener">详见这里</a>。</p>
+<p>再往下使用node的new方法创建了一个节点对象。如果没有错的话，利用了几个set方法进一步配置了配置信息。</p>
+<h2 id="node-New"><a href="#node-New" class="headerlink" title="node.New"></a>node.New</h2><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">New</span><span class="params">(conf *Config)</span> <span class="params">(*Node, error)</span></span> &#123;</span><br><span class="line">	confCopy := *conf</span><br><span class="line">	conf = &amp;confCopy</span><br><span class="line">	<span class="keyword">if</span> conf.DataDir != <span class="string">""</span> &#123;</span><br><span class="line">		absdatadir, err := filepath.Abs(conf.DataDir)</span><br><span class="line">		<span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">			<span class="keyword">return</span> <span class="literal">nil</span>, err</span><br><span class="line">		&#125;</span><br><span class="line">		conf.DataDir = absdatadir</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">if</span> strings.ContainsAny(conf.Name, <span class="string">`/\`</span>) &#123;</span><br><span class="line">		<span class="keyword">return</span> <span class="literal">nil</span>, errors.New(<span class="string">`Config.Name must not contain '/' or '\'`</span>)</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">if</span> conf.Name == datadirDefaultKeyStore &#123; <span class="comment">//"keystore"</span></span><br><span class="line">		<span class="keyword">return</span> <span class="literal">nil</span>, errors.New(<span class="string">`Config.Name cannot be "`</span> + datadirDefaultKeyStore + <span class="string">`"`</span>)</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">if</span> strings.HasSuffix(conf.Name, <span class="string">".ipc"</span>) &#123; <span class="comment">//不含.ipc后缀</span></span><br><span class="line">		<span class="keyword">return</span> <span class="literal">nil</span>, errors.New(<span class="string">`Config.Name cannot end in ".ipc"`</span>)</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	am, ephemeralKeystore, err := makeAccountManager(conf) </span><br><span class="line">	<span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">		<span class="keyword">return</span> <span class="literal">nil</span>, err</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">if</span> conf.Logger == <span class="literal">nil</span> &#123;</span><br><span class="line">		conf.Logger = log.New()</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">return</span> &amp;Node&#123;</span><br><span class="line">		accman:            am,</span><br><span class="line">		ephemeralKeystore: ephemeralKeystore,</span><br><span class="line">		config:            conf,</span><br><span class="line">		serviceFuncs:      []ServiceConstructor&#123;&#125;,</span><br><span class="line">		ipcEndpoint:       conf.IPCEndpoint(),</span><br><span class="line">		httpEndpoint:      conf.HTTPEndpoint(),</span><br><span class="line">		wsEndpoint:        conf.WSEndpoint(),</span><br><span class="line">		eventmux:          <span class="built_in">new</span>(event.TypeMux),</span><br><span class="line">		log:               conf.Logger,</span><br><span class="line">	&#125;, <span class="literal">nil</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>首先得到节点目录的绝对路径。然后检查了节点名，确保节点名中不包含“/\”这些特殊符号，以及不能等于“keystore”（密钥存储路径），还有不能有.ipc后缀。接着创建了账户管理者。makeAccountManager方法主要是创建了密钥存储路径以及创建了accountmanager对象。接着配置了log对象，然后创建了Node对象。</p>
+<h2 id="RegisterEthService"><a href="#RegisterEthService" class="headerlink" title="RegisterEthService"></a>RegisterEthService</h2><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">RegisterEthService</span><span class="params">(stack *node.Node, cfg *eth.Config)</span></span> &#123;</span><br><span class="line">	<span class="keyword">var</span> err error</span><br><span class="line">	<span class="keyword">if</span> cfg.SyncMode == downloader.LightSync &#123;</span><br><span class="line">		err = stack.Register(<span class="function"><span class="keyword">func</span><span class="params">(ctx *node.ServiceContext)</span> <span class="params">(node.Service, error)</span></span> &#123;</span><br><span class="line">			<span class="keyword">return</span> les.New(ctx, cfg)</span><br><span class="line">		&#125;)</span><br><span class="line">	&#125; <span class="keyword">else</span> &#123;</span><br><span class="line">		err = stack.Register(<span class="function"><span class="keyword">func</span><span class="params">(ctx *node.ServiceContext)</span> <span class="params">(node.Service, error)</span></span> &#123;</span><br><span class="line">			fullNode, err := eth.New(ctx, cfg)</span><br><span class="line">			<span class="keyword">if</span> fullNode != <span class="literal">nil</span> &amp;&amp; cfg.LightServ &gt; <span class="number">0</span> &#123;</span><br><span class="line">				ls, _ := les.NewLesServer(fullNode, cfg)</span><br><span class="line">				fullNode.AddLesServer(ls)</span><br><span class="line">			&#125;</span><br><span class="line">			<span class="keyword">return</span> fullNode, err</span><br><span class="line">		&#125;)</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">		Fatalf(<span class="string">"Failed to register the Ethereum service: %v"</span>, err)</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>这里根据不同的同步模式创建不同的服务。如果是LightSync，创建Light Ethereum Subprotocol的服务；如果是其他模式则创建正常的eth服务。</p>
+<p>服务注册的逻辑都是调用节点的Register方法<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(n *Node)</span> <span class="title">Register</span><span class="params">(constructor ServiceConstructor)</span> <span class="title">error</span></span> &#123;</span><br><span class="line">	n.lock.Lock() </span><br><span class="line">	<span class="keyword">defer</span> n.lock.Unlock()</span><br><span class="line"></span><br><span class="line">	<span class="keyword">if</span> n.server != <span class="literal">nil</span> &#123;</span><br><span class="line">		<span class="keyword">return</span> ErrNodeRunning</span><br><span class="line">	&#125;</span><br><span class="line">	n.serviceFuncs = <span class="built_in">append</span>(n.serviceFuncs, constructor)</span><br><span class="line">	<span class="keyword">return</span> <span class="literal">nil</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">type</span> ServiceConstructor <span class="function"><span class="keyword">func</span><span class="params">(ctx *ServiceContext)</span> <span class="params">(Service, error)</span></span></span><br></pre></td></tr></table></figure></p>
+<p>该方法需要提供一个ServiceConstructor对象，他实际是一个方法，执行后返回一个Service对象，Register方法就是将ServiceConstructor添加到node的serviceFuncs数组。</p>
+<p>不管什么模式注册的服务方法都是简单的新建一个eth服务。</p>
+<h1 id="启动节点"><a href="#启动节点" class="headerlink" title="启动节点"></a>启动节点</h1><p>创建完节点后就开始启动了。<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">startNode</span><span class="params">(ctx *cli.Context, stack *node.Node)</span></span> &#123;</span><br><span class="line">	debug.Memsize.Add(<span class="string">"node"</span>, stack)</span><br><span class="line"></span><br><span class="line">	utils.StartNode(stack)</span><br><span class="line"></span><br><span class="line">	<span class="keyword">if</span> keystores := stack.AccountManager().Backends(keystore.KeyStoreType); <span class="built_in">len</span>(keystores) &gt; <span class="number">0</span> &#123;</span><br><span class="line">		ks := keystores[<span class="number">0</span>].(*keystore.KeyStore)</span><br><span class="line">		passwords := utils.MakePasswordList(ctx)</span><br><span class="line">		unlocks := strings.Split(ctx.GlobalString(utils.UnlockedAccountFlag.Name), <span class="string">","</span>)</span><br><span class="line">		<span class="keyword">for</span> i, account := <span class="keyword">range</span> unlocks &#123;</span><br><span class="line">			<span class="keyword">if</span> trimmed := strings.TrimSpace(account); trimmed != <span class="string">""</span> &#123;</span><br><span class="line">				unlockAccount(ctx, ks, trimmed, i, passwords)</span><br><span class="line">			&#125;</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	events := <span class="built_in">make</span>(<span class="keyword">chan</span> accounts.WalletEvent, <span class="number">16</span>)</span><br><span class="line">	stack.AccountManager().Subscribe(events)</span><br><span class="line"></span><br><span class="line">	<span class="keyword">go</span> <span class="function"><span class="keyword">func</span><span class="params">()</span></span> &#123;</span><br><span class="line">		rpcClient, err := stack.Attach()</span><br><span class="line">		<span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">			utils.Fatalf(<span class="string">"Failed to attach to self: %v"</span>, err)</span><br><span class="line">		&#125;</span><br><span class="line">		stateReader := ethclient.NewClient(rpcClient)</span><br><span class="line"></span><br><span class="line">		<span class="keyword">for</span> _, wallet := <span class="keyword">range</span> stack.AccountManager().Wallets() &#123;</span><br><span class="line">			<span class="keyword">if</span> err := wallet.Open(<span class="string">""</span>); err != <span class="literal">nil</span> &#123;</span><br><span class="line">				log.Warn(<span class="string">"Failed to open wallet"</span>, <span class="string">"url"</span>, wallet.URL(), <span class="string">"err"</span>, err)</span><br><span class="line">			&#125;</span><br><span class="line">		&#125;</span><br><span class="line"></span><br><span class="line">		<span class="keyword">for</span> event := <span class="keyword">range</span> events &#123;</span><br><span class="line">			<span class="keyword">switch</span> event.Kind &#123;</span><br><span class="line">			<span class="keyword">case</span> accounts.WalletArrived:</span><br><span class="line">				<span class="keyword">if</span> err := event.Wallet.Open(<span class="string">""</span>); err != <span class="literal">nil</span> &#123;</span><br><span class="line">					log.Warn(<span class="string">"New wallet appeared, failed to open"</span>, <span class="string">"url"</span>, event.Wallet.URL(), <span class="string">"err"</span>, err)</span><br><span class="line">				&#125;</span><br><span class="line">			<span class="keyword">case</span> accounts.WalletOpened:</span><br><span class="line">				status, _ := event.Wallet.Status()</span><br><span class="line">				log.Info(<span class="string">"New wallet appeared"</span>, <span class="string">"url"</span>, event.Wallet.URL(), <span class="string">"status"</span>, status)</span><br><span class="line"></span><br><span class="line">				derivationPath := accounts.DefaultBaseDerivationPath</span><br><span class="line">				<span class="keyword">if</span> event.Wallet.URL().Scheme == <span class="string">"ledger"</span> &#123;</span><br><span class="line">					derivationPath = accounts.DefaultLedgerBaseDerivationPath</span><br><span class="line">				&#125;</span><br><span class="line">				event.Wallet.SelfDerive(derivationPath, stateReader)</span><br><span class="line"></span><br><span class="line">			<span class="keyword">case</span> accounts.WalletDropped:</span><br><span class="line">				log.Info(<span class="string">"Old wallet dropped"</span>, <span class="string">"url"</span>, event.Wallet.URL())</span><br><span class="line">				event.Wallet.Close()</span><br><span class="line">			&#125;</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;()</span><br><span class="line"></span><br><span class="line">	<span class="keyword">if</span> ctx.GlobalBool(utils.ExitWhenSyncedFlag.Name) &#123;</span><br><span class="line">		<span class="keyword">go</span> <span class="function"><span class="keyword">func</span><span class="params">()</span></span> &#123;</span><br><span class="line">			sub := stack.EventMux().Subscribe(downloader.DoneEvent&#123;&#125;)</span><br><span class="line">			<span class="keyword">defer</span> sub.Unsubscribe()</span><br><span class="line">			<span class="keyword">for</span> &#123;</span><br><span class="line">				event := &lt;-sub.Chan()</span><br><span class="line">				<span class="keyword">if</span> event == <span class="literal">nil</span> &#123;</span><br><span class="line">					<span class="keyword">continue</span></span><br><span class="line">				&#125;</span><br><span class="line">				done, ok := event.Data.(downloader.DoneEvent)</span><br><span class="line">				<span class="keyword">if</span> !ok &#123;</span><br><span class="line">					<span class="keyword">continue</span></span><br><span class="line">				&#125;</span><br><span class="line">				<span class="keyword">if</span> timestamp := time.Unix(done.Latest.Time.Int64(), <span class="number">0</span>); time.Since(timestamp) &lt; <span class="number">10</span>*time.Minute &#123;</span><br><span class="line">					log.Info(<span class="string">"Synchronisation completed"</span>, <span class="string">"latestnum"</span>, done.Latest.Number, <span class="string">"latesthash"</span>, done.Latest.Hash(),</span><br><span class="line">						<span class="string">"age"</span>, common.PrettyAge(timestamp))</span><br><span class="line">					stack.Stop()</span><br><span class="line">				&#125;</span><br><span class="line"></span><br><span class="line">			&#125;</span><br><span class="line">		&#125;()</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">if</span> ctx.GlobalBool(utils.MiningEnabledFlag.Name) || ctx.GlobalBool(utils.DeveloperFlag.Name) &#123;</span><br><span class="line">		<span class="keyword">if</span> ctx.GlobalString(utils.SyncModeFlag.Name) == <span class="string">"light"</span> &#123;</span><br><span class="line">			utils.Fatalf(<span class="string">"Light clients do not support mining"</span>)</span><br><span class="line">		&#125;</span><br><span class="line">		<span class="keyword">var</span> ethereum *eth.Ethereum</span><br><span class="line">		<span class="keyword">if</span> err := stack.Service(&amp;ethereum); err != <span class="literal">nil</span> &#123;</span><br><span class="line">			utils.Fatalf(<span class="string">"Ethereum service not running: %v"</span>, err)</span><br><span class="line">		&#125;</span><br><span class="line">		gasprice := utils.GlobalBig(ctx, utils.MinerLegacyGasPriceFlag.Name)</span><br><span class="line">		<span class="keyword">if</span> ctx.IsSet(utils.MinerGasPriceFlag.Name) &#123;</span><br><span class="line">			gasprice = utils.GlobalBig(ctx, utils.MinerGasPriceFlag.Name)</span><br><span class="line">		&#125;</span><br><span class="line">		ethereum.TxPool().SetGasPrice(gasprice)</span><br><span class="line"></span><br><span class="line">		threads := ctx.GlobalInt(utils.MinerLegacyThreadsFlag.Name)</span><br><span class="line">		<span class="keyword">if</span> ctx.GlobalIsSet(utils.MinerThreadsFlag.Name) &#123;</span><br><span class="line">			threads = ctx.GlobalInt(utils.MinerThreadsFlag.Name)</span><br><span class="line">		&#125;</span><br><span class="line">		<span class="keyword">if</span> err := ethereum.StartMining(threads); err != <span class="literal">nil</span> &#123;</span><br><span class="line">			utils.Fatalf(<span class="string">"Failed to start mining: %v"</span>, err)</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>在startNode首先调用了utils.StartNode(stack)区启动节点。调用完毕后一个节点正式启动。接着根据需求解锁我们指定的账户使用–unlock和–password指定要解锁的账户和密钥。接着注册了账户事件，是一个WalletEvent类型容量为16的channel。</p>
+<p>接着启动了一个goroutine，在这个goroutine中先连接了节点使用Attach方法，实际上就是连接InProcRPC服务，然后获取了所有钱包，当接收到事件时触发对应逻辑。</p>
+<p>再往下就是根据情况启动一些辅助逻辑，首先是同步完成监听，其次是根据需求启动挖矿。</p>
+<h2 id="utils-StartNode"><a href="#utils-StartNode" class="headerlink" title="utils.StartNode"></a>utils.StartNode</h2><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// go-ethereum\cmd\utils\cmd.go</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">StartNode</span><span class="params">(stack *node.Node)</span></span> &#123;</span><br><span class="line">	<span class="keyword">if</span> err := stack.Start(); err != <span class="literal">nil</span> &#123;</span><br><span class="line">		Fatalf(<span class="string">"Error starting protocol stack: %v"</span>, err)</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">go</span> <span class="function"><span class="keyword">func</span><span class="params">()</span></span> &#123;</span><br><span class="line">		sigc := <span class="built_in">make</span>(<span class="keyword">chan</span> os.Signal, <span class="number">1</span>)</span><br><span class="line">		signal.Notify(sigc, syscall.SIGINT, syscall.SIGTERM)</span><br><span class="line">		<span class="keyword">defer</span> signal.Stop(sigc)</span><br><span class="line">		&lt;-sigc</span><br><span class="line">		log.Info(<span class="string">"Got interrupt, shutting down..."</span>)</span><br><span class="line">		<span class="keyword">go</span> stack.Stop()</span><br><span class="line">		<span class="keyword">for</span> i := <span class="number">10</span>; i &gt; <span class="number">0</span>; i-- &#123;</span><br><span class="line">			&lt;-sigc</span><br><span class="line">			<span class="keyword">if</span> i &gt; <span class="number">1</span> &#123;</span><br><span class="line">				log.Warn(<span class="string">"Already shutting down, interrupt more to panic."</span>, <span class="string">"times"</span>, i<span class="number">-1</span>)</span><br><span class="line">			&#125;</span><br><span class="line">		&#125;</span><br><span class="line">		debug.Exit() <span class="comment">// ensure trace and CPU profile data is flushed.</span></span><br><span class="line">		debug.LoudPanic(<span class="string">"boom"</span>)</span><br><span class="line">	&#125;()</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>这个方法中，先调用了stack.Start()去启动节点，之后启动了一个goroutine，这个goroutine的作用是接收到终端停止信息后，正确停止程序。利用的是Signal包，关于这个包的用法见<a href="https://chenyaoyang.github.io/2019/02/27/Go%E8%AF%AD%E8%A8%80signal%E5%8C%85%E4%BD%BF%E7%94%A8%E6%8C%87%E5%8D%97/" target="_blank" rel="noopener">这里</a>。这个goroutine会一直阻塞直到收到退出信号，调用stop关闭节点。</p>
+<h2 id="Node-Start"><a href="#Node-Start" class="headerlink" title="Node.Start()"></a>Node.Start()</h2><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(n *Node)</span> <span class="title">Start</span><span class="params">()</span> <span class="title">error</span></span> &#123;</span><br><span class="line">	n.lock.Lock()</span><br><span class="line">	<span class="keyword">defer</span> n.lock.Unlock()</span><br><span class="line"></span><br><span class="line">	<span class="keyword">if</span> n.server != <span class="literal">nil</span> &#123; </span><br><span class="line">		<span class="keyword">return</span> ErrNodeRunning</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">if</span> err := n.openDataDir(); err != <span class="literal">nil</span> &#123;</span><br><span class="line">		<span class="keyword">return</span> err</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	n.serverConfig = n.config.P2P</span><br><span class="line">	n.serverConfig.PrivateKey = n.config.NodeKey() </span><br><span class="line">	n.serverConfig.Name = n.config.NodeName() </span><br><span class="line">	n.serverConfig.Logger = n.log </span><br><span class="line">	<span class="keyword">if</span> n.serverConfig.StaticNodes == <span class="literal">nil</span> &#123; </span><br><span class="line">		n.serverConfig.StaticNodes = n.config.StaticNodes()</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">if</span> n.serverConfig.TrustedNodes == <span class="literal">nil</span> &#123;</span><br><span class="line">		n.serverConfig.TrustedNodes = n.config.TrustedNodes()</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">if</span> n.serverConfig.NodeDatabase == <span class="string">""</span> &#123;</span><br><span class="line">		n.serverConfig.NodeDatabase = n.config.NodeDB()</span><br><span class="line">	&#125;</span><br><span class="line">	running := &amp;p2p.Server&#123;Config: n.serverConfig&#125;</span><br><span class="line">	n.log.Info(<span class="string">"Starting peer-to-peer node"</span>, <span class="string">"instance"</span>, n.serverConfig.Name)</span><br><span class="line"></span><br><span class="line">	services := <span class="built_in">make</span>(<span class="keyword">map</span>[reflect.Type]Service)</span><br><span class="line">	<span class="keyword">for</span> _, constructor := <span class="keyword">range</span> n.serviceFuncs &#123;</span><br><span class="line">		ctx := &amp;ServiceContext&#123;</span><br><span class="line">			config:         n.config,</span><br><span class="line">			services:       <span class="built_in">make</span>(<span class="keyword">map</span>[reflect.Type]Service),</span><br><span class="line">			EventMux:       n.eventmux,</span><br><span class="line">			AccountManager: n.accman,</span><br><span class="line">		&#125;</span><br><span class="line">		<span class="keyword">for</span> kind, s := <span class="keyword">range</span> services &#123;</span><br><span class="line">			ctx.services[kind] = s</span><br><span class="line">		&#125;</span><br><span class="line"></span><br><span class="line">		service, err := constructor(ctx)</span><br><span class="line">		<span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">			<span class="keyword">return</span> err</span><br><span class="line">		&#125;</span><br><span class="line">		kind := reflect.TypeOf(service)</span><br><span class="line">		<span class="keyword">if</span> _, exists := services[kind]; exists &#123;</span><br><span class="line">			<span class="keyword">return</span> &amp;DuplicateServiceError&#123;Kind: kind&#125;</span><br><span class="line">		&#125;</span><br><span class="line">		services[kind] = service </span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">for</span> _, service := <span class="keyword">range</span> services &#123; </span><br><span class="line">		running.Protocols = <span class="built_in">append</span>(running.Protocols, service.Protocols()...)</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">if</span> err := running.Start(); err != <span class="literal">nil</span> &#123;</span><br><span class="line">		<span class="keyword">return</span> convertFileLockError(err)</span><br><span class="line">	&#125;</span><br><span class="line">	started := []reflect.Type&#123;&#125;</span><br><span class="line">	<span class="keyword">for</span> kind, service := <span class="keyword">range</span> services &#123;</span><br><span class="line">		<span class="keyword">if</span> err := service.Start(running); err != <span class="literal">nil</span> &#123;</span><br><span class="line">			<span class="keyword">for</span> _, kind := <span class="keyword">range</span> started &#123;</span><br><span class="line">				services[kind].Stop()</span><br><span class="line">			&#125;</span><br><span class="line">			running.Stop()</span><br><span class="line"></span><br><span class="line">			<span class="keyword">return</span> err</span><br><span class="line">		&#125;</span><br><span class="line">		started = <span class="built_in">append</span>(started, kind)</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">if</span> err := n.startRPC(services); err != <span class="literal">nil</span> &#123;</span><br><span class="line">		<span class="keyword">for</span> _, service := <span class="keyword">range</span> services &#123;</span><br><span class="line">			service.Stop()</span><br><span class="line">		&#125;</span><br><span class="line">		running.Stop()</span><br><span class="line">		<span class="keyword">return</span> err</span><br><span class="line">	&#125;</span><br><span class="line">	n.services = services</span><br><span class="line">	n.server = running</span><br><span class="line">	n.stop = <span class="built_in">make</span>(<span class="keyword">chan</span> <span class="keyword">struct</span>&#123;&#125;)</span><br><span class="line"></span><br><span class="line">	<span class="keyword">return</span> <span class="literal">nil</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>首先检查是否启动过，之后调用openDataDir尝试打开节点目录<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(n *Node)</span> <span class="title">openDataDir</span><span class="params">()</span> <span class="title">error</span></span> &#123;</span><br><span class="line">	<span class="keyword">if</span> n.config.DataDir == <span class="string">""</span> &#123;</span><br><span class="line">		<span class="keyword">return</span> <span class="literal">nil</span> </span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	instdir := filepath.Join(n.config.DataDir, n.config.name())</span><br><span class="line">	<span class="keyword">if</span> err := os.MkdirAll(instdir, <span class="number">0700</span>); err != <span class="literal">nil</span> &#123;</span><br><span class="line">		<span class="keyword">return</span> err</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	release, _, err := flock.New(filepath.Join(instdir, <span class="string">"LOCK"</span>))</span><br><span class="line">	<span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">		<span class="keyword">return</span> convertFileLockError(err)</span><br><span class="line">	&#125;</span><br><span class="line">	n.instanceDirLock = release</span><br><span class="line">	<span class="keyword">return</span> <span class="literal">nil</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>openDataDir比较简单，首先判断是否设置了节点目录，没有的话直接返回，有的话创建一个以节点名为名字的子目录，默认为geth。之后在子目录geth中创建一个文件锁，名字是LOCK，为的是线程安全，之后用instanceDirLock变量记录文件锁引用，以便后续释放。</p>
+<p>回到start中，此时文件目录及文件锁都创建完毕。然后初始化p2p服务，首先配置私钥<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(c *Config)</span> <span class="title">NodeKey</span><span class="params">()</span> *<span class="title">ecdsa</span>.<span class="title">PrivateKey</span></span> &#123;</span><br><span class="line">	<span class="keyword">if</span> c.P2P.PrivateKey != <span class="literal">nil</span> &#123;</span><br><span class="line">		<span class="keyword">return</span> c.P2P.PrivateKey</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">if</span> c.DataDir == <span class="string">""</span> &#123;</span><br><span class="line">		key, err := crypto.GenerateKey()</span><br><span class="line">		<span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">			log.Crit(fmt.Sprintf(<span class="string">"Failed to generate ephemeral node key: %v"</span>, err))</span><br><span class="line">		&#125;</span><br><span class="line">		<span class="keyword">return</span> key</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	keyfile := c.ResolvePath(datadirPrivateKey)            </span><br><span class="line">	<span class="keyword">if</span> key, err := crypto.LoadECDSA(keyfile); err == <span class="literal">nil</span> &#123; </span><br><span class="line">		<span class="keyword">return</span> key</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	key, err := crypto.GenerateKey() </span><br><span class="line">	<span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">		log.Crit(fmt.Sprintf(<span class="string">"Failed to generate node key: %v"</span>, err))</span><br><span class="line">	&#125;</span><br><span class="line">	instanceDir := filepath.Join(c.DataDir, c.name())</span><br><span class="line">	<span class="keyword">if</span> err := os.MkdirAll(instanceDir, <span class="number">0700</span>); err != <span class="literal">nil</span> &#123;</span><br><span class="line">		log.Error(fmt.Sprintf(<span class="string">"Failed to persist node key: %v"</span>, err))</span><br><span class="line">		<span class="keyword">return</span> key</span><br><span class="line">	&#125;</span><br><span class="line">	keyfile = filepath.Join(instanceDir, datadirPrivateKey) </span><br><span class="line">	<span class="keyword">if</span> err := crypto.SaveECDSA(keyfile, key); err != <span class="literal">nil</span> &#123;  </span><br><span class="line">		log.Error(fmt.Sprintf(<span class="string">"Failed to persist node key: %v"</span>, err))</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">return</span> key</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>第一步检查是否加载过私钥。没有的话，如果节点目录为空，直接生成一个，是椭圆曲线加密的秘钥。如果配置节点目录的话，则先尝试从目录中加载秘钥文件，之后读取私钥，秘钥文件是在geth子目录下的nodekey文件。若没有秘钥文件，则生成一个秘钥，之后存储到文件中，还是geth目录下的nodekey文件。</p>
+<p>配置为秘钥后，又配置了服务名，使用NodeName方法，这个方法是一系列字符串组合，不在叙述。之后配置了静态节点<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(c *Config)</span> <span class="title">StaticNodes</span><span class="params">()</span> []*<span class="title">enode</span>.<span class="title">Node</span></span> &#123;</span><br><span class="line">	<span class="keyword">return</span> c.parsePersistentNodes(&amp;c.staticNodesWarning, c.ResolvePath(datadirStaticNodes))</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(c *Config)</span> <span class="title">parsePersistentNodes</span><span class="params">(w *<span class="keyword">bool</span>, path <span class="keyword">string</span>)</span> []*<span class="title">enode</span>.<span class="title">Node</span></span> &#123;</span><br><span class="line">	<span class="keyword">if</span> c.DataDir == <span class="string">""</span> &#123;</span><br><span class="line">		<span class="keyword">return</span> <span class="literal">nil</span></span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">if</span> _, err := os.Stat(path); err != <span class="literal">nil</span> &#123; </span><br><span class="line">		<span class="keyword">return</span> <span class="literal">nil</span></span><br><span class="line">	&#125;</span><br><span class="line">	c.warnOnce(w, <span class="string">"Found deprecated node list file %s, please use the TOML config file instead."</span>, path)</span><br><span class="line"></span><br><span class="line">	<span class="keyword">var</span> nodelist []<span class="keyword">string</span></span><br><span class="line">	<span class="keyword">if</span> err := common.LoadJSON(path, &amp;nodelist); err != <span class="literal">nil</span> &#123; </span><br><span class="line">		log.Error(fmt.Sprintf(<span class="string">"Can't load node list file: %v"</span>, err))</span><br><span class="line">		<span class="keyword">return</span> <span class="literal">nil</span></span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">var</span> nodes []*enode.Node</span><br><span class="line">	<span class="keyword">for</span> _, url := <span class="keyword">range</span> nodelist &#123;</span><br><span class="line">		<span class="keyword">if</span> url == <span class="string">""</span> &#123;</span><br><span class="line">			<span class="keyword">continue</span></span><br><span class="line">		&#125;</span><br><span class="line">		node, err := enode.ParseV4(url) </span><br><span class="line">		<span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">			log.Error(fmt.Sprintf(<span class="string">"Node URL %s: %v\n"</span>, url, err))</span><br><span class="line">			<span class="keyword">continue</span></span><br><span class="line">		&#125;</span><br><span class="line">		nodes = <span class="built_in">append</span>(nodes, node) </span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">return</span> nodes</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>这里直接调用了parsePersistentNodes方法，包括后面加载可信节点也是这个方法，只是传入的参数不同。以静态节点为例，首先通过ResolvePath方法构造出静态节点文件的路径，对于静态节点是datadir/static-nodes.json,对于可信节点是datadir/trusted-nodes.json。之后在parsePersistentNodes中，如果没有配置节点路径，则返回空，否则判断文件是否存在，存在的话解析json文件，实际就是一个字符串数据。每个字符串代表一个节点，之后对于每个字符串解析为一个node节点，最后返回所有节点。</p>
+<p>加载完静态节点和可信节点后，有配置了数据库路径，默认是datadir/geth/nodes，这里用了NodeDB方法<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(c *Config)</span> <span class="title">NodeDB</span><span class="params">()</span> <span class="title">string</span></span> &#123;</span><br><span class="line">	<span class="keyword">if</span> c.DataDir == <span class="string">""</span> &#123;</span><br><span class="line">		<span class="keyword">return</span> <span class="string">""</span> <span class="comment">// ephemeral</span></span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">return</span> c.ResolvePath(datadirNodeDatabase)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>关键是ResolvePath，这个方法被多次用到，这里分析一下<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> isOldGethResource = <span class="keyword">map</span>[<span class="keyword">string</span>]<span class="keyword">bool</span>&#123;</span><br><span class="line">	<span class="string">"chaindata"</span>:          <span class="literal">true</span>,</span><br><span class="line">	<span class="string">"nodes"</span>:              <span class="literal">true</span>,</span><br><span class="line">	<span class="string">"nodekey"</span>:            <span class="literal">true</span>,</span><br><span class="line">	<span class="string">"static-nodes.json"</span>:  <span class="literal">false</span>, </span><br><span class="line">	<span class="string">"trusted-nodes.json"</span>: <span class="literal">false</span>, </span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(c *Config)</span> <span class="title">ResolvePath</span><span class="params">(path <span class="keyword">string</span>)</span> <span class="title">string</span></span> &#123;</span><br><span class="line">	<span class="keyword">if</span> filepath.IsAbs(path) &#123;</span><br><span class="line">		<span class="keyword">return</span> path</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">if</span> c.DataDir == <span class="string">""</span> &#123;</span><br><span class="line">		<span class="keyword">return</span> <span class="string">""</span></span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">if</span> warn, isOld := isOldGethResource[path]; isOld &#123; </span><br><span class="line">		oldpath := <span class="string">""</span></span><br><span class="line">		<span class="keyword">if</span> c.name() == <span class="string">"geth"</span> &#123;</span><br><span class="line">			oldpath = filepath.Join(c.DataDir, path)</span><br><span class="line">		&#125;</span><br><span class="line">		<span class="keyword">if</span> oldpath != <span class="string">""</span> &amp;&amp; common.FileExist(oldpath) &#123;</span><br><span class="line">			<span class="keyword">if</span> warn &#123;</span><br><span class="line">				c.warnOnce(&amp;c.oldGethResourceWarning, <span class="string">"Using deprecated resource file %s, please move this file to the 'geth' subdirectory of datadir."</span>, oldpath)</span><br><span class="line">			&#125;</span><br><span class="line">			<span class="keyword">return</span> oldpath</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">return</span> filepath.Join(c.instanceDir(), path)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>这里传入一个路径，一般是文件名，然后先判断是否是绝对路径，是的话直接返回，不是的话再判断datadir是否被设置，没有的话返回空。接着从isOldGethResource中查找以path为键的值，warn表示对应的值，isold表示是否有该键。如果有该键且节点名为geth时，设置目录为datadir/path。接着如果该文件已经存在表示有旧的数据，如果warn位true的话打印log并返回路径。如果节点名不是geth或者没有该键，或者文件不存在，则返回新的路径:datadir/节点名/path</p>
+<p>回到start中，最后新建一个p2p服务。接着构建服务集合，遍历我们再注册服务时创建的serviceFuncs对象（默认时只有eth服务），每次遍历是都先创建一个ServiceContext，然后利用我们注册服务时提供的公共构造服务，然后反射服务的类型放到services中，但是不能重复。按照服务创建的先后顺序，后创建的服务在其ServiceContext中都持有先前服务的引用。</p>
+<p>接着变量已创建的服务，将其协议添加到p2p服务的协议字段。最后先启动p2p服务，然后再启动之前注册的各个服务，注意在某个服务启动失败后，将终止所有服务，包括p2p服务。最后返回错误。</p>
+<p>紧接着，调用startRPC方法启动rpc服务<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(n *Node)</span> <span class="title">startRPC</span><span class="params">(services <span class="keyword">map</span>[reflect.Type]Service)</span> <span class="title">error</span></span> &#123;</span><br><span class="line">	apis := n.apis()</span><br><span class="line">	<span class="keyword">for</span> _, service := <span class="keyword">range</span> services &#123;</span><br><span class="line">		apis = <span class="built_in">append</span>(apis, service.APIs()...)</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">if</span> err := n.startInProc(apis); err != <span class="literal">nil</span> &#123;</span><br><span class="line">		<span class="keyword">return</span> err</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">if</span> err := n.startIPC(apis); err != <span class="literal">nil</span> &#123;</span><br><span class="line">		n.stopInProc()</span><br><span class="line">		<span class="keyword">return</span> err</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">if</span> err := n.startHTTP(n.httpEndpoint, apis, n.config.HTTPModules, n.config.HTTPCors, n.config.HTTPVirtualHosts, n.config.HTTPTimeouts); err != <span class="literal">nil</span> &#123;</span><br><span class="line">		n.stopIPC()</span><br><span class="line">		n.stopInProc()</span><br><span class="line">		<span class="keyword">return</span> err</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">if</span> err := n.startWS(n.wsEndpoint, apis, n.config.WSModules, n.config.WSOrigins, n.config.WSExposeAll); err != <span class="literal">nil</span> &#123;</span><br><span class="line">		n.stopHTTP()</span><br><span class="line">		n.stopIPC()</span><br><span class="line">		n.stopInProc()</span><br><span class="line">		<span class="keyword">return</span> err</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	n.rpcAPIs = apis</span><br><span class="line">	<span class="keyword">return</span> <span class="literal">nil</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>首先收集所有可以提供的api，然后依次调用startInProc、startIPC、startHTTP和startWS来根据需求启动各种rpc服务。注意其中任何一个rpc开启失败的话，都会关闭之前开启的rpc服务，并返回错误。</p>
+<h1 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h1><p>geth的启动流程主要是就是先构造一个节点，然后启动各种服务。最先被启动的是p2p服务，然后在启动我们之前注册的各种服务，默认情况下只有Ethereum服务，最后启动各种RPC服务。</p>
+<blockquote>
+<p>题图来自unsplash：<a href="https://unsplash.com/photos/DuBNA1QMpPA" target="_blank" rel="noopener">https://unsplash.com/photos/DuBNA1QMpPA</a></p>
+</blockquote>
+
+      
+    </div>
+
+    
+
+    
+    
+    
+
+    
+
+    
+      
+    
+    
+      <div>
+        <div style="padding: 10px 0; margin: 20px auto; width: 90%; text-align: center;">
+  <div>谢谢你请我吃糖</div>
+  <button id="rewardButton" disable="enable" onclick="var qr = document.getElementById('QR'); if (qr.style.display === 'none') {qr.style.display='block';} else {qr.style.display='none'}">
+    <span>打赏</span>
+  </button>
+  <div id="QR" style="display: none;">
+
+    
+      <div id="wechat" style="display: inline-block">
+        <img id="wechat_qr" src="/assets/img/wechatpay.jpg" alt="AmorFati 微信支付">
+        <p>微信支付</p>
+      </div>
+    
+
+    
+      <div id="alipay" style="display: inline-block">
+        <img id="alipay_qr" src="/assets/img/alipay.jpg" alt="AmorFati 支付宝">
+        <p>支付宝</p>
+      </div>
+    
+
+    
+
+  </div>
+</div>
+
+      </div>
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/区块链/" rel="tag"># 区块链</a>
+          
+            <a href="/tags/go/" rel="tag"># go</a>
+          
+            <a href="/tags/以太坊/" rel="tag"># 以太坊</a>
+          
+            <a href="/tags/go-ethereum/" rel="tag"># go-ethereum</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2019/06/08/go-ethereum中txpool源码学习/" rel="next" title="go-ethereum中txpool源码学习">
+                <i class="fa fa-chevron-left"></i> go-ethereum中txpool源码学习
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2019/06/08/geth子命令源码分析：init、account/" rel="prev" title="geth子命令源码分析：init、account">
+                geth子命令源码分析：init、account <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+  </div>
+
+
+          </div>
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image" src="/assets/img/icon.jpg" alt="AmorFati">
+            
+              <p class="site-author-name" itemprop="name">AmorFati</p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          
+            <nav class="site-state motion-element">
+              
+                <div class="site-state-item site-state-posts">
+                
+                  <a href="/archives/">
+                
+                    <span class="site-state-item-count">47</span>
+                    <span class="site-state-item-name">日志</span>
+                  </a>
+                </div>
+              
+
+              
+                
+                
+                <div class="site-state-item site-state-categories">
+                  <a href="/categories/index.html">
+                    
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">7</span>
+                    <span class="site-state-item-name">分类</span>
+                  </a>
+                </div>
+              
+
+              
+                
+                
+                <div class="site-state-item site-state-tags">
+                  <a href="/tags/index.html">
+                    
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">11</span>
+                    <span class="site-state-item-name">标签</span>
+                  </a>
+                </div>
+              
+            </nav>
+          
+
+          
+
+          
+            <div class="links-of-author motion-element">
+              
+                <span class="links-of-author-item">
+                  
+                  
+                    
+                  
+                  
+                    
+                  
+                  <a href="https://github.com/chenyaoyang" title="GitHub &rarr; https://github.com/chenyaoyang" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i>GitHub</a>
+                </span>
+              
+                <span class="links-of-author-item">
+                  
+                  
+                    
+                  
+                  
+                    
+                  
+                  <a href="mailto:chenyang4346@foxmail.com" title="E-Mail &rarr; mailto:chenyang4346@foxmail.com" rel="noopener" target="_blank"><i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+                </span>
+              
+                <span class="links-of-author-item">
+                  
+                  
+                    
+                  
+                  
+                    
+                  
+                  <a href="https://www.jianshu.com/u/52c1bec4559c" title="简书 &rarr; https://www.jianshu.com/u/52c1bec4559c" rel="noopener" target="_blank"><i class="fa fa-fw fa-globe"></i>简书</a>
+                </span>
+              
+            </div>
+          
+
+          
+
+          
+          
+
+          
+            
+          
+          
+
+        </div>
+      </div>
+
+      
+      <!--noindex-->
+        <div class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+            
+            
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#main-go"><span class="nav-number">1.</span> <span class="nav-text">main.go</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#创建节点"><span class="nav-number">2.</span> <span class="nav-text">创建节点</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#makeConfigNode"><span class="nav-number">2.1.</span> <span class="nav-text">makeConfigNode</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#node-New"><span class="nav-number">2.2.</span> <span class="nav-text">node.New</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#RegisterEthService"><span class="nav-number">2.3.</span> <span class="nav-text">RegisterEthService</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#启动节点"><span class="nav-number">3.</span> <span class="nav-text">启动节点</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#utils-StartNode"><span class="nav-number">3.1.</span> <span class="nav-text">utils.StartNode</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Node-Start"><span class="nav-number">3.2.</span> <span class="nav-text">Node.Start()</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#总结"><span class="nav-number">4.</span> <span class="nav-text">总结</span></a></li></ol></div>
+            
+
+          </div>
+        </div>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; 2018 – <span itemprop="copyrightYear">2019</span>
+  <span class="with-love" id="animate">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">AmorFati</span>
+
+  
+
+  
+</div>
+
+
+  <div class="powered-by">由 <a href="https://hexo.io" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v3.8.0</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 – <a href="https://theme-next.org" class="theme-link" rel="noopener" target="_blank">NexT.Pisces</a> v6.6.0</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+    
+
+    
+  </div>
+
+  
+
+<script>
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+
+  
+
+
+  <script src="/js/src/utils.js?v=6.6.0"></script>
+
+  <script src="/js/src/motion.js?v=6.6.0"></script>
+
+
+
+  
+  
+
+
+  <script src="/js/src/affix.js?v=6.6.0"></script>
+
+  <script src="/js/src/schemes/pisces.js?v=6.6.0"></script>
+
+
+
+  
+  <script src="/js/src/scrollspy.js?v=6.6.0"></script>
+<script src="/js/src/post-details.js?v=6.6.0"></script>
+
+
+
+  
+
+
+  <script src="/js/src/bootstrap.js?v=6.6.0"></script>
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  <script>
+    // Popup Window;
+    var isfetched = false;
+    var isXml = true;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length === 0) {
+      search_path = "search.xml";
+    } else if (/json$/i.test(search_path)) {
+      isXml = false;
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    var onPopupClose = function (e) {
+      $('.popup').hide();
+      $('#local-search-input').val('');
+      $('.search-result-list').remove();
+      $('#no-result').remove();
+      $(".local-search-pop-overlay").remove();
+      $('body').css('overflow', '');
+    }
+
+    function proceedsearch() {
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay"></div>')
+        .css('overflow', 'hidden');
+      $('.search-popup-overlay').click(onPopupClose);
+      $('.popup').toggle();
+      var $localSearchInput = $('#local-search-input');
+      $localSearchInput.attr("autocapitalize", "none");
+      $localSearchInput.attr("autocorrect", "off");
+      $localSearchInput.focus();
+    }
+
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+      'use strict';
+
+      // start loading animation
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay">' +
+          '<div id="search-loading-icon">' +
+          '<i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>' +
+          '</div>' +
+          '</div>')
+        .css('overflow', 'hidden');
+      $("#search-loading-icon").css('margin', '20% auto 0 auto').css('text-align', 'center');
+
+      
+
+      $.ajax({
+        url: path,
+        dataType: isXml ? "xml" : "json",
+        async: true,
+        success: function(res) {
+          // get the contents from search data
+          isfetched = true;
+          $('.popup').detach().appendTo('.header-inner');
+          var datas = isXml ? $("entry", res).map(function() {
+            return {
+              title: $("title", this).text(),
+              content: $("content",this).text(),
+              url: $("url" , this).text()
+            };
+          }).get() : res;
+          var input = document.getElementById(search_id);
+          var resultContent = document.getElementById(content_id);
+          var inputEventFunction = function() {
+            var searchText = input.value.trim().toLowerCase();
+            var keywords = searchText.split(/[\s\-]+/);
+            if (keywords.length > 1) {
+              keywords.push(searchText);
+            }
+            var resultItems = [];
+            if (searchText.length > 0) {
+              // perform local searching
+              datas.forEach(function(data) {
+                var isMatch = false;
+                var hitCount = 0;
+                var searchTextCount = 0;
+                var title = data.title.trim();
+                var titleInLowerCase = title.toLowerCase();
+                var content = data.content.trim().replace(/<[^>]+>/g,"");
+                
+                var contentInLowerCase = content.toLowerCase();
+                var articleUrl = decodeURIComponent(data.url);
+                var indexOfTitle = [];
+                var indexOfContent = [];
+                // only match articles with not empty titles
+                if(title != '') {
+                  keywords.forEach(function(keyword) {
+                    function getIndexByWord(word, text, caseSensitive) {
+                      var wordLen = word.length;
+                      if (wordLen === 0) {
+                        return [];
+                      }
+                      var startPosition = 0, position = [], index = [];
+                      if (!caseSensitive) {
+                        text = text.toLowerCase();
+                        word = word.toLowerCase();
+                      }
+                      while ((position = text.indexOf(word, startPosition)) > -1) {
+                        index.push({position: position, word: word});
+                        startPosition = position + wordLen;
+                      }
+                      return index;
+                    }
+
+                    indexOfTitle = indexOfTitle.concat(getIndexByWord(keyword, titleInLowerCase, false));
+                    indexOfContent = indexOfContent.concat(getIndexByWord(keyword, contentInLowerCase, false));
+                  });
+                  if (indexOfTitle.length > 0 || indexOfContent.length > 0) {
+                    isMatch = true;
+                    hitCount = indexOfTitle.length + indexOfContent.length;
+                  }
+                }
+
+                // show search results
+
+                if (isMatch) {
+                  // sort index by position of keyword
+
+                  [indexOfTitle, indexOfContent].forEach(function (index) {
+                    index.sort(function (itemLeft, itemRight) {
+                      if (itemRight.position !== itemLeft.position) {
+                        return itemRight.position - itemLeft.position;
+                      } else {
+                        return itemLeft.word.length - itemRight.word.length;
+                      }
+                    });
+                  });
+
+                  // merge hits into slices
+
+                  function mergeIntoSlice(text, start, end, index) {
+                    var item = index[index.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    var hits = [];
+                    var searchTextCountInSlice = 0;
+                    while (position + word.length <= end && index.length != 0) {
+                      if (word === searchText) {
+                        searchTextCountInSlice++;
+                      }
+                      hits.push({position: position, length: word.length});
+                      var wordEnd = position + word.length;
+
+                      // move to next position of hit
+
+                      index.pop();
+                      while (index.length != 0) {
+                        item = index[index.length - 1];
+                        position = item.position;
+                        word = item.word;
+                        if (wordEnd > position) {
+                          index.pop();
+                        } else {
+                          break;
+                        }
+                      }
+                    }
+                    searchTextCount += searchTextCountInSlice;
+                    return {
+                      hits: hits,
+                      start: start,
+                      end: end,
+                      searchTextCount: searchTextCountInSlice
+                    };
+                  }
+
+                  var slicesOfTitle = [];
+                  if (indexOfTitle.length != 0) {
+                    slicesOfTitle.push(mergeIntoSlice(title, 0, title.length, indexOfTitle));
+                  }
+
+                  var slicesOfContent = [];
+                  while (indexOfContent.length != 0) {
+                    var item = indexOfContent[indexOfContent.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    // cut out 100 characters
+                    var start = position - 20;
+                    var end = position + 80;
+                    if(start < 0){
+                      start = 0;
+                    }
+                    if (end < position + word.length) {
+                      end = position + word.length;
+                    }
+                    if(end > content.length){
+                      end = content.length;
+                    }
+                    slicesOfContent.push(mergeIntoSlice(content, start, end, indexOfContent));
+                  }
+
+                  // sort slices in content by search text's count and hits' count
+
+                  slicesOfContent.sort(function (sliceLeft, sliceRight) {
+                    if (sliceLeft.searchTextCount !== sliceRight.searchTextCount) {
+                      return sliceRight.searchTextCount - sliceLeft.searchTextCount;
+                    } else if (sliceLeft.hits.length !== sliceRight.hits.length) {
+                      return sliceRight.hits.length - sliceLeft.hits.length;
+                    } else {
+                      return sliceLeft.start - sliceRight.start;
+                    }
+                  });
+
+                  // select top N slices in content
+
+                  var upperBound = parseInt('1');
+                  if (upperBound >= 0) {
+                    slicesOfContent = slicesOfContent.slice(0, upperBound);
+                  }
+
+                  // highlight title and content
+
+                  function highlightKeyword(text, slice) {
+                    var result = '';
+                    var prevEnd = slice.start;
+                    slice.hits.forEach(function (hit) {
+                      result += text.substring(prevEnd, hit.position);
+                      var end = hit.position + hit.length;
+                      result += '<b class="search-keyword">' + text.substring(hit.position, end) + '</b>';
+                      prevEnd = end;
+                    });
+                    result += text.substring(prevEnd, slice.end);
+                    return result;
+                  }
+
+                  var resultItem = '';
+
+                  if (slicesOfTitle.length != 0) {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + highlightKeyword(title, slicesOfTitle[0]) + "</a>";
+                  } else {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + title + "</a>";
+                  }
+
+                  slicesOfContent.forEach(function (slice) {
+                    resultItem += "<a href='" + articleUrl + "'>" +
+                      "<p class=\"search-result\">" + highlightKeyword(content, slice) +
+                      "...</p>" + "</a>";
+                  });
+
+                  resultItem += "</li>";
+                  resultItems.push({
+                    item: resultItem,
+                    searchTextCount: searchTextCount,
+                    hitCount: hitCount,
+                    id: resultItems.length
+                  });
+                }
+              })
+            };
+            if (keywords.length === 1 && keywords[0] === "") {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>'
+            } else if (resultItems.length === 0) {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>'
+            } else {
+              resultItems.sort(function (resultLeft, resultRight) {
+                if (resultLeft.searchTextCount !== resultRight.searchTextCount) {
+                  return resultRight.searchTextCount - resultLeft.searchTextCount;
+                } else if (resultLeft.hitCount !== resultRight.hitCount) {
+                  return resultRight.hitCount - resultLeft.hitCount;
+                } else {
+                  return resultRight.id - resultLeft.id;
+                }
+              });
+              var searchResultList = '<ul class=\"search-result-list\">';
+              resultItems.forEach(function (result) {
+                searchResultList += result.item;
+              })
+              searchResultList += "</ul>";
+              resultContent.innerHTML = searchResultList;
+            }
+          }
+
+          if ('auto' === 'auto') {
+            input.addEventListener('input', inputEventFunction);
+          } else {
+            $('.search-icon').click(inputEventFunction);
+            input.addEventListener('keypress', function (event) {
+              if (event.keyCode === 13) {
+                inputEventFunction();
+              }
+            });
+          }
+
+          // remove loading animation
+          $(".local-search-pop-overlay").remove();
+          $('body').css('overflow', '');
+
+          proceedsearch();
+        }
+      });
+    }
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched === false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+    });
+
+    $('.popup-btn-close').click(onPopupClose);
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+    $(document).on('keyup', function (event) {
+      var shouldDismissSearchPopup = event.which === 27 &&
+        $('.search-popup').is(':visible');
+      if (shouldDismissSearchPopup) {
+        onPopupClose();
+      }
+    });
+  </script>
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+  
+
+  
+
+
+  
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

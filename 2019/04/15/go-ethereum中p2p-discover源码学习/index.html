@@ -154,11 +154,11 @@
 <meta property="og:url" content="http://yoursite.com/2019/04/15/go-ethereum中p2p-discover源码学习/index.html">
 <meta property="og:site_name" content="AmorFati">
 <meta property="og:locale" content="zh-CN">
-<meta property="og:image" content="https://upload-images.jianshu.io/upload_images/5111131-cbf9f5b30a272672.jpg?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240">
-<meta property="og:updated_time" content="2019-04-15T06:28:54.996Z">
+<meta property="og:image" content="https://raw.githubusercontent.com/chenyaoyang/blog-pic/master/1/d1.jpg">
+<meta property="og:updated_time" content="2019-06-02T14:43:37.000Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="go-ethereum中p2p-discover源码学习">
-<meta name="twitter:image" content="https://upload-images.jianshu.io/upload_images/5111131-cbf9f5b30a272672.jpg?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240">
+<meta name="twitter:image" content="https://raw.githubusercontent.com/chenyaoyang/blog-pic/master/1/d1.jpg">
 
 
 
@@ -467,12 +467,24 @@
                 
               
 
-              <time title="创建时间：2019-04-15 14:21:29 / 修改时间：14:28:54" itemprop="dateCreated datePublished" datetime="2019-04-15T14:21:29+08:00">2019-04-15</time>
+              <time title="创建时间：2019-04-15 14:21:29" itemprop="dateCreated datePublished" datetime="2019-04-15T14:21:29+08:00">2019-04-15</time>
             
 
             
               
 
+              
+                
+                <span class="post-meta-divider">|</span>
+                
+
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">更新于</span>
+                
+                <time title="修改时间：2019-06-02 22:43:37" itemprop="dateModified" datetime="2019-06-02T22:43:37+08:00">2019-06-02</time>
               
             
           </span>
@@ -523,7 +535,7 @@
       
 
       
-        <p><img src="https://upload-images.jianshu.io/upload_images/5111131-cbf9f5b30a272672.jpg?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt=""><br><a id="more"></a><br>区块链系统就是一个基于P2P网络的系统，这里先来学习一下以太坊的P2P网络实现。P2P网络运作的第一个要求就是节点之间能互相发现，这里以太坊用到了一个名为Kademlia的协议算法，这里来梳理一下ethereum P2P的discover实现</p>
+        <p><img src="https://raw.githubusercontent.com/chenyaoyang/blog-pic/master/1/d1.jpg" alt=""><br><a id="more"></a><br>区块链系统就是一个基于P2P网络的系统，这里先来学习一下以太坊的P2P网络实现。P2P网络运作的第一个要求就是节点之间能互相发现，这里以太坊用到了一个名为Kademlia的协议算法，这里来梳理一下ethereum P2P的discover实现</p>
 <h1 id="Kademlia协议"><a href="#Kademlia协议" class="headerlink" title="Kademlia协议"></a>Kademlia协议</h1><p>这个协议是2002年美国纽约大学Petar Maymounkov和David Mazières发表的一篇论文中所介绍的，该论文的核心部分翻译见<a href="https://blog.grapefruit.tk/2019/04/01/Kademlia%EF%BC%9A%E4%B8%80%E4%B8%AA%E5%9F%BA%E4%BA%8E%E5%BC%82%E6%88%96%E5%BA%A6%E9%87%8F%E7%9A%84P2P%E4%BF%A1%E6%81%AF%E7%B3%BB%E7%BB%9F/" target="_blank" rel="noopener">这里</a>,下面我们就来详细介绍一下这个协议</p>
 <h2 id="概述"><a href="#概述" class="headerlink" title="概述"></a>概述</h2><p>Kademlia规定了网络的结构，也规定了通过节点查询进行信息交换的方式。Kademlia网络节点之间使用UDP进行通讯。参与通讯的所有节点形成一张虚拟网（或者叫做覆盖网）。这些节点通过一组数字（或称为节点ID）来进行身份标识。节点ID不仅可以用来做身份标识，还可以用来进行值定位（标识这哪些节点存储哪些资源）。</p>
 <p>当进行节点搜索时，Kademlia算法需要知道与这些值相关的键，然后分步在网络中开始搜索，每一步都会找到一些节点，这些节点的ID与键更为接近，如果有节点直接返回搜索的值或者再也无法找到与键更为接近的节点ID的时候搜索便会停止。这种搜索值的方法是非常高效的：与其他的分布式散列表的实现类似，在一个包含n个节点的系统的值的搜索中，Kademlia仅访问O(log(n))个节点。</p>
@@ -756,7 +768,7 @@
                 
                   <a href="/archives/">
                 
-                    <span class="site-state-item-count">43</span>
+                    <span class="site-state-item-count">47</span>
                     <span class="site-state-item-name">日志</span>
                   </a>
                 </div>

@@ -1,0 +1,1395 @@
+<!DOCTYPE html>
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+<html class="theme-next pisces use-motion" lang="zh-CN">
+<head><meta name="generator" content="Hexo 3.8.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+    
+      
+    
+
+    
+  
+
+  
+
+  
+    
+      
+    
+
+    
+  
+
+  
+    
+      
+    
+
+    
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Monda:300,300italic,400,400italic,700,700italic|Roboto Slab:300,300italic,400,400italic,700,700italic|Dancing Script:300,300italic,400,400italic,700,700italic|Consolas:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css">
+
+<link href="/css/main.css?v=6.6.0" rel="stylesheet" type="text/css">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=6.6.0">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=6.6.0">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=6.6.0">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=6.6.0" color="#222">
+
+
+
+
+
+
+
+
+
+<script id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    version: '6.6.0',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: false,
+    fastclick: false,
+    lazyload: false,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+  
+
+
+
+
+  <meta name="keywords" content="区块链,go,以太坊,go-ethereum">
+<meta property="og:type" content="article">
+<meta property="og:title" content="geth子命令源码分析：init、account">
+<meta property="og:url" content="http://yoursite.com/2019/06/08/geth子命令源码分析：init、account/index.html">
+<meta property="og:site_name" content="AmorFati">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:image" content="https://raw.githubusercontent.com/chenyaoyang/blog-pic/master/201906/reinis-birznieks-646962-unsplash.jpg">
+<meta property="og:updated_time" content="2019-06-08T08:15:17.249Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="geth子命令源码分析：init、account">
+<meta name="twitter:image" content="https://raw.githubusercontent.com/chenyaoyang/blog-pic/master/201906/reinis-birznieks-646962-unsplash.jpg">
+
+
+
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2019/06/08/geth子命令源码分析：init、account/">
+
+
+
+<script id="page.configurations">
+  CONFIG.page = {
+    sidebar: "",
+  };
+</script>
+
+  <title>geth子命令源码分析：init、account | AmorFati</title>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  <noscript>
+  <style>
+    .use-motion .motion-element,
+    .use-motion .brand,
+    .use-motion .menu-item,
+    .sidebar-inner,
+    .use-motion .post-block,
+    .use-motion .pagination,
+    .use-motion .comments,
+    .use-motion .post-header,
+    .use-motion .post-body,
+    .use-motion .collection-title { opacity: initial; }
+
+    .use-motion .logo,
+    .use-motion .site-title,
+    .use-motion .site-subtitle {
+      opacity: initial;
+      top: initial;
+    }
+
+    .use-motion .logo-line-before i { left: initial; }
+    .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope="" itemtype="http://schema.org/WebPage" lang="zh-CN">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope="" itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">AmorFati</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+    
+      
+        <p class="site-subtitle">风吹过窗前的书，又翻过一页</p>
+      
+    
+    
+  </div>
+
+  <div class="site-nav-toggle">
+    <button aria-label="切换导航栏">
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  
+    <ul id="menu" class="menu">
+      
+        
+        
+        
+          
+          <li class="menu-item menu-item-home">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/" rel="section"><i class="menu-item-icon fa fa-fw fa-home"></i> <br>首页</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-about">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/about/" rel="section"><i class="menu-item-icon fa fa-fw fa-user"></i> <br>关于</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-tags">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/tags/" rel="section"><i class="menu-item-icon fa fa-fw fa-tags"></i> <br>标签</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-categories">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/categories/" rel="section"><i class="menu-item-icon fa fa-fw fa-th"></i> <br>分类</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-archives">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/archives/" rel="section"><i class="menu-item-icon fa fa-fw fa-archive"></i> <br>归档</a>
+
+  </li>
+
+      
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br>搜索</a>
+        </li>
+      
+    </ul>
+  
+
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup search-popup local-search-popup">
+  <div class="local-search-header clearfix">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+    <div class="local-search-input-wrapper">
+      <input autocomplete="off" placeholder="搜索..." spellcheck="false" type="text" id="local-search-input">
+    </div>
+  </div>
+  <div id="local-search-result"></div>
+</div>
+
+
+
+    </div>
+  
+</nav>
+
+
+
+  
+
+
+
+</div>
+    </header>
+
+    
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+            
+
+          
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  
+
+  <article class="post post-type-normal" itemscope="" itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/06/08/geth子命令源码分析：init、account/">
+
+    <span hidden itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="AmorFati">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/assets/img/icon.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope="" itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="AmorFati">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">geth子命令源码分析：init、account
+
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+
+            
+            
+            
+
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+
+              
+                
+              
+
+              <time title="创建时间：2019-06-08 16:10:56 / 修改时间：16:15:17" itemprop="dateCreated datePublished" datetime="2019-06-08T16:10:56+08:00">2019-06-08</time>
+            
+
+            
+              
+
+              
+            
+          </span>
+
+          
+            <span class="post-category">
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope="" itemtype="http://schema.org/Thing"><a href="/categories/go-ethereum源码学习/" itemprop="url" rel="index"><span itemprop="name">go-ethereum源码学习</span></a></span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p><img src="https://raw.githubusercontent.com/chenyaoyang/blog-pic/master/201906/reinis-birznieks-646962-unsplash.jpg" alt=""><br><a id="more"></a></p>
+<h1 id="geth总览"><a href="#geth总览" class="headerlink" title="geth总览"></a>geth总览</h1><p>首先看一下geth这个程序的总体设计，其主要代码位于go-ethereum\cmd\geth里面，先看main.go,这是一个利用urfave/cli开发的命令行程序，关于这个库的简单介绍见<a href="https://chenyaoyang.github.io/2019/02/21/go%E7%9A%84CLI%E7%A8%8B%E5%BA%8F%E5%BC%80%E5%8F%91/" target="_blank" rel="noopener">这里</a>。在开头var代码块中中实例化了cli的app对象:<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">app = utils.NewApp(gitCommit, <span class="string">"the go-ethereum command line interface"</span>)</span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">NewApp</span><span class="params">(gitCommit, usage <span class="keyword">string</span>)</span> *<span class="title">cli</span>.<span class="title">App</span></span> &#123;</span><br><span class="line">	app := cli.NewApp()</span><br><span class="line">	app.Name = filepath.Base(os.Args[<span class="number">0</span>])</span><br><span class="line">	app.Author = <span class="string">""</span></span><br><span class="line">	<span class="comment">//app.Authors = nil</span></span><br><span class="line">	app.Email = <span class="string">""</span></span><br><span class="line">	app.Version = params.VersionWithMeta <span class="comment">//见go-ethereum\params\version.go 生成版本号</span></span><br><span class="line">	<span class="keyword">if</span> <span class="built_in">len</span>(gitCommit) &gt;= <span class="number">8</span> &#123;</span><br><span class="line">		app.Version += <span class="string">"-"</span> + gitCommit[:<span class="number">8</span>] <span class="comment">//gitCommit之前在编译时定义</span></span><br><span class="line">	&#125;</span><br><span class="line">	app.Usage = usage</span><br><span class="line">	<span class="keyword">return</span> app</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>实例化之后，定义了大量flag，详细信息可以输入geth -h或到<a href="https://github.com/ethereum/go-ethereum/wiki/Command-Line-Options" target="_blank" rel="noopener">官方文档</a>查看。接下来，在init()方法中进行进一步初始化，添加了大量command及先前定义的flag。并定义了geth的action：<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">app.Action = geth</span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">geth</span><span class="params">(ctx *cli.Context)</span> <span class="title">error</span></span> &#123;</span><br><span class="line">	<span class="keyword">if</span> args := ctx.Args(); <span class="built_in">len</span>(args) &gt; <span class="number">0</span> &#123; </span><br><span class="line">		<span class="keyword">return</span> fmt.Errorf(<span class="string">"invalid command: %q"</span>, args[<span class="number">0</span>])</span><br><span class="line">	&#125;</span><br><span class="line">	node := makeFullNode(ctx) </span><br><span class="line">	<span class="keyword">defer</span> node.Close()</span><br><span class="line">	startNode(ctx, node) </span><br><span class="line">	node.Wait()</span><br><span class="line">	<span class="keyword">return</span> <span class="literal">nil</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>这是关于geth启动流程的代码，我们后续再分析。在init中还定义了app.Before用于初始化工作：<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><span class="line">app.Before = <span class="function"><span class="keyword">func</span><span class="params">(ctx *cli.Context)</span> <span class="title">error</span></span> &#123;</span><br><span class="line">		logdir := <span class="string">""</span></span><br><span class="line">		<span class="keyword">if</span> ctx.GlobalBool(utils.DashboardEnabledFlag.Name) &#123;</span><br><span class="line">			logdir = (&amp;node.Config&#123;DataDir: utils.MakeDataDir(ctx)&#125;).ResolvePath(<span class="string">"logs"</span>)</span><br><span class="line">		&#125;</span><br><span class="line">		<span class="keyword">if</span> err := debug.Setup(ctx, logdir); err != <span class="literal">nil</span> &#123; <span class="comment">//见\go-ethereum\internal\debug\flags.go</span></span><br><span class="line">			<span class="keyword">return</span> err</span><br><span class="line">		&#125;</span><br><span class="line">		<span class="comment">// Cap the cache allowance and tune the garbage collector</span></span><br><span class="line">		<span class="keyword">var</span> mem gosigar.Mem <span class="comment">//见\go-ethereum\vendor\github.com\elastic\gosigar\sigar_interface.go</span></span><br><span class="line">		<span class="comment">//获取系统内存信息</span></span><br><span class="line">		<span class="keyword">if</span> err := mem.Get(); err == <span class="literal">nil</span> &#123; <span class="comment">//配置缓存</span></span><br><span class="line">			allowance := <span class="keyword">int</span>(mem.Total / <span class="number">1024</span> / <span class="number">1024</span> / <span class="number">3</span>)</span><br><span class="line">			<span class="keyword">if</span> cache := ctx.GlobalInt(utils.CacheFlag.Name); cache &gt; allowance &#123;</span><br><span class="line">				log.Warn(<span class="string">"Sanitizing cache to Go's GC limits"</span>, <span class="string">"provided"</span>, cache, <span class="string">"updated"</span>, allowance)</span><br><span class="line">				ctx.GlobalSet(utils.CacheFlag.Name, strconv.Itoa(allowance))</span><br><span class="line">			&#125;</span><br><span class="line">		&#125;</span><br><span class="line">		<span class="comment">// Ensure Go's GC ignores the database cache for trigger percentage</span></span><br><span class="line">		cache := ctx.GlobalInt(utils.CacheFlag.Name)</span><br><span class="line">		gogc := math.Max(<span class="number">20</span>, math.Min(<span class="number">100</span>, <span class="number">100</span>/(<span class="keyword">float64</span>(cache)/<span class="number">1024</span>)))</span><br><span class="line"></span><br><span class="line">		log.Debug(<span class="string">"Sanitizing Go's GC trigger"</span>, <span class="string">"percent"</span>, <span class="keyword">int</span>(gogc))</span><br><span class="line">		godebug.SetGCPercent(<span class="keyword">int</span>(gogc)) <span class="comment">//设置垃圾收集目标百分比</span></span><br><span class="line"></span><br><span class="line">		<span class="comment">// Start metrics export if enabled</span></span><br><span class="line">		utils.SetupMetrics(ctx) <span class="comment">//默认是关闭的，开关在\go-ethereum\metrics\metrics.go</span></span><br><span class="line"></span><br><span class="line">		<span class="comment">// Start system runtime metrics collection</span></span><br><span class="line">		<span class="keyword">go</span> metrics.CollectProcessMetrics(<span class="number">3</span> * time.Second) <span class="comment">//默认不会启动</span></span><br><span class="line"></span><br><span class="line">		<span class="keyword">return</span> <span class="literal">nil</span></span><br><span class="line">	&#125;</span><br></pre></td></tr></table></figure></p>
+<p>随后也定义了app.After逻辑<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">app.After = <span class="function"><span class="keyword">func</span><span class="params">(ctx *cli.Context)</span> <span class="title">error</span></span> &#123;</span><br><span class="line">		debug.Exit()</span><br><span class="line">		console.Stdin.Close() <span class="comment">// 重置终端模式</span></span><br><span class="line">		<span class="keyword">return</span> <span class="literal">nil</span></span><br><span class="line">	&#125;</span><br></pre></td></tr></table></figure></p>
+<p>接下来进入main函数<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">main</span><span class="params">()</span></span> &#123;</span><br><span class="line">	<span class="keyword">if</span> err := app.Run(os.Args); err != <span class="literal">nil</span> &#123; <span class="comment">//运行处理程序</span></span><br><span class="line">		fmt.Fprintln(os.Stderr, err)</span><br><span class="line">		os.Exit(<span class="number">1</span>)</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>到这里，geth大致轮廓就看完了，随后会根据用户输入的命令执行相应的逻辑。</p>
+<h1 id="init"><a href="#init" class="headerlink" title="init"></a>init</h1><p>这是初始化函数。源码中描述如下</p>
+<blockquote>
+<p>The init command initializes a new genesis block and definition for the network.<br>This is a destructive action and changes the network in which you will be<br>participating.<br>It expects the genesis file as argument.</p>
+</blockquote>
+<p>一般使用如下<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">geth init gen.json --datadir ./mychain/</span><br></pre></td></tr></table></figure></p>
+<p>需要指定一个json文件，可选择指定数据存储路径。在源码定义如下：<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// go-ethereum\cmd\geth\chaincmd.go</span></span><br><span class="line">initCommand = cli.Command&#123;</span><br><span class="line">		Action:    utils.MigrateFlags(initGenesis),</span><br><span class="line">		Name:      <span class="string">"init"</span>,</span><br><span class="line">		Usage:     <span class="string">"Bootstrap and initialize a new genesis block"</span>,</span><br><span class="line">		ArgsUsage: <span class="string">"&lt;genesisPath&gt;"</span>,</span><br><span class="line">		Flags: []cli.Flag&#123;</span><br><span class="line">			utils.DataDirFlag,</span><br><span class="line">		&#125;,</span><br><span class="line">		Category: <span class="string">"BLOCKCHAIN COMMANDS"</span>,</span><br><span class="line">		Description: <span class="string">`.....`</span>,</span><br><span class="line">	&#125;</span><br></pre></td></tr></table></figure></p>
+<p>可见子命令名就是init，没有别名，只有一个flag，定义如下<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// go-ethereum\cmd\utils\flags.go</span></span><br><span class="line">DataDirFlag = DirectoryFlag&#123;</span><br><span class="line">		Name:  <span class="string">"datadir"</span>,</span><br><span class="line">		Usage: <span class="string">"Data directory for the databases and keystore"</span>,</span><br><span class="line">		Value: DirectoryString&#123;node.DefaultDataDir()&#125;, <span class="comment">//获取默认目录，见go-ethereum\node\defaults.go</span></span><br><span class="line">		<span class="comment">//linux下为/home/&lt;user&gt;/.ethereum</span></span><br><span class="line">	&#125;</span><br></pre></td></tr></table></figure></p>
+<p>DirectoryString定义如下<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line">// go-ethereum\cmd\utils\customflags.go</span><br><span class="line">type DirectoryString struct &#123;</span><br><span class="line">	Value string</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">func (self *DirectoryString) String() string &#123;</span><br><span class="line">	return self.Value</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">func (self *DirectoryString) Set(value string) error &#123;</span><br><span class="line">	self.Value = expandPath(value)</span><br><span class="line">	return nil</span><br><span class="line">&#125;</span><br><span class="line">func expandPath(p string) string &#123;</span><br><span class="line">	if strings.HasPrefix(p, &quot;~/&quot;) || strings.HasPrefix(p, &quot;~\\&quot;) &#123;</span><br><span class="line">		if home := homeDir(); home != &quot;&quot; &#123;</span><br><span class="line">			p = home + p[1:]</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">	return path.Clean(os.ExpandEnv(p))</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>DataDirFlag作用主要就是定义初始化生成数据的存储路径，之后我们看initCommand的action，这个是关键：<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Action:    utils.MigrateFlags(initGenesis),</span><br></pre></td></tr></table></figure></p>
+<p>调用了utils.MigrateFlags，定义如下<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// \go-ethereum\cmd\utils\flags.go</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">MigrateFlags</span><span class="params">(action <span class="keyword">func</span>(ctx *cli.Context)</span> <span class="title">error</span>) <span class="title">func</span><span class="params">(*cli.Context)</span> <span class="title">error</span></span> &#123;</span><br><span class="line">	<span class="keyword">return</span> <span class="function"><span class="keyword">func</span><span class="params">(ctx *cli.Context)</span> <span class="title">error</span></span> &#123;</span><br><span class="line">		<span class="keyword">for</span> _, name := <span class="keyword">range</span> ctx.FlagNames() &#123;</span><br><span class="line">			<span class="keyword">if</span> ctx.IsSet(name) &#123;</span><br><span class="line">				ctx.GlobalSet(name, ctx.String(name))</span><br><span class="line">			&#125;</span><br><span class="line">		&#125;</span><br><span class="line">		<span class="keyword">return</span> action(ctx)</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>这个方法并没有什么实际意义，只是将所有用户指定的flag以GlobalSet的形式存了起来，主要逻辑在传递进来的action，我们这里传递的action如下：<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// go-ethereum\cmd\geth\chaincmd.go</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">initGenesis</span><span class="params">(ctx *cli.Context)</span> <span class="title">error</span></span> &#123;</span><br><span class="line">	genesisPath := ctx.Args().First() </span><br><span class="line">	<span class="keyword">if</span> <span class="built_in">len</span>(genesisPath) == <span class="number">0</span> &#123;</span><br><span class="line">		utils.Fatalf(<span class="string">"Must supply path to genesis JSON file"</span>)</span><br><span class="line">	&#125;</span><br><span class="line">	file, err := os.Open(genesisPath)</span><br><span class="line">	<span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">		utils.Fatalf(<span class="string">"Failed to read genesis file: %v"</span>, err)</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">defer</span> file.Close()</span><br><span class="line"></span><br><span class="line">	genesis := <span class="built_in">new</span>(core.Genesis) </span><br><span class="line">	<span class="keyword">if</span> err := json.NewDecoder(file).Decode(genesis); err != <span class="literal">nil</span> &#123; </span><br><span class="line">		utils.Fatalf(<span class="string">"invalid genesis file: %v"</span>, err)</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	stack := makeFullNode(ctx) </span><br><span class="line">	<span class="keyword">defer</span> stack.Close()</span><br><span class="line"></span><br><span class="line">	<span class="keyword">for</span> _, name := <span class="keyword">range</span> []<span class="keyword">string</span>&#123;<span class="string">"chaindata"</span>, <span class="string">"lightchaindata"</span>&#125; &#123;</span><br><span class="line">		chaindb, err := stack.OpenDatabase(name, <span class="number">0</span>, <span class="number">0</span>) </span><br><span class="line">		<span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">			utils.Fatalf(<span class="string">"Failed to open database: %v"</span>, err)</span><br><span class="line">		&#125;</span><br><span class="line">		_, hash, err := core.SetupGenesisBlock(chaindb, genesis) </span><br><span class="line">		<span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">			utils.Fatalf(<span class="string">"Failed to write genesis block: %v"</span>, err)</span><br><span class="line">		&#125;</span><br><span class="line">		log.Info(<span class="string">"Successfully wrote genesis state"</span>, <span class="string">"database"</span>, name, <span class="string">"hash"</span>, hash)</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">return</span> <span class="literal">nil</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>第一行获取我们传入的json文件路径，然后代开这个文件，并解析成一个创世区块对象，中间有一步出错就返回。到这里已经根据我们的json文件创建了一个创世区块对象genesis。接着使用makeFullNode创建了一个节点，这个在分析geth启动流程时详细分析，这里只用知道他给我们返回一个node对象，代表一个节点。</p>
+<p>接着遍历了一个字符串数组，为的是创建数据库目录，用的是OpenDatabase方法，最终创建的两个数据库默认情况分别在datadir/geth/chaindata，datadir/geth/lightchaindata。之后调用SetupGenesisBlock方法写入创世区块，这个方法在我们F分析创世区块时分析过，就是把我们定义的创世区块内如写入数据库，最后打印log。</p>
+<h1 id="account"><a href="#account" class="headerlink" title="account"></a>account</h1><p>这是账户相关的自命令，定义如下<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br></pre></td><td class="code"><pre><span class="line">accountCommand = cli.Command&#123;</span><br><span class="line">		Name:     <span class="string">"account"</span>,</span><br><span class="line">		Usage:    <span class="string">"Manage accounts"</span>,</span><br><span class="line">		Category: <span class="string">"ACCOUNT COMMANDS"</span>,</span><br><span class="line">		Description: <span class="string">``</span>,</span><br><span class="line">		Subcommands: []cli.Command&#123;</span><br><span class="line">			&#123;</span><br><span class="line">				Name:   <span class="string">"list"</span>,</span><br><span class="line">				Usage:  <span class="string">"Print summary of existing accounts"</span>,</span><br><span class="line">				Action: utils.MigrateFlags(accountList),</span><br><span class="line">				Flags: []cli.Flag&#123;</span><br><span class="line">					utils.DataDirFlag,</span><br><span class="line">					utils.KeyStoreDirFlag,</span><br><span class="line">				&#125;,</span><br><span class="line">				Description: <span class="string">`...`</span>,</span><br><span class="line">			&#125;,</span><br><span class="line">			&#123;</span><br><span class="line">				Name:   <span class="string">"new"</span>,</span><br><span class="line">				Usage:  <span class="string">"Create a new account"</span>,</span><br><span class="line">				Action: utils.MigrateFlags(accountCreate),</span><br><span class="line">				Flags: []cli.Flag&#123;</span><br><span class="line">					utils.DataDirFlag,</span><br><span class="line">					utils.KeyStoreDirFlag,</span><br><span class="line">					utils.PasswordFileFlag,</span><br><span class="line">					utils.LightKDFFlag,</span><br><span class="line">				&#125;,</span><br><span class="line">				Description: <span class="string">`...`</span>,</span><br><span class="line">			&#125;,</span><br><span class="line">			&#123;</span><br><span class="line">				Name:      <span class="string">"update"</span>,</span><br><span class="line">				Usage:     <span class="string">"Update an existing account"</span>,</span><br><span class="line">				Action:    utils.MigrateFlags(accountUpdate),</span><br><span class="line">				ArgsUsage: <span class="string">"&lt;address&gt;"</span>,</span><br><span class="line">				Flags: []cli.Flag&#123;</span><br><span class="line">					utils.DataDirFlag,</span><br><span class="line">					utils.KeyStoreDirFlag,</span><br><span class="line">					utils.LightKDFFlag,</span><br><span class="line">				&#125;,</span><br><span class="line">				Description: <span class="string">`...`</span>,</span><br><span class="line">			&#125;,</span><br><span class="line">			&#123;</span><br><span class="line">				Name:   <span class="string">"import"</span>,</span><br><span class="line">				Usage:  <span class="string">"Import a private key into a new account"</span>,</span><br><span class="line">				Action: utils.MigrateFlags(accountImport),</span><br><span class="line">				Flags: []cli.Flag&#123;</span><br><span class="line">					utils.DataDirFlag,</span><br><span class="line">					utils.KeyStoreDirFlag,</span><br><span class="line">					utils.PasswordFileFlag,</span><br><span class="line">					utils.LightKDFFlag,</span><br><span class="line">				&#125;,</span><br><span class="line">				ArgsUsage: <span class="string">"&lt;keyFile&gt;"</span>,</span><br><span class="line">				Description: <span class="string">`...`</span>,</span><br><span class="line">			&#125;,</span><br><span class="line">		&#125;,</span><br><span class="line">	&#125;</span><br></pre></td></tr></table></figure></p>
+<p>这个命令的名称就是account，没有别名也没有直接的flag，但是有几个二级命令</p>
+<h2 id="list"><a href="#list" class="headerlink" title="list"></a>list</h2><p>这个命令的作用是列出所有的账户，有两个flag。DataDirFlag用来指定节点目录，使用–datadir指定；KeyStoreDirFlag用来指定秘钥存储路径，使用–keystoreh指定。改名了的动作如下，注意还是MigrateFlags包裹一个方法的形式，直接看动作<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">accountList</span><span class="params">(ctx *cli.Context)</span> <span class="title">error</span></span> &#123;</span><br><span class="line">	stack, _ := makeConfigNode(ctx)</span><br><span class="line">	<span class="keyword">var</span> index <span class="keyword">int</span></span><br><span class="line">	<span class="keyword">for</span> _, wallet := <span class="keyword">range</span> stack.AccountManager().Wallets() &#123;</span><br><span class="line">		<span class="keyword">for</span> _, account := <span class="keyword">range</span> wallet.Accounts() &#123;</span><br><span class="line">			fmt.Printf(<span class="string">"Account #%d: &#123;%x&#125; %s\n"</span>, index, account.Address, &amp;account.URL)</span><br><span class="line">			index++</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">return</span> <span class="literal">nil</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>很简单就是首先使用makeConfigNode构造一个节点，这里之所以不用makeFullNode是因为不必注册服务。之后获取节点的账户管理者，再获取所有钱包，遍历每个钱包的账户打印出来即可。</p>
+<h2 id="new"><a href="#new" class="headerlink" title="new"></a>new</h2><p>这是新建一个账户的命令，命令名就是new，有四个flag。前两个和list的一样。后面的，PasswordFileFlag是用来指定账户密码的文件，使用–password指定，默认为空。LightKDFFlag是表示是否要降低秘钥生成时cpu和ram的用量，是一个布尔类型，需要的话使用–lightkdf开启。我们接着看主要逻辑<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">accountCreate</span><span class="params">(ctx *cli.Context)</span> <span class="title">error</span></span> &#123;</span><br><span class="line">	cfg := gethConfig&#123;Node: defaultNodeConfig()&#125;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">if</span> file := ctx.GlobalString(configFileFlag.Name); file != <span class="string">""</span> &#123;</span><br><span class="line">		<span class="keyword">if</span> err := loadConfig(file, &amp;cfg); err != <span class="literal">nil</span> &#123;</span><br><span class="line">			utils.Fatalf(<span class="string">"%v"</span>, err)</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">	utils.SetNodeConfig(ctx, &amp;cfg.Node)</span><br><span class="line">	scryptN, scryptP, keydir, err := cfg.Node.AccountConfig()</span><br><span class="line"></span><br><span class="line">	<span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">		utils.Fatalf(<span class="string">"Failed to read configuration: %v"</span>, err)</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	password := getPassPhrase(<span class="string">"Your new account is locked with a password. Please give a password. Do not forget this password."</span>, <span class="literal">true</span>, <span class="number">0</span>, utils.MakePasswordList(ctx))</span><br><span class="line"></span><br><span class="line">	address, err := keystore.StoreKey(keydir, password, scryptN, scryptP)</span><br><span class="line"></span><br><span class="line">	<span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">		utils.Fatalf(<span class="string">"Failed to create account: %v"</span>, err)</span><br><span class="line">	&#125;</span><br><span class="line">	fmt.Printf(<span class="string">"Address: &#123;%x&#125;\n"</span>, address)</span><br><span class="line">	<span class="keyword">return</span> <span class="literal">nil</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>开始时施加在默认及用户配置，然后设置配置，接着调用AccountConfig获取了几个变量，分别是scrypt算法的N参数scryptN，scrypt算法的P参数scryptP，秘钥存储目录及错误。没有错误的话，调用getPassPhrase获取密码<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">getPassPhrase</span><span class="params">(prompt <span class="keyword">string</span>, confirmation <span class="keyword">bool</span>, i <span class="keyword">int</span>, passwords []<span class="keyword">string</span>)</span> <span class="title">string</span></span> &#123;</span><br><span class="line">	<span class="keyword">if</span> <span class="built_in">len</span>(passwords) &gt; <span class="number">0</span> &#123;</span><br><span class="line">		<span class="keyword">if</span> i &lt; <span class="built_in">len</span>(passwords) &#123;</span><br><span class="line">			<span class="keyword">return</span> passwords[i]</span><br><span class="line">		&#125;</span><br><span class="line">		<span class="keyword">return</span> passwords[<span class="built_in">len</span>(passwords)<span class="number">-1</span>]</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">if</span> prompt != <span class="string">""</span> &#123;</span><br><span class="line">		fmt.Println(prompt)</span><br><span class="line">	&#125;</span><br><span class="line">	password, err := console.Stdin.PromptPassword(<span class="string">"Passphrase: "</span>)</span><br><span class="line">	<span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">		utils.Fatalf(<span class="string">"Failed to read passphrase: %v"</span>, err)</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">if</span> confirmation &#123;</span><br><span class="line">		confirm, err := console.Stdin.PromptPassword(<span class="string">"Repeat passphrase: "</span>)</span><br><span class="line">		<span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">			utils.Fatalf(<span class="string">"Failed to read passphrase confirmation: %v"</span>, err)</span><br><span class="line">		&#125;</span><br><span class="line">		<span class="keyword">if</span> password != confirm &#123;</span><br><span class="line">			utils.Fatalf(<span class="string">"Passphrases do not match"</span>)</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">return</span> password</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">MakePasswordList</span><span class="params">(ctx *cli.Context)</span> []<span class="title">string</span></span> &#123;</span><br><span class="line">	path := ctx.GlobalString(PasswordFileFlag.Name)</span><br><span class="line">	<span class="keyword">if</span> path == <span class="string">""</span> &#123;</span><br><span class="line">		<span class="keyword">return</span> <span class="literal">nil</span></span><br><span class="line">	&#125;</span><br><span class="line">	text, err := ioutil.ReadFile(path)</span><br><span class="line">	<span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">		Fatalf(<span class="string">"Failed to read password file: %v"</span>, err)</span><br><span class="line">	&#125;</span><br><span class="line">	lines := strings.Split(<span class="keyword">string</span>(text), <span class="string">"\n"</span>)</span><br><span class="line"></span><br><span class="line">	<span class="keyword">for</span> i := <span class="keyword">range</span> lines &#123;</span><br><span class="line">		lines[i] = strings.TrimRight(lines[i], <span class="string">"\r"</span>)</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">return</span> lines</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>MakePasswordList方法是从我们用–password指定的文件中读取密码，该文件每一行表示一个密码。在getPassPhrase中，刚才读取的密码个数大于0，则取第一个作为密码。否则进入一个交互环境，让用户输入密码，用的是PromptPassword方法，之后还要输入第二遍进行验证。回到accountCreate中，取到密码后使用StoreKey生产账户<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">StoreKey</span><span class="params">(dir, auth <span class="keyword">string</span>, scryptN, scryptP <span class="keyword">int</span>)</span> <span class="params">(common.Address, error)</span></span> &#123;</span><br><span class="line">	_, a, err := storeNewKey(&amp;keyStorePassphrase&#123;dir, scryptN, scryptP, <span class="literal">false</span>&#125;, rand.Reader, auth)</span><br><span class="line">	<span class="keyword">return</span> a.Address, err</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">storeNewKey</span><span class="params">(ks keyStore, rand io.Reader, auth <span class="keyword">string</span>)</span> <span class="params">(*Key, accounts.Account, error)</span></span> &#123;</span><br><span class="line">	key, err := newKey(rand)</span><br><span class="line">	<span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">		<span class="keyword">return</span> <span class="literal">nil</span>, accounts.Account&#123;&#125;, err</span><br><span class="line">	&#125;</span><br><span class="line">	a := accounts.Account&#123;</span><br><span class="line">		Address: key.Address,</span><br><span class="line">		URL:     accounts.URL&#123;Scheme: KeyStoreScheme, Path: ks.JoinPath(keyFileName(key.Address))&#125;,</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">if</span> err := ks.StoreKey(a.URL.Path, key, auth); err != <span class="literal">nil</span> &#123;</span><br><span class="line">		zeroKey(key.PrivateKey)</span><br><span class="line">		<span class="keyword">return</span> <span class="literal">nil</span>, a, err</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">return</span> key, a, err</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>直接调用的是storeNewKey方法，不要过创建了一个keyStorePassphrase对象，他实现了keyStore接口。storeNewKey方法先调用了newKey方法生成椭圆曲线加密的私钥，并转为Key对象<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">newKey</span><span class="params">(rand io.Reader)</span> <span class="params">(*Key, error)</span></span> &#123;</span><br><span class="line">	privateKeyECDSA, err := ecdsa.GenerateKey(crypto.S256(), rand)</span><br><span class="line">	<span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">		<span class="keyword">return</span> <span class="literal">nil</span>, err</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">return</span> newKeyFromECDSA(privateKeyECDSA), <span class="literal">nil</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">newKeyFromECDSA</span><span class="params">(privateKeyECDSA *ecdsa.PrivateKey)</span> *<span class="title">Key</span></span> &#123;</span><br><span class="line">	id := uuid.NewRandom()</span><br><span class="line">	key := &amp;Key&#123;</span><br><span class="line">		Id:         id,</span><br><span class="line">		Address:    crypto.PubkeyToAddress(privateKeyECDSA.PublicKey),</span><br><span class="line">		PrivateKey: privateKeyECDSA,</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">return</span> key</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>注意这里实际上也就是生成了账户地址，就是私钥对应的公钥，不过要简单处理一下<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">PubkeyToAddress</span><span class="params">(p ecdsa.PublicKey)</span> <span class="title">common</span>.<span class="title">Address</span></span> &#123;</span><br><span class="line">	pubBytes := FromECDSAPub(&amp;p)</span><br><span class="line">	<span class="keyword">return</span> common.BytesToAddress(Keccak256(pubBytes[<span class="number">1</span>:])[<span class="number">12</span>:])</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">FromECDSAPub</span><span class="params">(pub *ecdsa.PublicKey)</span> []<span class="title">byte</span></span> &#123;</span><br><span class="line">	<span class="keyword">if</span> pub == <span class="literal">nil</span> || pub.X == <span class="literal">nil</span> || pub.Y == <span class="literal">nil</span> &#123;</span><br><span class="line">		<span class="keyword">return</span> <span class="literal">nil</span></span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">return</span> elliptic.Marshal(S256(), pub.X, pub.Y)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>首先将公钥的的曲线方程、基点等参数以字节数组形式表示，然后将这个数组舍弃第一个字节后做一次Keccak256哈希运算，然后取后20个字节作为账户地址。</p>
+<p>newKeyFromECDSA最后返回的是一个Key对象，还包含一个16字节的随机编号。回到storeNewKey中，此时组建一个account对象，表示一个账户，包含该账户的地址以及url，格式是<code>keystore://文件名</code>。文件名如下生成<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">keyFileName</span><span class="params">(keyAddr common.Address)</span> <span class="title">string</span></span> &#123;</span><br><span class="line">	ts := time.Now().UTC()</span><br><span class="line">	<span class="keyword">return</span> fmt.Sprintf(<span class="string">"UTC--%s--%s"</span>, toISO8601(ts), hex.EncodeToString(keyAddr[:]))</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>有两部分组成，第一部分是创建时间，第二部分是地址的16进制表示。接着调用StoreKey方法存储秘钥，这是keyStorePassphrase的方法<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(ks keyStorePassphrase)</span> <span class="title">StoreKey</span><span class="params">(filename <span class="keyword">string</span>, key *Key, auth <span class="keyword">string</span>)</span> <span class="title">error</span></span> &#123;</span><br><span class="line">	keyjson, err := EncryptKey(key, auth, ks.scryptN, ks.scryptP)</span><br><span class="line">	<span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">		<span class="keyword">return</span> err</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="comment">// Write into temporary file</span></span><br><span class="line">	tmpName, err := writeTemporaryKeyFile(filename, keyjson)</span><br><span class="line">	<span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">		<span class="keyword">return</span> err</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">if</span> !ks.skipKeyFileVerification &#123;</span><br><span class="line">		<span class="comment">// Verify that we can decrypt the file with the given password.</span></span><br><span class="line">		_, err = ks.GetKey(key.Address, tmpName, auth)</span><br><span class="line">		<span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">			msg := <span class="string">"An error was encountered when saving and verifying the keystore file. \n"</span> +</span><br><span class="line">				<span class="string">"This indicates that the keystore is corrupted. \n"</span> +</span><br><span class="line">				<span class="string">"The corrupted file is stored at \n%v\n"</span> +</span><br><span class="line">				<span class="string">"Please file a ticket at:\n\n"</span> +</span><br><span class="line">				<span class="string">"https://github.com/ethereum/go-ethereum/issues."</span> +</span><br><span class="line">				<span class="string">"The error was : %s"</span></span><br><span class="line">			<span class="keyword">return</span> fmt.Errorf(msg, tmpName, err)</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">return</span> os.Rename(tmpName, filename)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>第一步加密秘钥，<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">EncryptKey</span><span class="params">(key *Key, auth <span class="keyword">string</span>, scryptN, scryptP <span class="keyword">int</span>)</span> <span class="params">([]<span class="keyword">byte</span>, error)</span></span> &#123;</span><br><span class="line">	keyBytes := math.PaddedBigBytes(key.PrivateKey.D, <span class="number">32</span>)</span><br><span class="line">	cryptoStruct, err := EncryptDataV3(keyBytes, []<span class="keyword">byte</span>(auth), scryptN, scryptP)</span><br><span class="line">	<span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">		<span class="keyword">return</span> <span class="literal">nil</span>, err</span><br><span class="line">	&#125;</span><br><span class="line">	encryptedKeyJSONV3 := encryptedKeyJSONV3&#123;</span><br><span class="line">		hex.EncodeToString(key.Address[:]),</span><br><span class="line">		cryptoStruct,</span><br><span class="line">		key.Id.String(),</span><br><span class="line">		version,</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">return</span> json.Marshal(encryptedKeyJSONV3)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>PaddedBigBytes方法是将椭圆加密的私钥中D参数以大端形式表示成一个字节数组。然后加密数据，使用我们给账户指定的密码加密椭圆曲线的私钥中的D参数<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">EncryptDataV3</span><span class="params">(data, auth []<span class="keyword">byte</span>, scryptN, scryptP <span class="keyword">int</span>)</span> <span class="params">(CryptoJSON, error)</span></span> &#123;</span><br><span class="line"></span><br><span class="line">	salt := <span class="built_in">make</span>([]<span class="keyword">byte</span>, <span class="number">32</span>)</span><br><span class="line">	<span class="keyword">if</span> _, err := io.ReadFull(rand.Reader, salt); err != <span class="literal">nil</span> &#123;</span><br><span class="line">		<span class="built_in">panic</span>(<span class="string">"reading from crypto/rand failed: "</span> + err.Error())</span><br><span class="line">	&#125;</span><br><span class="line">	derivedKey, err := scrypt.Key(auth, salt, scryptN, scryptR, scryptP, scryptDKLen)</span><br><span class="line">	<span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">		<span class="keyword">return</span> CryptoJSON&#123;&#125;, err</span><br><span class="line">	&#125;</span><br><span class="line">	encryptKey := derivedKey[:<span class="number">16</span>]</span><br><span class="line"></span><br><span class="line">	iv := <span class="built_in">make</span>([]<span class="keyword">byte</span>, aes.BlockSize) <span class="comment">// 16</span></span><br><span class="line">	<span class="keyword">if</span> _, err := io.ReadFull(rand.Reader, iv); err != <span class="literal">nil</span> &#123;</span><br><span class="line">		<span class="built_in">panic</span>(<span class="string">"reading from crypto/rand failed: "</span> + err.Error())</span><br><span class="line">	&#125;</span><br><span class="line">	cipherText, err := aesCTRXOR(encryptKey, data, iv)</span><br><span class="line">	<span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">		<span class="keyword">return</span> CryptoJSON&#123;&#125;, err</span><br><span class="line">	&#125;</span><br><span class="line">	mac := crypto.Keccak256(derivedKey[<span class="number">16</span>:<span class="number">32</span>], cipherText)</span><br><span class="line"></span><br><span class="line">	scryptParamsJSON := <span class="built_in">make</span>(<span class="keyword">map</span>[<span class="keyword">string</span>]<span class="keyword">interface</span>&#123;&#125;, <span class="number">5</span>)</span><br><span class="line">	scryptParamsJSON[<span class="string">"n"</span>] = scryptN</span><br><span class="line">	scryptParamsJSON[<span class="string">"r"</span>] = scryptR</span><br><span class="line">	scryptParamsJSON[<span class="string">"p"</span>] = scryptP</span><br><span class="line">	scryptParamsJSON[<span class="string">"dklen"</span>] = scryptDKLen</span><br><span class="line">	scryptParamsJSON[<span class="string">"salt"</span>] = hex.EncodeToString(salt)</span><br><span class="line">	cipherParamsJSON := cipherparamsJSON&#123;</span><br><span class="line">		IV: hex.EncodeToString(iv),</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	cryptoStruct := CryptoJSON&#123;</span><br><span class="line">		Cipher:       <span class="string">"aes-128-ctr"</span>,</span><br><span class="line">		CipherText:   hex.EncodeToString(cipherText),</span><br><span class="line">		CipherParams: cipherParamsJSON,</span><br><span class="line">		KDF:          keyHeaderKDF,</span><br><span class="line">		KDFParams:    scryptParamsJSON,</span><br><span class="line">		MAC:          hex.EncodeToString(mac),</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">return</span> cryptoStruct, <span class="literal">nil</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>这一段逻辑是这样的，首先生成一个salt，然后利用scrypt算法生成一个导出秘钥，scrypt算法是可以抗暴力破解的，我们利用得到的导出秘钥的前16位作为真正的加密秘钥encryptKey，然后使用CTR模式的AES加密算法，用encryptKey加密私钥的餐数D，最后得到密文。为了能正确解密，我们需要记录一些内容，如scrypt算法的参数N、R、P，导出秘钥的长度dklen，随机变量salt，CTR模式的初始化向量IV（实际是空数组），加密算法，密文，秘钥导出算法名称，最后还有一个mac用来验证数据完整及正确性，它是用导出秘钥的第16到第32字节以及密文经过Keccak256运算后的结果。</p>
+<p>最后返回一个cryptoStruct对象，他没有包含我们设定的密码。获得最后私钥的关键是获得导出秘钥，若没有密码，只能暴力破解，但是scrypt算法是可以抵抗暴力破解的，所以是比较安全的保存私钥方法。</p>
+<p>回到EncryptKey中，我们最后构建一个encryptedKeyJSONV3对象，他除了包含我们刚才与加密有关的cryptoStruct对象，还包含账户地址，ID以及版本号。最后将encryptedKeyJSONV3序列化位Json数据。</p>
+<p>回到StoreKey，经过EncryptKey方法我们已经得到了json数据，此时现将其写入一个临时文件中，然后根据需求进行解密测试<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(ks keyStorePassphrase)</span> <span class="title">GetKey</span><span class="params">(addr common.Address, filename, auth <span class="keyword">string</span>)</span> <span class="params">(*Key, error)</span></span> &#123;</span><br><span class="line">	keyjson, err := ioutil.ReadFile(filename)</span><br><span class="line">	<span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">		<span class="keyword">return</span> <span class="literal">nil</span>, err</span><br><span class="line">	&#125;</span><br><span class="line">	key, err := DecryptKey(keyjson, auth)</span><br><span class="line">	<span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">		<span class="keyword">return</span> <span class="literal">nil</span>, err</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">if</span> key.Address != addr &#123;</span><br><span class="line">		<span class="keyword">return</span> <span class="literal">nil</span>, fmt.Errorf(<span class="string">"key content mismatch: have account %x, want %x"</span>, key.Address, addr)</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">return</span> key, <span class="literal">nil</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">DecryptKey</span><span class="params">(keyjson []<span class="keyword">byte</span>, auth <span class="keyword">string</span>)</span> <span class="params">(*Key, error)</span></span> &#123;</span><br><span class="line">	m := <span class="built_in">make</span>(<span class="keyword">map</span>[<span class="keyword">string</span>]<span class="keyword">interface</span>&#123;&#125;)</span><br><span class="line">	<span class="keyword">if</span> err := json.Unmarshal(keyjson, &amp;m); err != <span class="literal">nil</span> &#123;</span><br><span class="line">		<span class="keyword">return</span> <span class="literal">nil</span>, err</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">var</span> (</span><br><span class="line">		keyBytes, keyId []<span class="keyword">byte</span></span><br><span class="line">		err             error</span><br><span class="line">	)</span><br><span class="line">	<span class="keyword">if</span> version, ok := m[<span class="string">"version"</span>].(<span class="keyword">string</span>); ok &amp;&amp; version == <span class="string">"1"</span> &#123;</span><br><span class="line">		k := <span class="built_in">new</span>(encryptedKeyJSONV1)</span><br><span class="line">		<span class="keyword">if</span> err := json.Unmarshal(keyjson, k); err != <span class="literal">nil</span> &#123;</span><br><span class="line">			<span class="keyword">return</span> <span class="literal">nil</span>, err</span><br><span class="line">		&#125;</span><br><span class="line">		keyBytes, keyId, err = decryptKeyV1(k, auth)</span><br><span class="line">	&#125; <span class="keyword">else</span> &#123;</span><br><span class="line">		k := <span class="built_in">new</span>(encryptedKeyJSONV3)</span><br><span class="line">		<span class="keyword">if</span> err := json.Unmarshal(keyjson, k); err != <span class="literal">nil</span> &#123;</span><br><span class="line">			<span class="keyword">return</span> <span class="literal">nil</span>, err</span><br><span class="line">		&#125;</span><br><span class="line">		keyBytes, keyId, err = decryptKeyV3(k, auth)</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">		<span class="keyword">return</span> <span class="literal">nil</span>, err</span><br><span class="line">	&#125;</span><br><span class="line">	key := crypto.ToECDSAUnsafe(keyBytes)</span><br><span class="line"></span><br><span class="line">	<span class="keyword">return</span> &amp;Key&#123;</span><br><span class="line">		Id:         uuid.UUID(keyId),</span><br><span class="line">		Address:    crypto.PubkeyToAddress(key.PublicKey),</span><br><span class="line">		PrivateKey: key,</span><br><span class="line">	&#125;, <span class="literal">nil</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">decryptKeyV3</span><span class="params">(keyProtected *encryptedKeyJSONV3, auth <span class="keyword">string</span>)</span> <span class="params">(keyBytes []<span class="keyword">byte</span>, keyId []<span class="keyword">byte</span>, err error)</span></span> &#123;</span><br><span class="line">	<span class="keyword">if</span> keyProtected.Version != version &#123;</span><br><span class="line">		<span class="keyword">return</span> <span class="literal">nil</span>, <span class="literal">nil</span>, fmt.Errorf(<span class="string">"Version not supported: %v"</span>, keyProtected.Version)</span><br><span class="line">	&#125;</span><br><span class="line">	keyId = uuid.Parse(keyProtected.Id)</span><br><span class="line">	plainText, err := DecryptDataV3(keyProtected.Crypto, auth)</span><br><span class="line">	<span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">		<span class="keyword">return</span> <span class="literal">nil</span>, <span class="literal">nil</span>, err</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">return</span> plainText, keyId, err</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">DecryptDataV3</span><span class="params">(cryptoJson CryptoJSON, auth <span class="keyword">string</span>)</span> <span class="params">([]<span class="keyword">byte</span>, error)</span></span> &#123;</span><br><span class="line">	<span class="keyword">if</span> cryptoJson.Cipher != <span class="string">"aes-128-ctr"</span> &#123;</span><br><span class="line">		<span class="keyword">return</span> <span class="literal">nil</span>, fmt.Errorf(<span class="string">"Cipher not supported: %v"</span>, cryptoJson.Cipher)</span><br><span class="line">	&#125;</span><br><span class="line">	mac, err := hex.DecodeString(cryptoJson.MAC)</span><br><span class="line">	<span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">		<span class="keyword">return</span> <span class="literal">nil</span>, err</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	iv, err := hex.DecodeString(cryptoJson.CipherParams.IV)</span><br><span class="line">	<span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">		<span class="keyword">return</span> <span class="literal">nil</span>, err</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	cipherText, err := hex.DecodeString(cryptoJson.CipherText)</span><br><span class="line">	<span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">		<span class="keyword">return</span> <span class="literal">nil</span>, err</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	derivedKey, err := getKDFKey(cryptoJson, auth)</span><br><span class="line">	<span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">		<span class="keyword">return</span> <span class="literal">nil</span>, err</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	calculatedMAC := crypto.Keccak256(derivedKey[<span class="number">16</span>:<span class="number">32</span>], cipherText)</span><br><span class="line">	<span class="keyword">if</span> !bytes.Equal(calculatedMAC, mac) &#123;</span><br><span class="line">		<span class="keyword">return</span> <span class="literal">nil</span>, ErrDecrypt</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	plainText, err := aesCTRXOR(derivedKey[:<span class="number">16</span>], cipherText, iv)</span><br><span class="line">	<span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">		<span class="keyword">return</span> <span class="literal">nil</span>, err</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">return</span> plainText, err</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>实际上就是加密的逆过程，先读取json数据，然后先根据版本号执行不同的解密算法，我们只看V3版本的。在decryptKeyV3中，先验证版本号，然后解析出ID，之后利用DecryptDataV3解密，解密过程是先判断加密方法是否正确，然后解析出mac、iv和密文。先利用getKDFKey方法获取导出秘钥，只有提供的密码正确才能得到正确结果，然后验证mac，在进行解密获得明文。根据明文获得秘钥，再根据秘钥获得公钥，最后组装一个Key对象。然后回到GetKey中，比较提供的地址和我们解密计算出的地址是否一样，一样的话返回key，没有错误表示解密验证成功。</p>
+<p>最后回到StoreKey将临时文件重命名为正式文件。这样新建一个账户的工作完成。回顾一下，实际上主要是随机生成了一对椭圆曲线秘钥，然后将私钥用我们提供的密码加密并保存成文件，生成秘钥的时候生成了地址。</p>
+<p>回到accountCreate中，StoreKey方法返回了账户地址，最后打印出来即可。</p>
+<h2 id="update"><a href="#update" class="headerlink" title="update"></a>update</h2><p>这是用来更新一个账户，所谓的更新是用新版本的存储为新版本的加密文件。有三个flag，分别是DataDirFlag，KeyStoreDirFlag以及LightKDFFlag，前面都介绍过了，注意该命令还要指定地址。使用格式如下：<code>geth account update [options] &lt;address&gt;</code>,我们看他的action<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">accountUpdate</span><span class="params">(ctx *cli.Context)</span> <span class="title">error</span></span> &#123;</span><br><span class="line">	<span class="keyword">if</span> <span class="built_in">len</span>(ctx.Args()) == <span class="number">0</span> &#123;</span><br><span class="line">		utils.Fatalf(<span class="string">"No accounts specified to update"</span>)</span><br><span class="line">	&#125;</span><br><span class="line">	stack, _ := makeConfigNode(ctx)</span><br><span class="line">	ks := stack.AccountManager().Backends(keystore.KeyStoreType)[<span class="number">0</span>].(*keystore.KeyStore)</span><br><span class="line"></span><br><span class="line">	<span class="keyword">for</span> _, addr := <span class="keyword">range</span> ctx.Args() &#123;</span><br><span class="line">		account, oldPassword := unlockAccount(ctx, ks, addr, <span class="number">0</span>, <span class="literal">nil</span>)</span><br><span class="line">		newPassword := getPassPhrase(<span class="string">"Please give a new password. Do not forget this password."</span>, <span class="literal">true</span>, <span class="number">0</span>, <span class="literal">nil</span>)</span><br><span class="line">		<span class="keyword">if</span> err := ks.Update(account, oldPassword, newPassword); err != <span class="literal">nil</span> &#123;</span><br><span class="line">			utils.Fatalf(<span class="string">"Could not update the account: %v"</span>, err)</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">return</span> <span class="literal">nil</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>首先判断我们是否制定了地址参数，没有的话报错，接着获取了一个节点，然后从节点的账户管理者那里获取了一个keystore类型的backend。有可能我们指定了多个地址，所以遍历所有地址，首先对每个地址执行解锁操作<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">unlockAccount</span><span class="params">(ctx *cli.Context, ks *keystore.KeyStore, address <span class="keyword">string</span>, i <span class="keyword">int</span>, passwords []<span class="keyword">string</span>)</span> <span class="params">(accounts.Account, <span class="keyword">string</span>)</span></span> &#123;</span><br><span class="line">	account, err := utils.MakeAddress(ks, address)</span><br><span class="line">	<span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">		utils.Fatalf(<span class="string">"Could not list accounts: %v"</span>, err)</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">for</span> trials := <span class="number">0</span>; trials &lt; <span class="number">3</span>; trials++ &#123;</span><br><span class="line">		prompt := fmt.Sprintf(<span class="string">"Unlocking account %s | Attempt %d/%d"</span>, address, trials+<span class="number">1</span>, <span class="number">3</span>)</span><br><span class="line">		password := getPassPhrase(prompt, <span class="literal">false</span>, i, passwords)</span><br><span class="line">		err = ks.Unlock(account, password)</span><br><span class="line">		<span class="keyword">if</span> err == <span class="literal">nil</span> &#123;</span><br><span class="line">			log.Info(<span class="string">"Unlocked account"</span>, <span class="string">"address"</span>, account.Address.Hex())</span><br><span class="line">			<span class="keyword">return</span> account, password</span><br><span class="line">		&#125;</span><br><span class="line">		<span class="keyword">if</span> err, ok := err.(*keystore.AmbiguousAddrError); ok &#123;</span><br><span class="line">			log.Info(<span class="string">"Unlocked account"</span>, <span class="string">"address"</span>, account.Address.Hex())</span><br><span class="line">			<span class="keyword">return</span> ambiguousAddrRecovery(ks, err, password), password</span><br><span class="line">		&#125;</span><br><span class="line">		<span class="keyword">if</span> err != keystore.ErrDecrypt &#123;</span><br><span class="line">			<span class="keyword">break</span></span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">	utils.Fatalf(<span class="string">"Failed to unlock account %s (%v)"</span>, address, err)</span><br><span class="line"></span><br><span class="line">	<span class="keyword">return</span> accounts.Account&#123;&#125;, <span class="string">""</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>第一步通过给定的字符串地址获取一个账户对象。<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">MakeAddress</span><span class="params">(ks *keystore.KeyStore, account <span class="keyword">string</span>)</span> <span class="params">(accounts.Account, error)</span></span> &#123;</span><br><span class="line">	<span class="keyword">if</span> common.IsHexAddress(account) &#123;</span><br><span class="line">		<span class="keyword">return</span> accounts.Account&#123;Address: common.HexToAddress(account)&#125;, <span class="literal">nil</span></span><br><span class="line">	&#125;</span><br><span class="line">	<span class="comment">// Otherwise try to interpret the account as a keystore index</span></span><br><span class="line">	index, err := strconv.Atoi(account)</span><br><span class="line">	<span class="keyword">if</span> err != <span class="literal">nil</span> || index &lt; <span class="number">0</span> &#123;</span><br><span class="line">		<span class="keyword">return</span> accounts.Account&#123;&#125;, fmt.Errorf(<span class="string">"invalid account address or index %q"</span>, account)</span><br><span class="line">	&#125;</span><br><span class="line">	log.Warn(<span class="string">"-------------------------------------------------------------------"</span>)</span><br><span class="line">	log.Warn(<span class="string">"Referring to accounts by order in the keystore folder is dangerous!"</span>)</span><br><span class="line">	log.Warn(<span class="string">"This functionality is deprecated and will be removed in the future!"</span>)</span><br><span class="line">	log.Warn(<span class="string">"Please use explicit addresses! (can search via `geth account list`)"</span>)</span><br><span class="line">	log.Warn(<span class="string">"-------------------------------------------------------------------"</span>)</span><br><span class="line"></span><br><span class="line">	accs := ks.Accounts()</span><br><span class="line">	<span class="keyword">if</span> <span class="built_in">len</span>(accs) &lt;= index &#123;</span><br><span class="line">		<span class="keyword">return</span> accounts.Account&#123;&#125;, fmt.Errorf(<span class="string">"index %d higher than number of accounts %d"</span>, index, <span class="built_in">len</span>(accs))</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">return</span> accs[index], <span class="literal">nil</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>首先判断是否是16进制格式，是的话直接构造一个Account对象返回。否则的话我们指定的地址可能是地址的索引，所以先尝试转为整数，然后获取所有账户，取对应索引的账户返回即可。</p>
+<p>回到unlockAccount中，接下来进行至多三次尝试，每次都是先利用getPassPhrase获取我们指定的密码，这个方法在前面创建新账户时提过。然后调用Unlock解锁账户。<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(ks *KeyStore)</span> <span class="title">Unlock</span><span class="params">(a accounts.Account, passphrase <span class="keyword">string</span>)</span> <span class="title">error</span></span> &#123;</span><br><span class="line">	<span class="keyword">return</span> ks.TimedUnlock(a, passphrase, <span class="number">0</span>)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(ks *KeyStore)</span> <span class="title">TimedUnlock</span><span class="params">(a accounts.Account, passphrase <span class="keyword">string</span>, timeout time.Duration)</span> <span class="title">error</span></span> &#123;</span><br><span class="line">	a, key, err := ks.getDecryptedKey(a, passphrase)</span><br><span class="line">	<span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">		<span class="keyword">return</span> err</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	ks.mu.Lock()</span><br><span class="line">	<span class="keyword">defer</span> ks.mu.Unlock()</span><br><span class="line">	u, found := ks.unlocked[a.Address]</span><br><span class="line">	<span class="keyword">if</span> found &#123;</span><br><span class="line">		<span class="keyword">if</span> u.abort == <span class="literal">nil</span> &#123;</span><br><span class="line">			zeroKey(key.PrivateKey)</span><br><span class="line">			<span class="keyword">return</span> <span class="literal">nil</span></span><br><span class="line">		&#125;</span><br><span class="line">		<span class="built_in">close</span>(u.abort)</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">if</span> timeout &gt; <span class="number">0</span> &#123;</span><br><span class="line">		u = &amp;unlocked&#123;Key: key, abort: <span class="built_in">make</span>(<span class="keyword">chan</span> <span class="keyword">struct</span>&#123;&#125;)&#125;</span><br><span class="line">		<span class="keyword">go</span> ks.expire(a.Address, u, timeout)</span><br><span class="line">	&#125; <span class="keyword">else</span> &#123;</span><br><span class="line">		u = &amp;unlocked&#123;Key: key&#125;</span><br><span class="line">	&#125;</span><br><span class="line">	ks.unlocked[a.Address] = u</span><br><span class="line">	<span class="keyword">return</span> <span class="literal">nil</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>相关代码上面已经给出，Unlock中直接调用TimedUnlock方法，TimedUnlock中先用getDecryptedKey方法获取Key，这个在前面介绍新建账户是提到过，这里会得到一个Key对象，其中包含账户的地址及私钥。接着从unlocked中查找是否已解锁，unlocked中键就是账户地址，值是一个unlocked对象，其中存着账户的key。如果能从unlocked中找到对应地址的unlocked对象，则先判断unlocked对象的abort变量是否为空，是的话将私钥置为0，然后返回，否则关闭abort通道。如果找不到的话，先看参数中是否设置了timeout，是的话构造一个unlocked对象，之后执行expire，没有设置timeout时也只是简单构造一个unlocked对象，但不初始化其中的abort变量。最后将新建的unlocked对象放入unlocked中。expire的作用是设定一个定时器，在一段时间后将对应地址的unlocked对象从unlocked中删除，表示账户重新进入锁定状态。</p>
+<p>回到unlockAccount中，如果解锁成功，则返回账户对象和密码。回到accountUpdate中，这时要求提供一个新密码，然后执行update方法<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(ks *KeyStore)</span> <span class="title">Update</span><span class="params">(a accounts.Account, passphrase, newPassphrase <span class="keyword">string</span>)</span> <span class="title">error</span></span> &#123;</span><br><span class="line">	a, key, err := ks.getDecryptedKey(a, passphrase)</span><br><span class="line">	<span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">		<span class="keyword">return</span> err</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">return</span> ks.storage.StoreKey(a.URL.Path, key, newPassphrase)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>相关逻辑都以分析过，只是先获取旧的Key然后用新的Key加密并保存密钥。</p>
+<h2 id="import"><a href="#import" class="headerlink" title="import"></a>import</h2><p>这个方法是导入一个密钥从而生成一个账户，他有4个flag前面都介绍过，这里不再介绍，他需要指定keyfile路径，执行的逻辑如下<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">accountImport</span><span class="params">(ctx *cli.Context)</span> <span class="title">error</span></span> &#123;</span><br><span class="line">	keyfile := ctx.Args().First()</span><br><span class="line">	<span class="keyword">if</span> <span class="built_in">len</span>(keyfile) == <span class="number">0</span> &#123;</span><br><span class="line">		utils.Fatalf(<span class="string">"keyfile must be given as argument"</span>)</span><br><span class="line">	&#125;</span><br><span class="line">	key, err := crypto.LoadECDSA(keyfile)</span><br><span class="line">	<span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">		utils.Fatalf(<span class="string">"Failed to load the private key: %v"</span>, err)</span><br><span class="line">	&#125;</span><br><span class="line">	stack, _ := makeConfigNode(ctx)</span><br><span class="line">	passphrase := getPassPhrase(<span class="string">"Your new account is locked with a password. Please give a password. Do not forget this password."</span>, <span class="literal">true</span>, <span class="number">0</span>, utils.MakePasswordList(ctx))</span><br><span class="line"></span><br><span class="line">	ks := stack.AccountManager().Backends(keystore.KeyStoreType)[<span class="number">0</span>].(*keystore.KeyStore)</span><br><span class="line">	acct, err := ks.ImportECDSA(key, passphrase)</span><br><span class="line">	<span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">		utils.Fatalf(<span class="string">"Could not create the account: %v"</span>, err)</span><br><span class="line">	&#125;</span><br><span class="line">	fmt.Printf(<span class="string">"Address: &#123;%x&#125;\n"</span>, acct.Address)</span><br><span class="line">	<span class="keyword">return</span> <span class="literal">nil</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>首先从我们提供的文件中读取椭圆加密的私钥信息，然后构建一个节点，并取得我们给的密码，然后执行ImportECDSA<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(ks *KeyStore)</span> <span class="title">ImportECDSA</span><span class="params">(priv *ecdsa.PrivateKey, passphrase <span class="keyword">string</span>)</span> <span class="params">(accounts.Account, error)</span></span> &#123;</span><br><span class="line">	key := newKeyFromECDSA(priv)</span><br><span class="line">	<span class="keyword">if</span> ks.cache.hasAddress(key.Address) &#123;</span><br><span class="line">		<span class="keyword">return</span> accounts.Account&#123;&#125;, fmt.Errorf(<span class="string">"account already exists"</span>)</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">return</span> ks.importKey(key, passphrase)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">newKeyFromECDSA</span><span class="params">(privateKeyECDSA *ecdsa.PrivateKey)</span> *<span class="title">Key</span></span> &#123;</span><br><span class="line">	id := uuid.NewRandom()</span><br><span class="line">	key := &amp;Key&#123;</span><br><span class="line">		Id:         id,</span><br><span class="line">		Address:    crypto.PubkeyToAddress(privateKeyECDSA.PublicKey),</span><br><span class="line">		PrivateKey: privateKeyECDSA,</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">return</span> key</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(ks *KeyStore)</span> <span class="title">importKey</span><span class="params">(key *Key, passphrase <span class="keyword">string</span>)</span> <span class="params">(accounts.Account, error)</span></span> &#123;</span><br><span class="line">	a := accounts.Account&#123;Address: key.Address, URL: accounts.URL&#123;Scheme: KeyStoreScheme, Path: ks.storage.JoinPath(keyFileName(key.Address))&#125;&#125;</span><br><span class="line">	<span class="keyword">if</span> err := ks.storage.StoreKey(a.URL.Path, key, passphrase); err != <span class="literal">nil</span> &#123;</span><br><span class="line">		<span class="keyword">return</span> accounts.Account&#123;&#125;, err</span><br><span class="line">	&#125;</span><br><span class="line">	ks.cache.add(a)</span><br><span class="line">	ks.refreshWallets()</span><br><span class="line">	<span class="keyword">return</span> a, <span class="literal">nil</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>获得私钥后先构建一个key，这里自然也就生成了地址。先检查该地址是否已存在，是的话报错，否则执行importKey。importKey就是直接创建一个账户对象然后保存密钥文件。</p>
+<blockquote>
+<p>题图来自unsplash：<a href="https://unsplash.com/photos/lu5uhEAy2lI" target="_blank" rel="noopener">https://unsplash.com/photos/lu5uhEAy2lI</a></p>
+</blockquote>
+
+      
+    </div>
+
+    
+
+    
+    
+    
+
+    
+
+    
+      
+    
+    
+      <div>
+        <div style="padding: 10px 0; margin: 20px auto; width: 90%; text-align: center;">
+  <div>谢谢你请我吃糖</div>
+  <button id="rewardButton" disable="enable" onclick="var qr = document.getElementById('QR'); if (qr.style.display === 'none') {qr.style.display='block';} else {qr.style.display='none'}">
+    <span>打赏</span>
+  </button>
+  <div id="QR" style="display: none;">
+
+    
+      <div id="wechat" style="display: inline-block">
+        <img id="wechat_qr" src="/assets/img/wechatpay.jpg" alt="AmorFati 微信支付">
+        <p>微信支付</p>
+      </div>
+    
+
+    
+      <div id="alipay" style="display: inline-block">
+        <img id="alipay_qr" src="/assets/img/alipay.jpg" alt="AmorFati 支付宝">
+        <p>支付宝</p>
+      </div>
+    
+
+    
+
+  </div>
+</div>
+
+      </div>
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/区块链/" rel="tag"># 区块链</a>
+          
+            <a href="/tags/go/" rel="tag"># go</a>
+          
+            <a href="/tags/以太坊/" rel="tag"># 以太坊</a>
+          
+            <a href="/tags/go-ethereum/" rel="tag"># go-ethereum</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2019/06/08/go-ethereum中geth启动流程分析/" rel="next" title="go-ethereum中geth启动流程分析">
+                <i class="fa fa-chevron-left"></i> go-ethereum中geth启动流程分析
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+  </div>
+
+
+          </div>
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image" src="/assets/img/icon.jpg" alt="AmorFati">
+            
+              <p class="site-author-name" itemprop="name">AmorFati</p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          
+            <nav class="site-state motion-element">
+              
+                <div class="site-state-item site-state-posts">
+                
+                  <a href="/archives/">
+                
+                    <span class="site-state-item-count">47</span>
+                    <span class="site-state-item-name">日志</span>
+                  </a>
+                </div>
+              
+
+              
+                
+                
+                <div class="site-state-item site-state-categories">
+                  <a href="/categories/index.html">
+                    
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">7</span>
+                    <span class="site-state-item-name">分类</span>
+                  </a>
+                </div>
+              
+
+              
+                
+                
+                <div class="site-state-item site-state-tags">
+                  <a href="/tags/index.html">
+                    
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">11</span>
+                    <span class="site-state-item-name">标签</span>
+                  </a>
+                </div>
+              
+            </nav>
+          
+
+          
+
+          
+            <div class="links-of-author motion-element">
+              
+                <span class="links-of-author-item">
+                  
+                  
+                    
+                  
+                  
+                    
+                  
+                  <a href="https://github.com/chenyaoyang" title="GitHub &rarr; https://github.com/chenyaoyang" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i>GitHub</a>
+                </span>
+              
+                <span class="links-of-author-item">
+                  
+                  
+                    
+                  
+                  
+                    
+                  
+                  <a href="mailto:chenyang4346@foxmail.com" title="E-Mail &rarr; mailto:chenyang4346@foxmail.com" rel="noopener" target="_blank"><i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+                </span>
+              
+                <span class="links-of-author-item">
+                  
+                  
+                    
+                  
+                  
+                    
+                  
+                  <a href="https://www.jianshu.com/u/52c1bec4559c" title="简书 &rarr; https://www.jianshu.com/u/52c1bec4559c" rel="noopener" target="_blank"><i class="fa fa-fw fa-globe"></i>简书</a>
+                </span>
+              
+            </div>
+          
+
+          
+
+          
+          
+
+          
+            
+          
+          
+
+        </div>
+      </div>
+
+      
+      <!--noindex-->
+        <div class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+            
+            
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#geth总览"><span class="nav-number">1.</span> <span class="nav-text">geth总览</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#init"><span class="nav-number">2.</span> <span class="nav-text">init</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#account"><span class="nav-number">3.</span> <span class="nav-text">account</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#list"><span class="nav-number">3.1.</span> <span class="nav-text">list</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#new"><span class="nav-number">3.2.</span> <span class="nav-text">new</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#update"><span class="nav-number">3.3.</span> <span class="nav-text">update</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#import"><span class="nav-number">3.4.</span> <span class="nav-text">import</span></a></li></ol></li></ol></div>
+            
+
+          </div>
+        </div>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; 2018 – <span itemprop="copyrightYear">2019</span>
+  <span class="with-love" id="animate">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">AmorFati</span>
+
+  
+
+  
+</div>
+
+
+  <div class="powered-by">由 <a href="https://hexo.io" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v3.8.0</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 – <a href="https://theme-next.org" class="theme-link" rel="noopener" target="_blank">NexT.Pisces</a> v6.6.0</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+    
+
+    
+  </div>
+
+  
+
+<script>
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+
+  
+
+
+  <script src="/js/src/utils.js?v=6.6.0"></script>
+
+  <script src="/js/src/motion.js?v=6.6.0"></script>
+
+
+
+  
+  
+
+
+  <script src="/js/src/affix.js?v=6.6.0"></script>
+
+  <script src="/js/src/schemes/pisces.js?v=6.6.0"></script>
+
+
+
+  
+  <script src="/js/src/scrollspy.js?v=6.6.0"></script>
+<script src="/js/src/post-details.js?v=6.6.0"></script>
+
+
+
+  
+
+
+  <script src="/js/src/bootstrap.js?v=6.6.0"></script>
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  <script>
+    // Popup Window;
+    var isfetched = false;
+    var isXml = true;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length === 0) {
+      search_path = "search.xml";
+    } else if (/json$/i.test(search_path)) {
+      isXml = false;
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    var onPopupClose = function (e) {
+      $('.popup').hide();
+      $('#local-search-input').val('');
+      $('.search-result-list').remove();
+      $('#no-result').remove();
+      $(".local-search-pop-overlay").remove();
+      $('body').css('overflow', '');
+    }
+
+    function proceedsearch() {
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay"></div>')
+        .css('overflow', 'hidden');
+      $('.search-popup-overlay').click(onPopupClose);
+      $('.popup').toggle();
+      var $localSearchInput = $('#local-search-input');
+      $localSearchInput.attr("autocapitalize", "none");
+      $localSearchInput.attr("autocorrect", "off");
+      $localSearchInput.focus();
+    }
+
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+      'use strict';
+
+      // start loading animation
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay">' +
+          '<div id="search-loading-icon">' +
+          '<i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>' +
+          '</div>' +
+          '</div>')
+        .css('overflow', 'hidden');
+      $("#search-loading-icon").css('margin', '20% auto 0 auto').css('text-align', 'center');
+
+      
+
+      $.ajax({
+        url: path,
+        dataType: isXml ? "xml" : "json",
+        async: true,
+        success: function(res) {
+          // get the contents from search data
+          isfetched = true;
+          $('.popup').detach().appendTo('.header-inner');
+          var datas = isXml ? $("entry", res).map(function() {
+            return {
+              title: $("title", this).text(),
+              content: $("content",this).text(),
+              url: $("url" , this).text()
+            };
+          }).get() : res;
+          var input = document.getElementById(search_id);
+          var resultContent = document.getElementById(content_id);
+          var inputEventFunction = function() {
+            var searchText = input.value.trim().toLowerCase();
+            var keywords = searchText.split(/[\s\-]+/);
+            if (keywords.length > 1) {
+              keywords.push(searchText);
+            }
+            var resultItems = [];
+            if (searchText.length > 0) {
+              // perform local searching
+              datas.forEach(function(data) {
+                var isMatch = false;
+                var hitCount = 0;
+                var searchTextCount = 0;
+                var title = data.title.trim();
+                var titleInLowerCase = title.toLowerCase();
+                var content = data.content.trim().replace(/<[^>]+>/g,"");
+                
+                var contentInLowerCase = content.toLowerCase();
+                var articleUrl = decodeURIComponent(data.url);
+                var indexOfTitle = [];
+                var indexOfContent = [];
+                // only match articles with not empty titles
+                if(title != '') {
+                  keywords.forEach(function(keyword) {
+                    function getIndexByWord(word, text, caseSensitive) {
+                      var wordLen = word.length;
+                      if (wordLen === 0) {
+                        return [];
+                      }
+                      var startPosition = 0, position = [], index = [];
+                      if (!caseSensitive) {
+                        text = text.toLowerCase();
+                        word = word.toLowerCase();
+                      }
+                      while ((position = text.indexOf(word, startPosition)) > -1) {
+                        index.push({position: position, word: word});
+                        startPosition = position + wordLen;
+                      }
+                      return index;
+                    }
+
+                    indexOfTitle = indexOfTitle.concat(getIndexByWord(keyword, titleInLowerCase, false));
+                    indexOfContent = indexOfContent.concat(getIndexByWord(keyword, contentInLowerCase, false));
+                  });
+                  if (indexOfTitle.length > 0 || indexOfContent.length > 0) {
+                    isMatch = true;
+                    hitCount = indexOfTitle.length + indexOfContent.length;
+                  }
+                }
+
+                // show search results
+
+                if (isMatch) {
+                  // sort index by position of keyword
+
+                  [indexOfTitle, indexOfContent].forEach(function (index) {
+                    index.sort(function (itemLeft, itemRight) {
+                      if (itemRight.position !== itemLeft.position) {
+                        return itemRight.position - itemLeft.position;
+                      } else {
+                        return itemLeft.word.length - itemRight.word.length;
+                      }
+                    });
+                  });
+
+                  // merge hits into slices
+
+                  function mergeIntoSlice(text, start, end, index) {
+                    var item = index[index.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    var hits = [];
+                    var searchTextCountInSlice = 0;
+                    while (position + word.length <= end && index.length != 0) {
+                      if (word === searchText) {
+                        searchTextCountInSlice++;
+                      }
+                      hits.push({position: position, length: word.length});
+                      var wordEnd = position + word.length;
+
+                      // move to next position of hit
+
+                      index.pop();
+                      while (index.length != 0) {
+                        item = index[index.length - 1];
+                        position = item.position;
+                        word = item.word;
+                        if (wordEnd > position) {
+                          index.pop();
+                        } else {
+                          break;
+                        }
+                      }
+                    }
+                    searchTextCount += searchTextCountInSlice;
+                    return {
+                      hits: hits,
+                      start: start,
+                      end: end,
+                      searchTextCount: searchTextCountInSlice
+                    };
+                  }
+
+                  var slicesOfTitle = [];
+                  if (indexOfTitle.length != 0) {
+                    slicesOfTitle.push(mergeIntoSlice(title, 0, title.length, indexOfTitle));
+                  }
+
+                  var slicesOfContent = [];
+                  while (indexOfContent.length != 0) {
+                    var item = indexOfContent[indexOfContent.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    // cut out 100 characters
+                    var start = position - 20;
+                    var end = position + 80;
+                    if(start < 0){
+                      start = 0;
+                    }
+                    if (end < position + word.length) {
+                      end = position + word.length;
+                    }
+                    if(end > content.length){
+                      end = content.length;
+                    }
+                    slicesOfContent.push(mergeIntoSlice(content, start, end, indexOfContent));
+                  }
+
+                  // sort slices in content by search text's count and hits' count
+
+                  slicesOfContent.sort(function (sliceLeft, sliceRight) {
+                    if (sliceLeft.searchTextCount !== sliceRight.searchTextCount) {
+                      return sliceRight.searchTextCount - sliceLeft.searchTextCount;
+                    } else if (sliceLeft.hits.length !== sliceRight.hits.length) {
+                      return sliceRight.hits.length - sliceLeft.hits.length;
+                    } else {
+                      return sliceLeft.start - sliceRight.start;
+                    }
+                  });
+
+                  // select top N slices in content
+
+                  var upperBound = parseInt('1');
+                  if (upperBound >= 0) {
+                    slicesOfContent = slicesOfContent.slice(0, upperBound);
+                  }
+
+                  // highlight title and content
+
+                  function highlightKeyword(text, slice) {
+                    var result = '';
+                    var prevEnd = slice.start;
+                    slice.hits.forEach(function (hit) {
+                      result += text.substring(prevEnd, hit.position);
+                      var end = hit.position + hit.length;
+                      result += '<b class="search-keyword">' + text.substring(hit.position, end) + '</b>';
+                      prevEnd = end;
+                    });
+                    result += text.substring(prevEnd, slice.end);
+                    return result;
+                  }
+
+                  var resultItem = '';
+
+                  if (slicesOfTitle.length != 0) {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + highlightKeyword(title, slicesOfTitle[0]) + "</a>";
+                  } else {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + title + "</a>";
+                  }
+
+                  slicesOfContent.forEach(function (slice) {
+                    resultItem += "<a href='" + articleUrl + "'>" +
+                      "<p class=\"search-result\">" + highlightKeyword(content, slice) +
+                      "...</p>" + "</a>";
+                  });
+
+                  resultItem += "</li>";
+                  resultItems.push({
+                    item: resultItem,
+                    searchTextCount: searchTextCount,
+                    hitCount: hitCount,
+                    id: resultItems.length
+                  });
+                }
+              })
+            };
+            if (keywords.length === 1 && keywords[0] === "") {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>'
+            } else if (resultItems.length === 0) {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>'
+            } else {
+              resultItems.sort(function (resultLeft, resultRight) {
+                if (resultLeft.searchTextCount !== resultRight.searchTextCount) {
+                  return resultRight.searchTextCount - resultLeft.searchTextCount;
+                } else if (resultLeft.hitCount !== resultRight.hitCount) {
+                  return resultRight.hitCount - resultLeft.hitCount;
+                } else {
+                  return resultRight.id - resultLeft.id;
+                }
+              });
+              var searchResultList = '<ul class=\"search-result-list\">';
+              resultItems.forEach(function (result) {
+                searchResultList += result.item;
+              })
+              searchResultList += "</ul>";
+              resultContent.innerHTML = searchResultList;
+            }
+          }
+
+          if ('auto' === 'auto') {
+            input.addEventListener('input', inputEventFunction);
+          } else {
+            $('.search-icon').click(inputEventFunction);
+            input.addEventListener('keypress', function (event) {
+              if (event.keyCode === 13) {
+                inputEventFunction();
+              }
+            });
+          }
+
+          // remove loading animation
+          $(".local-search-pop-overlay").remove();
+          $('body').css('overflow', '');
+
+          proceedsearch();
+        }
+      });
+    }
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched === false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+    });
+
+    $('.popup-btn-close').click(onPopupClose);
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+    $(document).on('keyup', function (event) {
+      var shouldDismissSearchPopup = event.which === 27 &&
+        $('.search-popup').is(':visible');
+      if (shouldDismissSearchPopup) {
+        onPopupClose();
+      }
+    });
+  </script>
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+  
+
+  
+
+
+  
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

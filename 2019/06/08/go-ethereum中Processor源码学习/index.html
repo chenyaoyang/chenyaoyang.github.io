@@ -1,0 +1,1366 @@
+<!DOCTYPE html>
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+<html class="theme-next pisces use-motion" lang="zh-CN">
+<head><meta name="generator" content="Hexo 3.8.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+    
+      
+    
+
+    
+  
+
+  
+
+  
+    
+      
+    
+
+    
+  
+
+  
+    
+      
+    
+
+    
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Monda:300,300italic,400,400italic,700,700italic|Roboto Slab:300,300italic,400,400italic,700,700italic|Dancing Script:300,300italic,400,400italic,700,700italic|Consolas:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css">
+
+<link href="/css/main.css?v=6.6.0" rel="stylesheet" type="text/css">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=6.6.0">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=6.6.0">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=6.6.0">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=6.6.0" color="#222">
+
+
+
+
+
+
+
+
+
+<script id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    version: '6.6.0',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: false,
+    fastclick: false,
+    lazyload: false,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+  
+
+
+
+
+  <meta name="keywords" content="区块链,go,以太坊,go-ethereum">
+<meta property="og:type" content="article">
+<meta property="og:title" content="go-ethereum中Processor源码学习">
+<meta property="og:url" content="http://yoursite.com/2019/06/08/go-ethereum中Processor源码学习/index.html">
+<meta property="og:site_name" content="AmorFati">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:image" content="https://raw.githubusercontent.com/chenyaoyang/blog-pic/master/201906/lance-asper-346206-unsplash.jpg">
+<meta property="og:updated_time" content="2019-06-08T08:03:58.978Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="go-ethereum中Processor源码学习">
+<meta name="twitter:image" content="https://raw.githubusercontent.com/chenyaoyang/blog-pic/master/201906/lance-asper-346206-unsplash.jpg">
+
+
+
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2019/06/08/go-ethereum中Processor源码学习/">
+
+
+
+<script id="page.configurations">
+  CONFIG.page = {
+    sidebar: "",
+  };
+</script>
+
+  <title>go-ethereum中Processor源码学习 | AmorFati</title>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  <noscript>
+  <style>
+    .use-motion .motion-element,
+    .use-motion .brand,
+    .use-motion .menu-item,
+    .sidebar-inner,
+    .use-motion .post-block,
+    .use-motion .pagination,
+    .use-motion .comments,
+    .use-motion .post-header,
+    .use-motion .post-body,
+    .use-motion .collection-title { opacity: initial; }
+
+    .use-motion .logo,
+    .use-motion .site-title,
+    .use-motion .site-subtitle {
+      opacity: initial;
+      top: initial;
+    }
+
+    .use-motion .logo-line-before i { left: initial; }
+    .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope="" itemtype="http://schema.org/WebPage" lang="zh-CN">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope="" itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">AmorFati</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+    
+      
+        <p class="site-subtitle">风吹过窗前的书，又翻过一页</p>
+      
+    
+    
+  </div>
+
+  <div class="site-nav-toggle">
+    <button aria-label="切换导航栏">
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  
+    <ul id="menu" class="menu">
+      
+        
+        
+        
+          
+          <li class="menu-item menu-item-home">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/" rel="section"><i class="menu-item-icon fa fa-fw fa-home"></i> <br>首页</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-about">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/about/" rel="section"><i class="menu-item-icon fa fa-fw fa-user"></i> <br>关于</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-tags">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/tags/" rel="section"><i class="menu-item-icon fa fa-fw fa-tags"></i> <br>标签</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-categories">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/categories/" rel="section"><i class="menu-item-icon fa fa-fw fa-th"></i> <br>分类</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-archives">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/archives/" rel="section"><i class="menu-item-icon fa fa-fw fa-archive"></i> <br>归档</a>
+
+  </li>
+
+      
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br>搜索</a>
+        </li>
+      
+    </ul>
+  
+
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup search-popup local-search-popup">
+  <div class="local-search-header clearfix">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+    <div class="local-search-input-wrapper">
+      <input autocomplete="off" placeholder="搜索..." spellcheck="false" type="text" id="local-search-input">
+    </div>
+  </div>
+  <div id="local-search-result"></div>
+</div>
+
+
+
+    </div>
+  
+</nav>
+
+
+
+  
+
+
+
+</div>
+    </header>
+
+    
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+            
+
+          
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  
+
+  <article class="post post-type-normal" itemscope="" itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/06/08/go-ethereum中Processor源码学习/">
+
+    <span hidden itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="AmorFati">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/assets/img/icon.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope="" itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="AmorFati">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">go-ethereum中Processor源码学习
+
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+
+            
+            
+            
+
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+
+              
+                
+              
+
+              <time title="创建时间：2019-06-08 15:57:23 / 修改时间：16:03:58" itemprop="dateCreated datePublished" datetime="2019-06-08T15:57:23+08:00">2019-06-08</time>
+            
+
+            
+              
+
+              
+            
+          </span>
+
+          
+            <span class="post-category">
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope="" itemtype="http://schema.org/Thing"><a href="/categories/go-ethereum源码学习/" itemprop="url" rel="index"><span itemprop="name">go-ethereum源码学习</span></a></span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p><img src="https://raw.githubusercontent.com/chenyaoyang/blog-pic/master/201906/lance-asper-346206-unsplash.jpg" alt=""><br><a id="more"></a><br>这是对交易进行处理的地方</p>
+<h1 id="NewStateProcessor"><a href="#NewStateProcessor" class="headerlink" title="NewStateProcessor"></a>NewStateProcessor</h1><p>先从BlockChain的构造方法中开始看，在创建了验证器之后，就创建了Processor<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">bc.SetProcessor(NewStateProcessor(chainConfig, bc, engine))</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">NewStateProcessor</span><span class="params">(config *params.ChainConfig, bc *BlockChain, engine consensus.Engine)</span> *<span class="title">StateProcessor</span></span> &#123;</span><br><span class="line">	<span class="keyword">return</span> &amp;StateProcessor&#123;</span><br><span class="line">		config: config,</span><br><span class="line">		bc:     bc,</span><br><span class="line">		engine: engine,</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>可见直接创建了一个StateProcessor并返回，StateProcessor实现了Processor接口，这个接口只有一个方法：Process</p>
+<h1 id="Process"><a href="#Process" class="headerlink" title="Process"></a>Process</h1><p>在插入区块时，对每个要插入的区块都执行了该方法<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(p *StateProcessor)</span> <span class="title">Process</span><span class="params">(block *types.Block, statedb *state.StateDB, cfg vm.Config)</span> <span class="params">(types.Receipts, []*types.Log, <span class="keyword">uint64</span>, error)</span></span> &#123;</span><br><span class="line">	<span class="keyword">var</span> (</span><br><span class="line">		receipts types.Receipts</span><br><span class="line">		usedGas  = <span class="built_in">new</span>(<span class="keyword">uint64</span>)</span><br><span class="line">		header   = block.Header()</span><br><span class="line">		allLogs  []*types.Log</span><br><span class="line">		gp       = <span class="built_in">new</span>(GasPool).AddGas(block.GasLimit())</span><br><span class="line">	)</span><br><span class="line"></span><br><span class="line">	<span class="keyword">if</span> p.config.DAOForkSupport &amp;&amp; p.config.DAOForkBlock != <span class="literal">nil</span> &amp;&amp; p.config.DAOForkBlock.Cmp(block.Number()) == <span class="number">0</span> &#123;</span><br><span class="line">		misc.ApplyDAOHardFork(statedb)</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">for</span> i, tx := <span class="keyword">range</span> block.Transactions() &#123;</span><br><span class="line">		statedb.Prepare(tx.Hash(), block.Hash(), i)</span><br><span class="line">		receipt, _, err := ApplyTransaction(p.config, p.bc, <span class="literal">nil</span>, gp, statedb, header, tx, usedGas, cfg)</span><br><span class="line">		<span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">			<span class="keyword">return</span> <span class="literal">nil</span>, <span class="literal">nil</span>, <span class="number">0</span>, err</span><br><span class="line">		&#125;</span><br><span class="line">		receipts = <span class="built_in">append</span>(receipts, receipt)</span><br><span class="line">		allLogs = <span class="built_in">append</span>(allLogs, receipt.Logs...)</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	p.engine.Finalize(p.bc, header, statedb, block.Transactions(), block.Uncles(), receipts)</span><br><span class="line"></span><br><span class="line">	<span class="keyword">return</span> receipts, allLogs, *usedGas, <span class="literal">nil</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>首先初始化了一系列的变量，其中比较特殊的是gp，它是一个GasPool对象，用于追踪交易执行过程中gas的使用，实际上是一个uint64类型，封装了一些加减方法，初始值时区块的最大gas量。</p>
+<p>接着对DAO分叉进行了特殊处理，然后遍历区块中的每个交易，对于每个交易，先执行statedb的Prepare方法，表示准备处理交易，主要是存入交易hash和区块hash以及交易编号。接着调用ApplyTransaction处理交易，最后返回收据。并将每一个交易处理完之后的数据和日志收集起来在最后返回。处理完所有交易后调用engine的Finalize方法发放奖励。</p>
+<h1 id="ApplyTransaction"><a href="#ApplyTransaction" class="headerlink" title="ApplyTransaction"></a>ApplyTransaction</h1><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">ApplyTransaction</span><span class="params">(config *params.ChainConfig, bc ChainContext, author *common.Address, gp *GasPool, statedb *state.StateDB, header *types.Header, tx *types.Transaction, usedGas *<span class="keyword">uint64</span>, cfg vm.Config)</span> <span class="params">(*types.Receipt, <span class="keyword">uint64</span>, error)</span></span> &#123;</span><br><span class="line">	msg, err := tx.AsMessage(types.MakeSigner(config, header.Number))</span><br><span class="line">	<span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">		<span class="keyword">return</span> <span class="literal">nil</span>, <span class="number">0</span>, err</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	context := NewEVMContext(msg, header, bc, author)</span><br><span class="line"></span><br><span class="line">	vmenv := vm.NewEVM(context, statedb, config, cfg)</span><br><span class="line"></span><br><span class="line">	_, gas, failed, err := ApplyMessage(vmenv, msg, gp)</span><br><span class="line">	<span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">		<span class="keyword">return</span> <span class="literal">nil</span>, <span class="number">0</span>, err</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">var</span> root []<span class="keyword">byte</span></span><br><span class="line">	<span class="keyword">if</span> config.IsByzantium(header.Number) &#123;</span><br><span class="line">		statedb.Finalise(<span class="literal">true</span>)</span><br><span class="line">	&#125; <span class="keyword">else</span> &#123;</span><br><span class="line">		root = statedb.IntermediateRoot(config.IsEIP158(header.Number)).Bytes()</span><br><span class="line">	&#125;</span><br><span class="line">	*usedGas += gas</span><br><span class="line"></span><br><span class="line">	receipt := types.NewReceipt(root, failed, *usedGas)</span><br><span class="line">	receipt.TxHash = tx.Hash()</span><br><span class="line">	receipt.GasUsed = gas</span><br><span class="line"></span><br><span class="line">	<span class="keyword">if</span> msg.To() == <span class="literal">nil</span> &#123;</span><br><span class="line">		receipt.ContractAddress = crypto.CreateAddress(vmenv.Context.Origin, tx.Nonce())</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	receipt.Logs = statedb.GetLogs(tx.Hash())</span><br><span class="line">	receipt.Bloom = types.CreateBloom(types.Receipts&#123;receipt&#125;)</span><br><span class="line"></span><br><span class="line">	<span class="keyword">return</span> receipt, gas, err</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>第一行调用了transaction的AsMessage方法。这是将一个交易以message的形式表示。接着构建了EVM上下文环境和EVM。然后调用了ApplyMessage方法，这是真正执行交易的地方，详见后文，执行完成后返回了gas的使用数量以及成功与否。如果没有错误，表示交易执行完毕。接着更新了状态树，然后创建了一个收据，存储着状态树中间状态的根值，使用的gas，交易hash，另外如果是创建合约的交易还存储合约地址等信息。</p>
+<h1 id="ApplyMessage"><a href="#ApplyMessage" class="headerlink" title="ApplyMessage"></a>ApplyMessage</h1><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">ApplyMessage</span><span class="params">(evm *vm.EVM, msg Message, gp *GasPool)</span> <span class="params">([]<span class="keyword">byte</span>, <span class="keyword">uint64</span>, <span class="keyword">bool</span>, error)</span></span> &#123;</span><br><span class="line">	<span class="keyword">return</span> NewStateTransition(evm, msg, gp).TransitionDb()</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>这里先利用NewStateTransition构造了StateTransition对象<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">NewStateTransition</span><span class="params">(evm *vm.EVM, msg Message, gp *GasPool)</span> *<span class="title">StateTransition</span></span> &#123;</span><br><span class="line">	<span class="keyword">return</span> &amp;StateTransition&#123;</span><br><span class="line">		gp:       gp,</span><br><span class="line">		evm:      evm,</span><br><span class="line">		msg:      msg,</span><br><span class="line">		gasPrice: msg.GasPrice(),</span><br><span class="line">		value:    msg.Value(),</span><br><span class="line">		data:     msg.Data(),</span><br><span class="line">		state:    evm.StateDB,</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>然后调用了TransitionDb方法<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(st *StateTransition)</span> <span class="title">TransitionDb</span><span class="params">()</span> <span class="params">(ret []<span class="keyword">byte</span>, usedGas <span class="keyword">uint64</span>, failed <span class="keyword">bool</span>, err error)</span></span> &#123;</span><br><span class="line">	<span class="keyword">if</span> err = st.preCheck(); err != <span class="literal">nil</span> &#123;</span><br><span class="line">		<span class="keyword">return</span></span><br><span class="line">	&#125;</span><br><span class="line">	msg := st.msg</span><br><span class="line">	sender := vm.AccountRef(msg.From())</span><br><span class="line">	homestead := st.evm.ChainConfig().IsHomestead(st.evm.BlockNumber)</span><br><span class="line">	contractCreation := msg.To() == <span class="literal">nil</span></span><br><span class="line"></span><br><span class="line">	gas, err := IntrinsicGas(st.data, contractCreation, homestead)</span><br><span class="line">	<span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">		<span class="keyword">return</span> <span class="literal">nil</span>, <span class="number">0</span>, <span class="literal">false</span>, err</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">if</span> err = st.useGas(gas); err != <span class="literal">nil</span> &#123;</span><br><span class="line">		<span class="keyword">return</span> <span class="literal">nil</span>, <span class="number">0</span>, <span class="literal">false</span>, err</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">var</span> (</span><br><span class="line">		evm = st.evm</span><br><span class="line">		vmerr error</span><br><span class="line">	)</span><br><span class="line">	<span class="keyword">if</span> contractCreation &#123;</span><br><span class="line">		ret, _, st.gas, vmerr = evm.Create(sender, st.data, st.gas, st.value)</span><br><span class="line">	&#125; <span class="keyword">else</span> &#123;</span><br><span class="line">		st.state.SetNonce(msg.From(), st.state.GetNonce(sender.Address())+<span class="number">1</span>)</span><br><span class="line">		ret, st.gas, vmerr = evm.Call(sender, st.to(), st.data, st.gas, st.value)</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">if</span> vmerr != <span class="literal">nil</span> &#123;</span><br><span class="line">		log.Debug(<span class="string">"VM returned with error"</span>, <span class="string">"err"</span>, vmerr)</span><br><span class="line">		<span class="keyword">if</span> vmerr == vm.ErrInsufficientBalance &#123;</span><br><span class="line">			<span class="keyword">return</span> <span class="literal">nil</span>, <span class="number">0</span>, <span class="literal">false</span>, vmerr</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">	st.refundGas()</span><br><span class="line">	st.state.AddBalance(st.evm.Coinbase, <span class="built_in">new</span>(big.Int).Mul(<span class="built_in">new</span>(big.Int).SetUint64(st.gasUsed()), st.gasPrice))</span><br><span class="line"></span><br><span class="line">	<span class="keyword">return</span> ret, st.gasUsed(), vmerr != <span class="literal">nil</span>, err</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>第一步进行的预检查：<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(st *StateTransition)</span> <span class="title">preCheck</span><span class="params">()</span> <span class="title">error</span></span> &#123;</span><br><span class="line">	<span class="keyword">if</span> st.msg.CheckNonce() &#123;</span><br><span class="line">		nonce := st.state.GetNonce(st.msg.From())</span><br><span class="line">		<span class="keyword">if</span> nonce &lt; st.msg.Nonce() &#123;</span><br><span class="line">			<span class="keyword">return</span> ErrNonceTooHigh</span><br><span class="line">		&#125; <span class="keyword">else</span> <span class="keyword">if</span> nonce &gt; st.msg.Nonce() &#123;</span><br><span class="line">			<span class="keyword">return</span> ErrNonceTooLow</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">return</span> st.buyGas()</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(st *StateTransition)</span> <span class="title">buyGas</span><span class="params">()</span> <span class="title">error</span></span> &#123;</span><br><span class="line">	mgval := <span class="built_in">new</span>(big.Int).Mul(<span class="built_in">new</span>(big.Int).SetUint64(st.msg.Gas()), st.gasPrice)</span><br><span class="line">	<span class="keyword">if</span> st.state.GetBalance(st.msg.From()).Cmp(mgval) &lt; <span class="number">0</span> &#123;</span><br><span class="line">		<span class="keyword">return</span> errInsufficientBalanceForGas</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">if</span> err := st.gp.SubGas(st.msg.Gas()); err != <span class="literal">nil</span> &#123;</span><br><span class="line">		<span class="keyword">return</span> err</span><br><span class="line">	&#125;</span><br><span class="line">	st.gas += st.msg.Gas()</span><br><span class="line"></span><br><span class="line">	st.initialGas = st.msg.Gas()</span><br><span class="line">	st.state.SubBalance(st.msg.From(), mgval)</span><br><span class="line">	<span class="keyword">return</span> <span class="literal">nil</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>这里主要是检查nonce。然后利用buyGas购买了gas，这里首先计算总共的金额，然后判断账户金额是否足够，然后在gp中记录所用的gas，并更新StateTransition的gas和initialGas字段，最后从账户中减去对应的金额。这里的gas是指gasLimit，也就是需要保证账户中至少有gasLimit*gasPrice余额，才能继续交易。之后在StateTransition的gas字段记录最大gas量</p>
+<p>接下来记录了交易的发送者，并根据接受者是否为空判断是否是合约创建交易。接着计算需要消耗的gas<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">IntrinsicGas</span><span class="params">(data []<span class="keyword">byte</span>, contractCreation, homestead <span class="keyword">bool</span>)</span> <span class="params">(<span class="keyword">uint64</span>, error)</span></span> &#123;</span><br><span class="line">	<span class="keyword">if</span> contractCreation &amp;&amp; homestead &#123;</span><br><span class="line">		gas = params.TxGasContractCreation</span><br><span class="line">	&#125; <span class="keyword">else</span> &#123;</span><br><span class="line">		gas = params.TxGas</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">if</span> <span class="built_in">len</span>(data) &gt; <span class="number">0</span> &#123;</span><br><span class="line">		<span class="comment">// Zero and non-zero bytes are priced differently</span></span><br><span class="line">		<span class="keyword">var</span> nz <span class="keyword">uint64</span></span><br><span class="line">		<span class="keyword">for</span> _, byt := <span class="keyword">range</span> data &#123;</span><br><span class="line">			<span class="keyword">if</span> byt != <span class="number">0</span> &#123;</span><br><span class="line">				nz++</span><br><span class="line">			&#125;</span><br><span class="line">		&#125;</span><br><span class="line"></span><br><span class="line">		<span class="keyword">if</span> (math.MaxUint64-gas)/params.TxDataNonZeroGas &lt; nz &#123;</span><br><span class="line">			<span class="keyword">return</span> <span class="number">0</span>, vm.ErrOutOfGas</span><br><span class="line">		&#125;</span><br><span class="line">		gas += nz * params.TxDataNonZeroGas</span><br><span class="line"></span><br><span class="line">		z := <span class="keyword">uint64</span>(<span class="built_in">len</span>(data)) - nz</span><br><span class="line">		<span class="keyword">if</span> (math.MaxUint64-gas)/params.TxDataZeroGas &lt; z &#123;</span><br><span class="line">			<span class="keyword">return</span> <span class="number">0</span>, vm.ErrOutOfGas</span><br><span class="line">		&#125;</span><br><span class="line">		gas += z * params.TxDataZeroGas</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">return</span> gas, <span class="literal">nil</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>接着，如果是创建合约的交易并且是家园版本，基础费用为53000gas，否则基础费用是21000。往下再计算交易中附带数据所消耗的gas，遍历所有字节数组，对于非0的数据，每字节支付68gas，为0的数据每字节支付4gas。最后计算出总gas。关于这个固有费用的计算是按照黄皮书6.2节的说明实现的。</p>
+<p>回到TransitionDb，计算完需要的gas后，使用useGas方法减去对应的gas数，这里主要是用StateTransition的gas字段减去刚才的固有gas量。</p>
+<p>接着，如果是创建合约的话调用evm的create方法创建合约。否则的话就是一般交易，这时将发送者的nonce递增一，然后调用call方法对账户转账或调用合约。接着，如果有错误的而且是金额不足的错误则返回错误。否则调用refundGas退回gas<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(st *StateTransition)</span> <span class="title">refundGas</span><span class="params">()</span></span> &#123;</span><br><span class="line">	refund := st.gasUsed() / <span class="number">2</span></span><br><span class="line">	<span class="keyword">if</span> refund &gt; st.state.GetRefund() &#123;</span><br><span class="line">		refund = st.state.GetRefund()</span><br><span class="line">	&#125;</span><br><span class="line">	st.gas += refund</span><br><span class="line"></span><br><span class="line">	remaining := <span class="built_in">new</span>(big.Int).Mul(<span class="built_in">new</span>(big.Int).SetUint64(st.gas), st.gasPrice)</span><br><span class="line">	st.state.AddBalance(st.msg.From(), remaining)</span><br><span class="line"></span><br><span class="line">	st.gp.AddGas(st.gas)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(st *StateTransition)</span> <span class="title">gasUsed</span><span class="params">()</span> <span class="title">uint64</span></span> &#123;</span><br><span class="line">	<span class="keyword">return</span> st.initialGas - st.gas</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>首先计算已用的gas，gasUsed中initialGas是初始的gas，也就是交易允许的最大gas数，而gas是剩余的gas，在交易执行中会一直变化。二者相减就是已用的gas。先设refund的值为已用gas的一般，然后将其和statedb的refund相比，若比他大，则以statedb的refund为标准。然后将gas加上refund的值，这样在计算出实际需要退换的余额。注意这里的逻辑是花费的金额要小于实际金额。</p>
+<p>回到TransitionDb最后，退款完毕后，将所用的gas费用发送给Coinbase，也就是矿工，当做奖励。这样一个交易执行完毕。</p>
+<blockquote>
+<p>题图来自unsplash：<a href="https://unsplash.com/photos/3P3NHLZGCp8" target="_blank" rel="noopener">https://unsplash.com/photos/3P3NHLZGCp8</a></p>
+</blockquote>
+
+      
+    </div>
+
+    
+
+    
+    
+    
+
+    
+
+    
+      
+    
+    
+      <div>
+        <div style="padding: 10px 0; margin: 20px auto; width: 90%; text-align: center;">
+  <div>谢谢你请我吃糖</div>
+  <button id="rewardButton" disable="enable" onclick="var qr = document.getElementById('QR'); if (qr.style.display === 'none') {qr.style.display='block';} else {qr.style.display='none'}">
+    <span>打赏</span>
+  </button>
+  <div id="QR" style="display: none;">
+
+    
+      <div id="wechat" style="display: inline-block">
+        <img id="wechat_qr" src="/assets/img/wechatpay.jpg" alt="AmorFati 微信支付">
+        <p>微信支付</p>
+      </div>
+    
+
+    
+      <div id="alipay" style="display: inline-block">
+        <img id="alipay_qr" src="/assets/img/alipay.jpg" alt="AmorFati 支付宝">
+        <p>支付宝</p>
+      </div>
+    
+
+    
+
+  </div>
+</div>
+
+      </div>
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/区块链/" rel="tag"># 区块链</a>
+          
+            <a href="/tags/go/" rel="tag"># go</a>
+          
+            <a href="/tags/以太坊/" rel="tag"># 以太坊</a>
+          
+            <a href="/tags/go-ethereum/" rel="tag"># go-ethereum</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2019/06/08/go-ethereum中evm源码学习/" rel="next" title="go-ethereum中evm源码学习">
+                <i class="fa fa-chevron-left"></i> go-ethereum中evm源码学习
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2019/06/08/go-ethereum中txpool源码学习/" rel="prev" title="go-ethereum中txpool源码学习">
+                go-ethereum中txpool源码学习 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+  </div>
+
+
+          </div>
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image" src="/assets/img/icon.jpg" alt="AmorFati">
+            
+              <p class="site-author-name" itemprop="name">AmorFati</p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          
+            <nav class="site-state motion-element">
+              
+                <div class="site-state-item site-state-posts">
+                
+                  <a href="/archives/">
+                
+                    <span class="site-state-item-count">47</span>
+                    <span class="site-state-item-name">日志</span>
+                  </a>
+                </div>
+              
+
+              
+                
+                
+                <div class="site-state-item site-state-categories">
+                  <a href="/categories/index.html">
+                    
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">7</span>
+                    <span class="site-state-item-name">分类</span>
+                  </a>
+                </div>
+              
+
+              
+                
+                
+                <div class="site-state-item site-state-tags">
+                  <a href="/tags/index.html">
+                    
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">11</span>
+                    <span class="site-state-item-name">标签</span>
+                  </a>
+                </div>
+              
+            </nav>
+          
+
+          
+
+          
+            <div class="links-of-author motion-element">
+              
+                <span class="links-of-author-item">
+                  
+                  
+                    
+                  
+                  
+                    
+                  
+                  <a href="https://github.com/chenyaoyang" title="GitHub &rarr; https://github.com/chenyaoyang" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i>GitHub</a>
+                </span>
+              
+                <span class="links-of-author-item">
+                  
+                  
+                    
+                  
+                  
+                    
+                  
+                  <a href="mailto:chenyang4346@foxmail.com" title="E-Mail &rarr; mailto:chenyang4346@foxmail.com" rel="noopener" target="_blank"><i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+                </span>
+              
+                <span class="links-of-author-item">
+                  
+                  
+                    
+                  
+                  
+                    
+                  
+                  <a href="https://www.jianshu.com/u/52c1bec4559c" title="简书 &rarr; https://www.jianshu.com/u/52c1bec4559c" rel="noopener" target="_blank"><i class="fa fa-fw fa-globe"></i>简书</a>
+                </span>
+              
+            </div>
+          
+
+          
+
+          
+          
+
+          
+            
+          
+          
+
+        </div>
+      </div>
+
+      
+      <!--noindex-->
+        <div class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+            
+            
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#NewStateProcessor"><span class="nav-number">1.</span> <span class="nav-text">NewStateProcessor</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Process"><span class="nav-number">2.</span> <span class="nav-text">Process</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#ApplyTransaction"><span class="nav-number">3.</span> <span class="nav-text">ApplyTransaction</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#ApplyMessage"><span class="nav-number">4.</span> <span class="nav-text">ApplyMessage</span></a></li></ol></div>
+            
+
+          </div>
+        </div>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; 2018 – <span itemprop="copyrightYear">2019</span>
+  <span class="with-love" id="animate">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">AmorFati</span>
+
+  
+
+  
+</div>
+
+
+  <div class="powered-by">由 <a href="https://hexo.io" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v3.8.0</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 – <a href="https://theme-next.org" class="theme-link" rel="noopener" target="_blank">NexT.Pisces</a> v6.6.0</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+    
+
+    
+  </div>
+
+  
+
+<script>
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+
+  
+
+
+  <script src="/js/src/utils.js?v=6.6.0"></script>
+
+  <script src="/js/src/motion.js?v=6.6.0"></script>
+
+
+
+  
+  
+
+
+  <script src="/js/src/affix.js?v=6.6.0"></script>
+
+  <script src="/js/src/schemes/pisces.js?v=6.6.0"></script>
+
+
+
+  
+  <script src="/js/src/scrollspy.js?v=6.6.0"></script>
+<script src="/js/src/post-details.js?v=6.6.0"></script>
+
+
+
+  
+
+
+  <script src="/js/src/bootstrap.js?v=6.6.0"></script>
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  <script>
+    // Popup Window;
+    var isfetched = false;
+    var isXml = true;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length === 0) {
+      search_path = "search.xml";
+    } else if (/json$/i.test(search_path)) {
+      isXml = false;
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    var onPopupClose = function (e) {
+      $('.popup').hide();
+      $('#local-search-input').val('');
+      $('.search-result-list').remove();
+      $('#no-result').remove();
+      $(".local-search-pop-overlay").remove();
+      $('body').css('overflow', '');
+    }
+
+    function proceedsearch() {
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay"></div>')
+        .css('overflow', 'hidden');
+      $('.search-popup-overlay').click(onPopupClose);
+      $('.popup').toggle();
+      var $localSearchInput = $('#local-search-input');
+      $localSearchInput.attr("autocapitalize", "none");
+      $localSearchInput.attr("autocorrect", "off");
+      $localSearchInput.focus();
+    }
+
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+      'use strict';
+
+      // start loading animation
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay">' +
+          '<div id="search-loading-icon">' +
+          '<i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>' +
+          '</div>' +
+          '</div>')
+        .css('overflow', 'hidden');
+      $("#search-loading-icon").css('margin', '20% auto 0 auto').css('text-align', 'center');
+
+      
+
+      $.ajax({
+        url: path,
+        dataType: isXml ? "xml" : "json",
+        async: true,
+        success: function(res) {
+          // get the contents from search data
+          isfetched = true;
+          $('.popup').detach().appendTo('.header-inner');
+          var datas = isXml ? $("entry", res).map(function() {
+            return {
+              title: $("title", this).text(),
+              content: $("content",this).text(),
+              url: $("url" , this).text()
+            };
+          }).get() : res;
+          var input = document.getElementById(search_id);
+          var resultContent = document.getElementById(content_id);
+          var inputEventFunction = function() {
+            var searchText = input.value.trim().toLowerCase();
+            var keywords = searchText.split(/[\s\-]+/);
+            if (keywords.length > 1) {
+              keywords.push(searchText);
+            }
+            var resultItems = [];
+            if (searchText.length > 0) {
+              // perform local searching
+              datas.forEach(function(data) {
+                var isMatch = false;
+                var hitCount = 0;
+                var searchTextCount = 0;
+                var title = data.title.trim();
+                var titleInLowerCase = title.toLowerCase();
+                var content = data.content.trim().replace(/<[^>]+>/g,"");
+                
+                var contentInLowerCase = content.toLowerCase();
+                var articleUrl = decodeURIComponent(data.url);
+                var indexOfTitle = [];
+                var indexOfContent = [];
+                // only match articles with not empty titles
+                if(title != '') {
+                  keywords.forEach(function(keyword) {
+                    function getIndexByWord(word, text, caseSensitive) {
+                      var wordLen = word.length;
+                      if (wordLen === 0) {
+                        return [];
+                      }
+                      var startPosition = 0, position = [], index = [];
+                      if (!caseSensitive) {
+                        text = text.toLowerCase();
+                        word = word.toLowerCase();
+                      }
+                      while ((position = text.indexOf(word, startPosition)) > -1) {
+                        index.push({position: position, word: word});
+                        startPosition = position + wordLen;
+                      }
+                      return index;
+                    }
+
+                    indexOfTitle = indexOfTitle.concat(getIndexByWord(keyword, titleInLowerCase, false));
+                    indexOfContent = indexOfContent.concat(getIndexByWord(keyword, contentInLowerCase, false));
+                  });
+                  if (indexOfTitle.length > 0 || indexOfContent.length > 0) {
+                    isMatch = true;
+                    hitCount = indexOfTitle.length + indexOfContent.length;
+                  }
+                }
+
+                // show search results
+
+                if (isMatch) {
+                  // sort index by position of keyword
+
+                  [indexOfTitle, indexOfContent].forEach(function (index) {
+                    index.sort(function (itemLeft, itemRight) {
+                      if (itemRight.position !== itemLeft.position) {
+                        return itemRight.position - itemLeft.position;
+                      } else {
+                        return itemLeft.word.length - itemRight.word.length;
+                      }
+                    });
+                  });
+
+                  // merge hits into slices
+
+                  function mergeIntoSlice(text, start, end, index) {
+                    var item = index[index.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    var hits = [];
+                    var searchTextCountInSlice = 0;
+                    while (position + word.length <= end && index.length != 0) {
+                      if (word === searchText) {
+                        searchTextCountInSlice++;
+                      }
+                      hits.push({position: position, length: word.length});
+                      var wordEnd = position + word.length;
+
+                      // move to next position of hit
+
+                      index.pop();
+                      while (index.length != 0) {
+                        item = index[index.length - 1];
+                        position = item.position;
+                        word = item.word;
+                        if (wordEnd > position) {
+                          index.pop();
+                        } else {
+                          break;
+                        }
+                      }
+                    }
+                    searchTextCount += searchTextCountInSlice;
+                    return {
+                      hits: hits,
+                      start: start,
+                      end: end,
+                      searchTextCount: searchTextCountInSlice
+                    };
+                  }
+
+                  var slicesOfTitle = [];
+                  if (indexOfTitle.length != 0) {
+                    slicesOfTitle.push(mergeIntoSlice(title, 0, title.length, indexOfTitle));
+                  }
+
+                  var slicesOfContent = [];
+                  while (indexOfContent.length != 0) {
+                    var item = indexOfContent[indexOfContent.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    // cut out 100 characters
+                    var start = position - 20;
+                    var end = position + 80;
+                    if(start < 0){
+                      start = 0;
+                    }
+                    if (end < position + word.length) {
+                      end = position + word.length;
+                    }
+                    if(end > content.length){
+                      end = content.length;
+                    }
+                    slicesOfContent.push(mergeIntoSlice(content, start, end, indexOfContent));
+                  }
+
+                  // sort slices in content by search text's count and hits' count
+
+                  slicesOfContent.sort(function (sliceLeft, sliceRight) {
+                    if (sliceLeft.searchTextCount !== sliceRight.searchTextCount) {
+                      return sliceRight.searchTextCount - sliceLeft.searchTextCount;
+                    } else if (sliceLeft.hits.length !== sliceRight.hits.length) {
+                      return sliceRight.hits.length - sliceLeft.hits.length;
+                    } else {
+                      return sliceLeft.start - sliceRight.start;
+                    }
+                  });
+
+                  // select top N slices in content
+
+                  var upperBound = parseInt('1');
+                  if (upperBound >= 0) {
+                    slicesOfContent = slicesOfContent.slice(0, upperBound);
+                  }
+
+                  // highlight title and content
+
+                  function highlightKeyword(text, slice) {
+                    var result = '';
+                    var prevEnd = slice.start;
+                    slice.hits.forEach(function (hit) {
+                      result += text.substring(prevEnd, hit.position);
+                      var end = hit.position + hit.length;
+                      result += '<b class="search-keyword">' + text.substring(hit.position, end) + '</b>';
+                      prevEnd = end;
+                    });
+                    result += text.substring(prevEnd, slice.end);
+                    return result;
+                  }
+
+                  var resultItem = '';
+
+                  if (slicesOfTitle.length != 0) {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + highlightKeyword(title, slicesOfTitle[0]) + "</a>";
+                  } else {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + title + "</a>";
+                  }
+
+                  slicesOfContent.forEach(function (slice) {
+                    resultItem += "<a href='" + articleUrl + "'>" +
+                      "<p class=\"search-result\">" + highlightKeyword(content, slice) +
+                      "...</p>" + "</a>";
+                  });
+
+                  resultItem += "</li>";
+                  resultItems.push({
+                    item: resultItem,
+                    searchTextCount: searchTextCount,
+                    hitCount: hitCount,
+                    id: resultItems.length
+                  });
+                }
+              })
+            };
+            if (keywords.length === 1 && keywords[0] === "") {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>'
+            } else if (resultItems.length === 0) {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>'
+            } else {
+              resultItems.sort(function (resultLeft, resultRight) {
+                if (resultLeft.searchTextCount !== resultRight.searchTextCount) {
+                  return resultRight.searchTextCount - resultLeft.searchTextCount;
+                } else if (resultLeft.hitCount !== resultRight.hitCount) {
+                  return resultRight.hitCount - resultLeft.hitCount;
+                } else {
+                  return resultRight.id - resultLeft.id;
+                }
+              });
+              var searchResultList = '<ul class=\"search-result-list\">';
+              resultItems.forEach(function (result) {
+                searchResultList += result.item;
+              })
+              searchResultList += "</ul>";
+              resultContent.innerHTML = searchResultList;
+            }
+          }
+
+          if ('auto' === 'auto') {
+            input.addEventListener('input', inputEventFunction);
+          } else {
+            $('.search-icon').click(inputEventFunction);
+            input.addEventListener('keypress', function (event) {
+              if (event.keyCode === 13) {
+                inputEventFunction();
+              }
+            });
+          }
+
+          // remove loading animation
+          $(".local-search-pop-overlay").remove();
+          $('body').css('overflow', '');
+
+          proceedsearch();
+        }
+      });
+    }
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched === false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+    });
+
+    $('.popup-btn-close').click(onPopupClose);
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+    $(document).on('keyup', function (event) {
+      var shouldDismissSearchPopup = event.which === 27 &&
+        $('.search-popup').is(':visible');
+      if (shouldDismissSearchPopup) {
+        onPopupClose();
+      }
+    });
+  </script>
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+  
+
+  
+
+
+  
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

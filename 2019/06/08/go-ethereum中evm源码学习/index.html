@@ -1,0 +1,1472 @@
+<!DOCTYPE html>
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+<html class="theme-next pisces use-motion" lang="zh-CN">
+<head><meta name="generator" content="Hexo 3.8.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+    
+      
+    
+
+    
+  
+
+  
+
+  
+    
+      
+    
+
+    
+  
+
+  
+    
+      
+    
+
+    
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Monda:300,300italic,400,400italic,700,700italic|Roboto Slab:300,300italic,400,400italic,700,700italic|Dancing Script:300,300italic,400,400italic,700,700italic|Consolas:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css">
+
+<link href="/css/main.css?v=6.6.0" rel="stylesheet" type="text/css">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=6.6.0">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=6.6.0">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=6.6.0">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=6.6.0" color="#222">
+
+
+
+
+
+
+
+
+
+<script id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    version: '6.6.0',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: false,
+    fastclick: false,
+    lazyload: false,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+  
+
+
+
+
+  <meta name="keywords" content="区块链,go,以太坊,go-ethereum">
+<meta property="og:type" content="article">
+<meta property="og:title" content="go-ethereum中evm源码学习">
+<meta property="og:url" content="http://yoursite.com/2019/06/08/go-ethereum中evm源码学习/index.html">
+<meta property="og:site_name" content="AmorFati">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:image" content="https://raw.githubusercontent.com/chenyaoyang/blog-pic/master/201906/evm.jpg">
+<meta property="og:updated_time" content="2019-06-08T07:13:33.303Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="go-ethereum中evm源码学习">
+<meta name="twitter:image" content="https://raw.githubusercontent.com/chenyaoyang/blog-pic/master/201906/evm.jpg">
+
+
+
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2019/06/08/go-ethereum中evm源码学习/">
+
+
+
+<script id="page.configurations">
+  CONFIG.page = {
+    sidebar: "",
+  };
+</script>
+
+  <title>go-ethereum中evm源码学习 | AmorFati</title>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  <noscript>
+  <style>
+    .use-motion .motion-element,
+    .use-motion .brand,
+    .use-motion .menu-item,
+    .sidebar-inner,
+    .use-motion .post-block,
+    .use-motion .pagination,
+    .use-motion .comments,
+    .use-motion .post-header,
+    .use-motion .post-body,
+    .use-motion .collection-title { opacity: initial; }
+
+    .use-motion .logo,
+    .use-motion .site-title,
+    .use-motion .site-subtitle {
+      opacity: initial;
+      top: initial;
+    }
+
+    .use-motion .logo-line-before i { left: initial; }
+    .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope="" itemtype="http://schema.org/WebPage" lang="zh-CN">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope="" itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">AmorFati</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+    
+      
+        <p class="site-subtitle">风吹过窗前的书，又翻过一页</p>
+      
+    
+    
+  </div>
+
+  <div class="site-nav-toggle">
+    <button aria-label="切换导航栏">
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  
+    <ul id="menu" class="menu">
+      
+        
+        
+        
+          
+          <li class="menu-item menu-item-home">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/" rel="section"><i class="menu-item-icon fa fa-fw fa-home"></i> <br>首页</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-about">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/about/" rel="section"><i class="menu-item-icon fa fa-fw fa-user"></i> <br>关于</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-tags">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/tags/" rel="section"><i class="menu-item-icon fa fa-fw fa-tags"></i> <br>标签</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-categories">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/categories/" rel="section"><i class="menu-item-icon fa fa-fw fa-th"></i> <br>分类</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-archives">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/archives/" rel="section"><i class="menu-item-icon fa fa-fw fa-archive"></i> <br>归档</a>
+
+  </li>
+
+      
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br>搜索</a>
+        </li>
+      
+    </ul>
+  
+
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup search-popup local-search-popup">
+  <div class="local-search-header clearfix">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+    <div class="local-search-input-wrapper">
+      <input autocomplete="off" placeholder="搜索..." spellcheck="false" type="text" id="local-search-input">
+    </div>
+  </div>
+  <div id="local-search-result"></div>
+</div>
+
+
+
+    </div>
+  
+</nav>
+
+
+
+  
+
+
+
+</div>
+    </header>
+
+    
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+            
+
+          
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  
+
+  <article class="post post-type-normal" itemscope="" itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/06/08/go-ethereum中evm源码学习/">
+
+    <span hidden itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="AmorFati">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/assets/img/icon.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope="" itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="AmorFati">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">go-ethereum中evm源码学习
+
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+
+            
+            
+            
+
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+
+              
+                
+              
+
+              <time title="创建时间：2019-06-08 15:01:31 / 修改时间：15:13:33" itemprop="dateCreated datePublished" datetime="2019-06-08T15:01:31+08:00">2019-06-08</time>
+            
+
+            
+              
+
+              
+            
+          </span>
+
+          
+            <span class="post-category">
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope="" itemtype="http://schema.org/Thing"><a href="/categories/go-ethereum源码学习/" itemprop="url" rel="index"><span itemprop="name">go-ethereum源码学习</span></a></span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p><img src="https://raw.githubusercontent.com/chenyaoyang/blog-pic/master/201906/evm.jpg" alt=""><br><a id="more"></a><br>首先关于EVM的基础知识情参考<a href="https://blog.grapefruit.tk/2019/05/28/EVM%E4%BB%8B%E7%BB%8D/" target="_blank" rel="noopener">这里</a>。另外推荐一个EVM操作码介绍<a href="https://ethervm.io/" target="_blank" rel="noopener">网站</a></p>
+<h1 id="Stack"><a href="#Stack" class="headerlink" title="Stack"></a>Stack</h1><p>我们都知道EVM是基于栈结构的，我们这里先看一下他的栈实现。<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">type</span> Stack <span class="keyword">struct</span> &#123;</span><br><span class="line">	data []*big.Int</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>首先结构体很简单，就是一个big.Int类型的数组。构造方法如下<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">newstack</span><span class="params">()</span> *<span class="title">Stack</span></span> &#123;</span><br><span class="line">	<span class="keyword">return</span> &amp;Stack&#123;data: <span class="built_in">make</span>([]*big.Int, <span class="number">0</span>, <span class="number">1024</span>)&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>构造方法就是初始化了一个长度为1024的数组，也就是栈最大深度是1024.</p>
+<h2 id="push-amp-pop-amp-peek-amp-back"><a href="#push-amp-pop-amp-peek-amp-back" class="headerlink" title="push &amp; pop &amp; peek &amp; back"></a>push &amp; pop &amp; peek &amp; back</h2><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(st *Stack)</span> <span class="title">push</span><span class="params">(d *big.Int)</span></span> &#123;</span><br><span class="line">	st.data = <span class="built_in">append</span>(st.data, d)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(st *Stack)</span> <span class="title">pushN</span><span class="params">(ds ...*big.Int)</span></span> &#123;</span><br><span class="line">	st.data = <span class="built_in">append</span>(st.data, ds...)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(st *Stack)</span> <span class="title">pop</span><span class="params">()</span> <span class="params">(ret *big.Int)</span></span> &#123;</span><br><span class="line">	ret = st.data[<span class="built_in">len</span>(st.data)<span class="number">-1</span>]</span><br><span class="line">	st.data = st.data[:<span class="built_in">len</span>(st.data)<span class="number">-1</span>]</span><br><span class="line">	<span class="keyword">return</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(st *Stack)</span> <span class="title">peek</span><span class="params">()</span> *<span class="title">big</span>.<span class="title">Int</span></span> &#123;</span><br><span class="line">	<span class="keyword">return</span> st.data[st.<span class="built_in">len</span>()<span class="number">-1</span>]</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(st *Stack)</span> <span class="title">Back</span><span class="params">(n <span class="keyword">int</span>)</span> *<span class="title">big</span>.<span class="title">Int</span></span> &#123;</span><br><span class="line">	<span class="keyword">return</span> st.data[st.<span class="built_in">len</span>()-n<span class="number">-1</span>]</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>push就向数组添加内容，pop就是取出数组最后一个数据，也就是栈顶元素。peek访问栈顶元素。Back是从栈顶开始取第n个元素</p>
+<h2 id="swap"><a href="#swap" class="headerlink" title="swap"></a>swap</h2><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(st *Stack)</span> <span class="title">swap</span><span class="params">(n <span class="keyword">int</span>)</span></span> &#123;</span><br><span class="line">	st.data[st.<span class="built_in">len</span>()-n], st.data[st.<span class="built_in">len</span>()<span class="number">-1</span>] = st.data[st.<span class="built_in">len</span>()<span class="number">-1</span>], st.data[st.<span class="built_in">len</span>()-n]</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>将栈顶元素和指定位置元素交换，对于虚拟机中的SWAP操作码</p>
+<h2 id="dup"><a href="#dup" class="headerlink" title="dup"></a>dup</h2><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(st *Stack)</span> <span class="title">dup</span><span class="params">(pool *intPool, n <span class="keyword">int</span>)</span></span> &#123;</span><br><span class="line">	st.push(pool.get().Set(st.data[st.<span class="built_in">len</span>()-n]))</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>参数中intPool封装了一个stack对象，为的是实现big.Int复用。他的get方法就是获得栈顶元素，这里复用一个对象，将其设为栈中某个元素并放到栈顶，为的是复制元素到栈顶。</p>
+<h2 id="require"><a href="#require" class="headerlink" title="require"></a>require</h2><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(st *Stack)</span> <span class="title">require</span><span class="params">(n <span class="keyword">int</span>)</span> <span class="title">error</span></span> &#123;</span><br><span class="line">	<span class="keyword">if</span> st.<span class="built_in">len</span>() &lt; n &#123;</span><br><span class="line">		<span class="keyword">return</span> fmt.Errorf(<span class="string">"stack underflow (%d &lt;=&gt; %d)"</span>, <span class="built_in">len</span>(st.data), n)</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">return</span> <span class="literal">nil</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>这个方法作用是检查是否能取出要求个数的元素</p>
+<h1 id="stack-table"><a href="#stack-table" class="headerlink" title="stack_table"></a>stack_table</h1><p>这里面放着检测栈的几个方法，这几个方法都是用在后面定义operation时的validateStack字段</p>
+<h2 id="makeStackFunc"><a href="#makeStackFunc" class="headerlink" title="makeStackFunc"></a>makeStackFunc</h2><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">makeStackFunc</span><span class="params">(pop, push <span class="keyword">int</span>)</span> <span class="title">stackValidationFunc</span></span> &#123;</span><br><span class="line">	<span class="keyword">return</span> <span class="function"><span class="keyword">func</span><span class="params">(stack *Stack)</span> <span class="title">error</span></span> &#123;</span><br><span class="line">		<span class="keyword">if</span> err := stack.require(pop); err != <span class="literal">nil</span> &#123;</span><br><span class="line">			<span class="keyword">return</span> err</span><br><span class="line">		&#125;</span><br><span class="line"></span><br><span class="line">		<span class="keyword">if</span> stack.<span class="built_in">len</span>()+push-pop &gt; <span class="keyword">int</span>(params.StackLimit) &#123;</span><br><span class="line">			<span class="keyword">return</span> fmt.Errorf(<span class="string">"stack limit reached %d (%d)"</span>, stack.<span class="built_in">len</span>(), params.StackLimit)</span><br><span class="line">		&#125;</span><br><span class="line">		<span class="keyword">return</span> <span class="literal">nil</span></span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>这个方法节后两个变量，第一个表示要执行几次pop操作，第二个表示要执行几次push操作，这个方法目的是检查一个栈是否能执行这样一组pop和push操作。首先调用require检测是否能pop对应数量的元素。然后在检查在pop与push操作之后栈是否超过最大深度。</p>
+<h2 id="makeDupStackFunc"><a href="#makeDupStackFunc" class="headerlink" title="makeDupStackFunc"></a>makeDupStackFunc</h2><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">makeDupStackFunc</span><span class="params">(n <span class="keyword">int</span>)</span> <span class="title">stackValidationFunc</span></span> &#123;</span><br><span class="line">	<span class="keyword">return</span> makeStackFunc(n, n+<span class="number">1</span>)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>这个表示复制操作的检测，就是要pop出n个值，然后push进n+1个值</p>
+<h2 id="makeSwapStackFunc"><a href="#makeSwapStackFunc" class="headerlink" title="makeSwapStackFunc"></a>makeSwapStackFunc</h2><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">makeSwapStackFunc</span><span class="params">(n <span class="keyword">int</span>)</span> <span class="title">stackValidationFunc</span></span> &#123;</span><br><span class="line">	<span class="keyword">return</span> makeStackFunc(n, n)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>这是检查交换操作的，就是看能否弹出以及压入n个值。</p>
+<h1 id="intPool"><a href="#intPool" class="headerlink" title="intPool"></a>intPool</h1><p>前面见过这种类型，它内部封装了一个栈对象，为的是存储复用bigInt对象<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">type</span> intPool <span class="keyword">struct</span> &#123;</span><br><span class="line">	pool *Stack</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">newIntPool</span><span class="params">()</span> *<span class="title">intPool</span></span> &#123;</span><br><span class="line">	<span class="keyword">return</span> &amp;intPool&#123;pool: newstack()&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<h2 id="get"><a href="#get" class="headerlink" title="get"></a>get</h2><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(p *intPool)</span> <span class="title">get</span><span class="params">()</span> *<span class="title">big</span>.<span class="title">Int</span></span> &#123;</span><br><span class="line">	<span class="keyword">if</span> p.pool.<span class="built_in">len</span>() &gt; <span class="number">0</span> &#123;</span><br><span class="line">		<span class="keyword">return</span> p.pool.pop()</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">return</span> <span class="built_in">new</span>(big.Int)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>这是取出一个bigInt对象供我们使用，不必每次都重新创建对象，但是前提是intPool中有数据，不然还是需要创建<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(p *intPool)</span> <span class="title">getZero</span><span class="params">()</span> *<span class="title">big</span>.<span class="title">Int</span></span> &#123;</span><br><span class="line">	<span class="keyword">if</span> p.pool.<span class="built_in">len</span>() &gt; <span class="number">0</span> &#123;</span><br><span class="line">		<span class="keyword">return</span> p.pool.pop().SetUint64(<span class="number">0</span>)</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">return</span> <span class="built_in">new</span>(big.Int)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>特别的给我们提供了值为0的bigInt对象获取方法</p>
+<h2 id="put"><a href="#put" class="headerlink" title="put"></a>put</h2><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(p *intPool)</span> <span class="title">put</span><span class="params">(is ...*big.Int)</span></span> &#123;</span><br><span class="line">	<span class="keyword">if</span> <span class="built_in">len</span>(p.pool.data) &gt; poolLimit &#123;</span><br><span class="line">		<span class="keyword">return</span></span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">for</span> _, i := <span class="keyword">range</span> is &#123;</span><br><span class="line">		<span class="keyword">if</span> verifyPool &#123;</span><br><span class="line">			i.Set(checkVal)</span><br><span class="line">		&#125;</span><br><span class="line">		p.pool.push(i)</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>首先不能超过pool的最大容量–256.其次根据需要在存入前将每个值设为默认值：-42</p>
+<h2 id="intPoolPool"><a href="#intPoolPool" class="headerlink" title="intPoolPool"></a>intPoolPool</h2><p>这是intPool的缓存池，最大容量为25，<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">type</span> intPoolPool <span class="keyword">struct</span> &#123;</span><br><span class="line">	pools []*intPool</span><br><span class="line">	lock  sync.Mutex</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">var</span> poolOfIntPools = &amp;intPoolPool&#123;</span><br><span class="line">	pools: <span class="built_in">make</span>([]*intPool, <span class="number">0</span>, poolDefaultCap),</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>get与put方法都很简单，这里不再详述</p>
+<h1 id="memory"><a href="#memory" class="headerlink" title="memory"></a>memory</h1><p>这个实现了EVM的内存模型<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">type</span> Memory <span class="keyword">struct</span> &#123;</span><br><span class="line">	store       []<span class="keyword">byte</span></span><br><span class="line">	lastGasCost <span class="keyword">uint64</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">NewMemory</span><span class="params">()</span> *<span class="title">Memory</span></span> &#123;</span><br><span class="line">	<span class="keyword">return</span> &amp;Memory&#123;&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>包含了一个字节数组，用于存储东西，一个整数存储gas的消耗。</p>
+<h2 id="Resize"><a href="#Resize" class="headerlink" title="Resize"></a>Resize</h2><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(m *Memory)</span> <span class="title">Resize</span><span class="params">(size <span class="keyword">uint64</span>)</span></span> &#123;</span><br><span class="line">	<span class="keyword">if</span> <span class="keyword">uint64</span>(m.Len()) &lt; size &#123;</span><br><span class="line">		m.store = <span class="built_in">append</span>(m.store, <span class="built_in">make</span>([]<span class="keyword">byte</span>, size-<span class="keyword">uint64</span>(m.Len()))...)</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(m *Memory)</span> <span class="title">Len</span><span class="params">()</span> <span class="title">int</span></span> &#123;</span><br><span class="line">	<span class="keyword">return</span> <span class="built_in">len</span>(m.store)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>使用Resize空间，注意这个方法设计的可以在使用过程中动态调整内存空间，只有当要赋予的空间大于已有的时，在对store数组进行扩展，其中的数据保持不变。</p>
+<h2 id="Set"><a href="#Set" class="headerlink" title="Set"></a>Set</h2><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(m *Memory)</span> <span class="title">Set</span><span class="params">(offset, size <span class="keyword">uint64</span>, value []<span class="keyword">byte</span>)</span></span> &#123;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">if</span> size &gt; <span class="number">0</span> &#123;</span><br><span class="line">		<span class="keyword">if</span> offset+size &gt; <span class="keyword">uint64</span>(<span class="built_in">len</span>(m.store)) &#123;</span><br><span class="line">			<span class="built_in">panic</span>(<span class="string">"invalid memory: store empty"</span>)</span><br><span class="line">		&#125;</span><br><span class="line">		<span class="built_in">copy</span>(m.store[offset:offset+size], value)</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>由于是模仿内存模型，所以存储数据时要指定偏移量，数据长度以及数据本体。首先检查是否能存下，可以的话按照给定的偏移即长度存储数据。<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(m *Memory)</span> <span class="title">Set32</span><span class="params">(offset <span class="keyword">uint64</span>, val *big.Int)</span></span> &#123;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">if</span> offset+<span class="number">32</span> &gt; <span class="keyword">uint64</span>(<span class="built_in">len</span>(m.store)) &#123;</span><br><span class="line">		<span class="built_in">panic</span>(<span class="string">"invalid memory: store empty"</span>)</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="built_in">copy</span>(m.store[offset:offset+<span class="number">32</span>], []<span class="keyword">byte</span>&#123;<span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>&#125;)</span><br><span class="line"></span><br><span class="line">	math.ReadBits(val, m.store[offset:offset+<span class="number">32</span>])</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>由于EVM的栈宽度是32字节，所以特别给出了存储一个32字节数据的方法，第一步还是检查是否放的下，然后先存储32字节的灵数据，这是因为我们要存储的是bigInt类型，先用0占位后，然后再用math包中的ReadBits方法写入字节数据。</p>
+<h2 id="Get"><a href="#Get" class="headerlink" title="Get"></a>Get</h2><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(m *Memory)</span> <span class="title">Get</span><span class="params">(offset, size <span class="keyword">int64</span>)</span> <span class="params">(cpy []<span class="keyword">byte</span>)</span></span> &#123;</span><br><span class="line">	<span class="keyword">if</span> size == <span class="number">0</span> &#123;</span><br><span class="line">		<span class="keyword">return</span> <span class="literal">nil</span></span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">if</span> <span class="built_in">len</span>(m.store) &gt; <span class="keyword">int</span>(offset) &#123;</span><br><span class="line">		cpy = <span class="built_in">make</span>([]<span class="keyword">byte</span>, size)</span><br><span class="line">		<span class="built_in">copy</span>(cpy, m.store[offset:offset+size])</span><br><span class="line"></span><br><span class="line">		<span class="keyword">return</span></span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">return</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>同样也是根据偏移量和大小取一组字节数据，但这个方法是获得数据副本<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(m *Memory)</span> <span class="title">GetPtr</span><span class="params">(offset, size <span class="keyword">int64</span>)</span> []<span class="title">byte</span></span> &#123;</span><br><span class="line">	<span class="keyword">if</span> size == <span class="number">0</span> &#123;</span><br><span class="line">		<span class="keyword">return</span> <span class="literal">nil</span></span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">if</span> <span class="built_in">len</span>(m.store) &gt; <span class="keyword">int</span>(offset) &#123;</span><br><span class="line">		<span class="keyword">return</span> m.store[offset : offset+size]</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">return</span> <span class="literal">nil</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>这个方法则是获取数据的引用，可以修改元数据</p>
+<h1 id="memory-table-go"><a href="#memory-table-go" class="headerlink" title="memory_table.go"></a>memory_table.go</h1><p>这里面的方法是获取某个操作会占用的memory大小，如<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">memorySha3</span><span class="params">(stack *Stack)</span> *<span class="title">big</span>.<span class="title">Int</span></span> &#123;</span><br><span class="line">	<span class="keyword">return</span> calcMemSize(stack.Back(<span class="number">0</span>), stack.Back(<span class="number">1</span>))</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">calcMemSize</span><span class="params">(off, l *big.Int)</span> *<span class="title">big</span>.<span class="title">Int</span></span> &#123;</span><br><span class="line">	<span class="keyword">if</span> l.Sign() == <span class="number">0</span> &#123;</span><br><span class="line">		<span class="keyword">return</span> common.Big0</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">return</span> <span class="built_in">new</span>(big.Int).Add(off, l)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>这个方法对于sha3操作，他需要从栈中弹出两个值，第一个值是在memory中的偏移量，第二个值是数据的长度，所以memorySha3调用了calcMemSize，第一个参数就是栈顶元素，第二个参数就是栈顶倒数第二个参数，该操作所需要的memory最小长度是offset+length。</p>
+<h1 id="jump-table-go"><a href="#jump-table-go" class="headerlink" title="jump_table.go"></a>jump_table.go</h1><p>这里面定义了operation，表示一个个操作符<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">type</span> operation <span class="keyword">struct</span> &#123;</span><br><span class="line"></span><br><span class="line">	execute executionFunc</span><br><span class="line">	gasCost gasFunc</span><br><span class="line">	validateStack stackValidationFunc</span><br><span class="line">	memorySize memorySizeFunc</span><br><span class="line"></span><br><span class="line">	halts   <span class="keyword">bool</span> </span><br><span class="line">	jumps   <span class="keyword">bool</span> </span><br><span class="line">	writes  <span class="keyword">bool</span> </span><br><span class="line">	valid   <span class="keyword">bool</span> </span><br><span class="line">	reverts <span class="keyword">bool</span> </span><br><span class="line">	returns <span class="keyword">bool</span> </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>解释一下每个成员的含义：</p>
+<ul>
+<li>execute：表示要执行的函数</li>
+<li>gasCost：表示gas消耗函数</li>
+<li>validateStack：表示堆栈大小验证函数</li>
+<li>memorySize：表示需要的内存大小</li>
+<li>halts：表示是否停止</li>
+<li>jumps：表示程序计数器是否不应该递增</li>
+<li>writes：表示是否是一个状态修改操作</li>
+<li>valid：表示检索到的操作是否有效且已知</li>
+<li>reverts：确定操作是否已经恢复状态</li>
+<li>returns：表示操作是否设置了返回内容</li>
+</ul>
+<p>EVM最多有256个操作符，但许多都未定义。不同的版本有不同的操作符集合<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> (</span><br><span class="line">	frontierInstructionSet       = newFrontierInstructionSet()</span><br><span class="line">	homesteadInstructionSet      = newHomesteadInstructionSet()</span><br><span class="line">	byzantiumInstructionSet      = newByzantiumInstructionSet()</span><br><span class="line">	constantinopleInstructionSet = newConstantinopleInstructionSet()</span><br><span class="line">)</span><br></pre></td></tr></table></figure></p>
+<p>基本上都是新版本包含了旧版本的操作符，同时又添加了新的操作符。</p>
+<h1 id="instruction-go"><a href="#instruction-go" class="headerlink" title="instruction.go"></a>instruction.go</h1><p>jump_table中定义了全部的operation，每个operation的execute实现在这里定义，如：</p>
+<h2 id="opAdd"><a href="#opAdd" class="headerlink" title="opAdd"></a>opAdd</h2><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">opAdd</span><span class="params">(pc *<span class="keyword">uint64</span>, interpreter *EVMInterpreter, contract *Contract, memory *Memory, stack *Stack)</span> <span class="params">([]<span class="keyword">byte</span>, error)</span></span> &#123;</span><br><span class="line">	x, y := stack.pop(), stack.peek()</span><br><span class="line">	math.U256(y.Add(x, y))</span><br><span class="line"></span><br><span class="line">	interpreter.intPool.put(x)</span><br><span class="line">	<span class="keyword">return</span> <span class="literal">nil</span>, <span class="literal">nil</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>这是基于栈的加法，首先弹出栈顶元素x，然后获取新的栈顶元素y（该元素并不出栈），然后将x，并赋值到y，最后结果用补码表示。还有一点是，刚才出栈的数在用完后放入intPool中以便后面进行复用。</p>
+<h2 id="opLt"><a href="#opLt" class="headerlink" title="opLt"></a>opLt</h2><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">opLt</span><span class="params">(pc *<span class="keyword">uint64</span>, interpreter *EVMInterpreter, contract *Contract, memory *Memory, stack *Stack)</span> <span class="params">([]<span class="keyword">byte</span>, error)</span></span> &#123;</span><br><span class="line">	x, y := stack.pop(), stack.peek()</span><br><span class="line">	<span class="keyword">if</span> x.Cmp(y) &lt; <span class="number">0</span> &#123;</span><br><span class="line">		y.SetUint64(<span class="number">1</span>)</span><br><span class="line">	&#125; <span class="keyword">else</span> &#123;</span><br><span class="line">		y.SetUint64(<span class="number">0</span>)</span><br><span class="line">	&#125;</span><br><span class="line">	interpreter.intPool.put(x)</span><br><span class="line">	<span class="keyword">return</span> <span class="literal">nil</span>, <span class="literal">nil</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>这是小于比较的方法，也是先出栈一个元素x，再获取栈顶元素，然后二者相减进行比较，结果写入y，最后x放入intPool复用。</p>
+<h2 id="opCallDataLoad"><a href="#opCallDataLoad" class="headerlink" title="opCallDataLoad"></a>opCallDataLoad</h2><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">opCallDataLoad</span><span class="params">(pc *<span class="keyword">uint64</span>, interpreter *EVMInterpreter, contract *Contract, memory *Memory, stack *Stack)</span> <span class="params">([]<span class="keyword">byte</span>, error)</span></span> &#123;</span><br><span class="line">	stack.push(interpreter.intPool.get().SetBytes(getDataBig(contract.Input, stack.pop(), big32)))</span><br><span class="line">	<span class="keyword">return</span> <span class="literal">nil</span>, <span class="literal">nil</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">getDataBig</span><span class="params">(data []<span class="keyword">byte</span>, start *big.Int, size *big.Int)</span> []<span class="title">byte</span></span> &#123;</span><br><span class="line">	dlen := big.NewInt(<span class="keyword">int64</span>(<span class="built_in">len</span>(data)))</span><br><span class="line"></span><br><span class="line">	s := math.BigMin(start, dlen)</span><br><span class="line">	e := math.BigMin(<span class="built_in">new</span>(big.Int).Add(s, size), dlen)</span><br><span class="line">	<span class="keyword">return</span> common.RightPadBytes(data[s.Uint64():e.Uint64()], <span class="keyword">int</span>(size.Uint64()))</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">RightPadBytes</span><span class="params">(slice []<span class="keyword">byte</span>, l <span class="keyword">int</span>)</span> []<span class="title">byte</span></span> &#123;</span><br><span class="line">	<span class="keyword">if</span> l &lt;= <span class="built_in">len</span>(slice) &#123;</span><br><span class="line">		<span class="keyword">return</span> slice</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	padded := <span class="built_in">make</span>([]<span class="keyword">byte</span>, l)</span><br><span class="line">	<span class="built_in">copy</span>(padded, slice)</span><br><span class="line"></span><br><span class="line">	<span class="keyword">return</span> padded</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>这是一个常用的获取输入参数的操作符，注意看，第一步利用getDataBig从合约的输入中从某个偏移开始读取32字节输入数据，有时未必能读够32字节，这时还需要RightPadBytes方法在右侧补零。获取完数据后放入栈顶</p>
+<h2 id="opMstore"><a href="#opMstore" class="headerlink" title="opMstore"></a>opMstore</h2><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">opMstore</span><span class="params">(pc *<span class="keyword">uint64</span>, interpreter *EVMInterpreter, contract *Contract, memory *Memory, stack *Stack)</span> <span class="params">([]<span class="keyword">byte</span>, error)</span></span> &#123;</span><br><span class="line">	mStart, val := stack.pop(), stack.pop()</span><br><span class="line">	memory.Set32(mStart.Uint64(), val)</span><br><span class="line"></span><br><span class="line">	interpreter.intPool.put(mStart, val)</span><br><span class="line">	<span class="keyword">return</span> <span class="literal">nil</span>, <span class="literal">nil</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>从栈顶获取代表偏移量和数据的两个值，然后放入内存模型中。</p>
+<h2 id="opSstore"><a href="#opSstore" class="headerlink" title="opSstore"></a>opSstore</h2><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">opSstore</span><span class="params">(pc *<span class="keyword">uint64</span>, interpreter *EVMInterpreter, contract *Contract, memory *Memory, stack *Stack)</span> <span class="params">([]<span class="keyword">byte</span>, error)</span></span> &#123;</span><br><span class="line">	loc := common.BigToHash(stack.pop())</span><br><span class="line">	val := stack.pop()</span><br><span class="line">	interpreter.evm.StateDB.SetState(contract.Address(), loc, common.BigToHash(val))</span><br><span class="line"></span><br><span class="line">	interpreter.intPool.put(val)</span><br><span class="line">	<span class="keyword">return</span> <span class="literal">nil</span>, <span class="literal">nil</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>这个也就是我们说的持久化存储操作符，可见他实际存储到状态树中，最后放入数据库。其存储位置就是键。</p>
+<h2 id="opJump"><a href="#opJump" class="headerlink" title="opJump"></a>opJump</h2><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">opJump</span><span class="params">(pc *<span class="keyword">uint64</span>, interpreter *EVMInterpreter, contract *Contract, memory *Memory, stack *Stack)</span> <span class="params">([]<span class="keyword">byte</span>, error)</span></span> &#123;</span><br><span class="line">	pos := stack.pop()</span><br><span class="line">	<span class="keyword">if</span> !contract.validJumpdest(pos) &#123;</span><br><span class="line">		nop := contract.GetOp(pos.Uint64())</span><br><span class="line">		<span class="keyword">return</span> <span class="literal">nil</span>, fmt.Errorf(<span class="string">"invalid jump destination (%v) %v"</span>, nop, pos)</span><br><span class="line">	&#125;</span><br><span class="line">	*pc = pos.Uint64()</span><br><span class="line"></span><br><span class="line">	interpreter.intPool.put(pos)</span><br><span class="line">	<span class="keyword">return</span> <span class="literal">nil</span>, <span class="literal">nil</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>这是程序跳转操作，首先从栈顶获取跳转的位置，然后验证是否是有效的跳转目的地，是的话修改程序计数器实现跳转，否则返回错误。</p>
+<h1 id="gas-table-go"><a href="#gas-table-go" class="headerlink" title="gas_table.go"></a>gas_table.go</h1><p>这里面定义了每种操作符的gas消耗。在jump_table中定义operation的gasCost字段时定义了gas消耗计算方法。对于一些基础操作都是constGasFunc方法<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">constGasFunc</span><span class="params">(gas <span class="keyword">uint64</span>)</span> <span class="title">gasFunc</span></span> &#123;</span><br><span class="line">	<span class="keyword">return</span> <span class="function"><span class="keyword">func</span><span class="params">(gt params.GasTable, evm *EVM, contract *Contract, stack *Stack, mem *Memory, memorySize <span class="keyword">uint64</span>)</span> <span class="params">(<span class="keyword">uint64</span>, error)</span></span> &#123;</span><br><span class="line">		<span class="keyword">return</span> gas, <span class="literal">nil</span></span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>这里指定的gas就是该操作消耗的gas，对于一些基本操作符如ADD，SUB等都是消耗固定的gas，一般分以下几种<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> (</span><br><span class="line">	GasQuickStep   <span class="keyword">uint64</span> = <span class="number">2</span></span><br><span class="line">	GasFastestStep <span class="keyword">uint64</span> = <span class="number">3</span></span><br><span class="line">	GasFastStep    <span class="keyword">uint64</span> = <span class="number">5</span></span><br><span class="line">	GasMidStep     <span class="keyword">uint64</span> = <span class="number">8</span></span><br><span class="line">	GasSlowStep    <span class="keyword">uint64</span> = <span class="number">10</span></span><br><span class="line">	GasExtStep     <span class="keyword">uint64</span> = <span class="number">20</span></span><br><span class="line"></span><br><span class="line">	GasReturn       <span class="keyword">uint64</span> = <span class="number">0</span></span><br><span class="line">	GasStop         <span class="keyword">uint64</span> = <span class="number">0</span></span><br><span class="line">	GasContractByte <span class="keyword">uint64</span> = <span class="number">200</span></span><br><span class="line">)</span><br></pre></td></tr></table></figure></p>
+<p>可见基本是根据步骤执行快慢决定的，如调用ADDRESS、ORIGIN都消耗GasQuickStep也就是2Gas。ADD、SUB等都是GasFastestStep。</p>
+<p>除此之外，还有许多操作符是单独定义了，如MSTORE<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">gasMStore</span><span class="params">(gt params.GasTable, evm *EVM, contract *Contract, stack *Stack, mem *Memory, memorySize <span class="keyword">uint64</span>)</span> <span class="params">(<span class="keyword">uint64</span>, error)</span></span> &#123;</span><br><span class="line">	<span class="keyword">var</span> overflow <span class="keyword">bool</span></span><br><span class="line">	gas, err := memoryGasCost(mem, memorySize)</span><br><span class="line">	<span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">		<span class="keyword">return</span> <span class="number">0</span>, errGasUintOverflow</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">if</span> gas, overflow = math.SafeAdd(gas, GasFastestStep); overflow &#123;</span><br><span class="line">		<span class="keyword">return</span> <span class="number">0</span>, errGasUintOverflow</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">return</span> gas, <span class="literal">nil</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">memoryGasCost</span><span class="params">(mem *Memory, newMemSize <span class="keyword">uint64</span>)</span> <span class="params">(<span class="keyword">uint64</span>, error)</span></span> &#123;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">if</span> newMemSize == <span class="number">0</span> &#123;</span><br><span class="line">		<span class="keyword">return</span> <span class="number">0</span>, <span class="literal">nil</span></span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">if</span> newMemSize &gt; <span class="number">0xffffffff</span>e0 &#123;</span><br><span class="line">		<span class="keyword">return</span> <span class="number">0</span>, errGasUintOverflow</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	newMemSizeWords := toWordSize(newMemSize)</span><br><span class="line">	newMemSize = newMemSizeWords * <span class="number">32</span></span><br><span class="line"></span><br><span class="line">	<span class="keyword">if</span> newMemSize &gt; <span class="keyword">uint64</span>(mem.Len()) &#123;</span><br><span class="line">		square := newMemSizeWords * newMemSizeWords</span><br><span class="line">		linCoef := newMemSizeWords * params.MemoryGas</span><br><span class="line">		quadCoef := square / params.QuadCoeffDiv</span><br><span class="line">		newTotalFee := linCoef + quadCoef</span><br><span class="line"></span><br><span class="line">		fee := newTotalFee - mem.lastGasCost</span><br><span class="line">		mem.lastGasCost = newTotalFee</span><br><span class="line"></span><br><span class="line">		<span class="keyword">return</span> fee, <span class="literal">nil</span></span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">return</span> <span class="number">0</span>, <span class="literal">nil</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>对于从memory中读取数据的操作，主要是根据要取的数据大小计算gas，借助了memoryGasCost方法。</p>
+<p>memoryGasCost中，首先如果要取的数据为0，则直接返回0。另外如果大于0xffffffffe0则报错。对于正常情况，首先按32字节一个字计算，看有多少个字，借助toWordSize方法（相当于除以32并向上取整），之后再乘以32，表示按32字节一个字取的话要多少字节。之后如果取值大于memory的长度，则首先按每个字3Gas计算出linCoef，然后对字数取平方在除以512计算出quadCoef。此时总费用newTotalFee就是linCoef + quadCoef，但是还要减去memory的lastGasCost字段，最后将lastGasCost字段更新为newTotalFee。如果计算出的实际字节数没有超过memory长度则直接返回零。</p>
+<p>回到gasMStore中，如果前一步没有错，则实际费用就是memoryGasCost返回值加上基础费用3。这里我们也可以知道如果从memory取值时如果没有超出当前memory返回，费用只有基础费用3Gas</p>
+<h1 id="Contract"><a href="#Contract" class="headerlink" title="Contract"></a>Contract</h1><p>这就是表示一个合约的对象<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">type</span> Contract <span class="keyword">struct</span> &#123;</span><br><span class="line">	CallerAddress common.Address</span><br><span class="line">	caller        ContractRef</span><br><span class="line">	self          ContractRef</span><br><span class="line"></span><br><span class="line">	jumpdests <span class="keyword">map</span>[common.Hash]bitvec </span><br><span class="line">	analysis  bitvec                </span><br><span class="line"></span><br><span class="line">	Code     []<span class="keyword">byte</span></span><br><span class="line">	CodeHash common.Hash</span><br><span class="line">	CodeAddr *common.Address</span><br><span class="line">	Input    []<span class="keyword">byte</span></span><br><span class="line"></span><br><span class="line">	Gas   <span class="keyword">uint64</span></span><br><span class="line">	value *big.Int</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>包含了合约创建者地址，合约地址，合约代码以及输入等许多基本要素</p>
+<h2 id="NewContract"><a href="#NewContract" class="headerlink" title="NewContract"></a>NewContract</h2><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">NewContract</span><span class="params">(caller ContractRef, object ContractRef, value *big.Int, gas <span class="keyword">uint64</span>)</span> *<span class="title">Contract</span></span> &#123;</span><br><span class="line">	c := &amp;Contract&#123;CallerAddress: caller.Address(), caller: caller, self: object&#125;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">if</span> parent, ok := caller.(*Contract); ok &#123;</span><br><span class="line">		c.jumpdests = parent.jumpdests</span><br><span class="line">	&#125; <span class="keyword">else</span> &#123;</span><br><span class="line">		c.jumpdests = <span class="built_in">make</span>(<span class="keyword">map</span>[common.Hash]bitvec)</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	c.Gas = gas</span><br><span class="line">	c.value = value</span><br><span class="line"></span><br><span class="line">	<span class="keyword">return</span> c</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>构造方法最后返回一个Contract对象，需要传入创建者的地址，如果创建者是一个合约的话，则继承其的jumpdests。</p>
+<h1 id="interpreter"><a href="#interpreter" class="headerlink" title="interpreter"></a>interpreter</h1><p>前面在instruction中每个操作符函数参数中都有一个interpreter参数，这是一个接口表示解释器，解释器是用来执行智能合约的<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">type</span> Interpreter <span class="keyword">interface</span> &#123;</span><br><span class="line">	Run(contract *Contract, input []<span class="keyword">byte</span>, static <span class="keyword">bool</span>) ([]<span class="keyword">byte</span>, error)</span><br><span class="line"></span><br><span class="line">	CanRun([]<span class="keyword">byte</span>) <span class="keyword">bool</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>实际使用的EVMInterpreter<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">type</span> EVMInterpreter <span class="keyword">struct</span> &#123;</span><br><span class="line">	evm      *EVM</span><br><span class="line">	cfg      Config</span><br><span class="line">	gasTable params.GasTable</span><br><span class="line"></span><br><span class="line">	intPool *intPool</span><br><span class="line"></span><br><span class="line">	hasher    keccakState </span><br><span class="line">	hasherBuf common.Hash </span><br><span class="line"></span><br><span class="line">	readOnly   <span class="keyword">bool</span>  </span><br><span class="line">	returnData []<span class="keyword">byte</span> </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>构造函数如下<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">NewEVMInterpreter</span><span class="params">(evm *EVM, cfg Config)</span> *<span class="title">EVMInterpreter</span></span> &#123;</span><br><span class="line">	<span class="keyword">if</span> !cfg.JumpTable[STOP].valid &#123;</span><br><span class="line">		<span class="keyword">switch</span> &#123;</span><br><span class="line">		<span class="keyword">case</span> evm.ChainConfig().IsConstantinople(evm.BlockNumber):</span><br><span class="line">			cfg.JumpTable = constantinopleInstructionSet</span><br><span class="line">		<span class="keyword">case</span> evm.ChainConfig().IsByzantium(evm.BlockNumber):</span><br><span class="line">			cfg.JumpTable = byzantiumInstructionSet</span><br><span class="line">		<span class="keyword">case</span> evm.ChainConfig().IsHomestead(evm.BlockNumber):</span><br><span class="line">			cfg.JumpTable = homesteadInstructionSet</span><br><span class="line">		<span class="keyword">default</span>:</span><br><span class="line">			cfg.JumpTable = frontierInstructionSet</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">return</span> &amp;EVMInterpreter&#123;</span><br><span class="line">		evm:      evm,</span><br><span class="line">		cfg:      cfg,CanRun</span><br><span class="line">		gasTable: evm.ChainConfig().GasTable(evm.BlockNumber),</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>首先根据JumpTable的STOP指令的有效性判断JumpTable是否初始化，没有的话根据具体版本加载不同的指令集。然后新建EVMInterpreter对象。</p>
+<h2 id="CanRun"><a href="#CanRun" class="headerlink" title="CanRun"></a>CanRun</h2><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(in *EVMInterpreter)</span> <span class="title">CanRun</span><span class="params">(code []<span class="keyword">byte</span>)</span> <span class="title">bool</span></span> &#123;</span><br><span class="line">	<span class="keyword">return</span> <span class="literal">true</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>这个方法作用是检查代码是否可以运行，但是这里直接返回true，表示都可以执行。</p>
+<h2 id="Run"><a href="#Run" class="headerlink" title="Run"></a>Run</h2><p>这是运行合约的核心方法<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(in *EVMInterpreter)</span> <span class="title">Run</span><span class="params">(contract *Contract, input []<span class="keyword">byte</span>, readOnly <span class="keyword">bool</span>)</span> <span class="params">(ret []<span class="keyword">byte</span>, err error)</span></span> &#123;</span><br><span class="line">	<span class="keyword">if</span> in.intPool == <span class="literal">nil</span> &#123;</span><br><span class="line">		in.intPool = poolOfIntPools.get()</span><br><span class="line">		<span class="keyword">defer</span> <span class="function"><span class="keyword">func</span><span class="params">()</span></span> &#123;</span><br><span class="line">			poolOfIntPools.put(in.intPool)</span><br><span class="line">			in.intPool = <span class="literal">nil</span></span><br><span class="line">		&#125;()</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	in.evm.depth++</span><br><span class="line">	<span class="keyword">defer</span> <span class="function"><span class="keyword">func</span><span class="params">()</span></span> &#123; in.evm.depth-- &#125;()</span><br><span class="line"></span><br><span class="line">	<span class="keyword">if</span> readOnly &amp;&amp; !in.readOnly &#123;</span><br><span class="line">		in.readOnly = <span class="literal">true</span></span><br><span class="line">		<span class="keyword">defer</span> <span class="function"><span class="keyword">func</span><span class="params">()</span></span> &#123; in.readOnly = <span class="literal">false</span> &#125;()</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	in.returnData = <span class="literal">nil</span></span><br><span class="line"></span><br><span class="line">	<span class="keyword">if</span> <span class="built_in">len</span>(contract.Code) == <span class="number">0</span> &#123;</span><br><span class="line">		<span class="keyword">return</span> <span class="literal">nil</span>, <span class="literal">nil</span></span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">var</span> (</span><br><span class="line">		op    OpCode        </span><br><span class="line">		mem   = NewMemory() </span><br><span class="line">		stack = newstack()  </span><br><span class="line"></span><br><span class="line">		pc   = <span class="keyword">uint64</span>(<span class="number">0</span>) </span><br><span class="line">		cost <span class="keyword">uint64</span></span><br><span class="line">		pcCopy  <span class="keyword">uint64</span> </span><br><span class="line">		gasCopy <span class="keyword">uint64</span> </span><br><span class="line">		logged  <span class="keyword">bool</span>   </span><br><span class="line">		res     []<span class="keyword">byte</span> </span><br><span class="line">	)</span><br><span class="line">	contract.Input = input</span><br><span class="line"></span><br><span class="line">	<span class="keyword">defer</span> <span class="function"><span class="keyword">func</span><span class="params">()</span></span> &#123; in.intPool.put(stack.data...) &#125;()</span><br><span class="line"></span><br><span class="line">	<span class="keyword">if</span> in.cfg.Debug &#123;</span><br><span class="line">		<span class="keyword">defer</span> <span class="function"><span class="keyword">func</span><span class="params">()</span></span> &#123;</span><br><span class="line">			<span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">				<span class="keyword">if</span> !logged &#123;</span><br><span class="line">					in.cfg.Tracer.CaptureState(in.evm, pcCopy, op, gasCopy, cost, mem, stack, contract, in.evm.depth, err)</span><br><span class="line">				&#125; <span class="keyword">else</span> &#123;</span><br><span class="line">					in.cfg.Tracer.CaptureFault(in.evm, pcCopy, op, gasCopy, cost, mem, stack, contract, in.evm.depth, err)</span><br><span class="line">				&#125;</span><br><span class="line">			&#125;</span><br><span class="line">		&#125;()</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">for</span> atomic.LoadInt32(&amp;in.evm.abort) == <span class="number">0</span> &#123;</span><br><span class="line">		<span class="keyword">if</span> in.cfg.Debug &#123;</span><br><span class="line">			logged, pcCopy, gasCopy = <span class="literal">false</span>, pc, contract.Gas</span><br><span class="line">		&#125;</span><br><span class="line"></span><br><span class="line">		op = contract.GetOp(pc)</span><br><span class="line">		operation := in.cfg.JumpTable[op]</span><br><span class="line">		<span class="keyword">if</span> !operation.valid &#123;</span><br><span class="line">			<span class="keyword">return</span> <span class="literal">nil</span>, fmt.Errorf(<span class="string">"invalid opcode 0x%x"</span>, <span class="keyword">int</span>(op))</span><br><span class="line">		&#125;</span><br><span class="line">		<span class="keyword">if</span> err = operation.validateStack(stack); err != <span class="literal">nil</span> &#123;</span><br><span class="line">			<span class="keyword">return</span> <span class="literal">nil</span>, err</span><br><span class="line">		&#125;</span><br><span class="line">		<span class="keyword">if</span> err = in.enforceRestrictions(op, operation, stack); err != <span class="literal">nil</span> &#123;</span><br><span class="line">			<span class="keyword">return</span> <span class="literal">nil</span>, err</span><br><span class="line">		&#125;</span><br><span class="line"></span><br><span class="line">		<span class="keyword">var</span> memorySize <span class="keyword">uint64</span></span><br><span class="line">		<span class="keyword">if</span> operation.memorySize != <span class="literal">nil</span> &#123;</span><br><span class="line">			memSize, overflow := bigUint64(operation.memorySize(stack))</span><br><span class="line">			<span class="keyword">if</span> overflow &#123;</span><br><span class="line">				<span class="keyword">return</span> <span class="literal">nil</span>, errGasUintOverflow</span><br><span class="line">			&#125;</span><br><span class="line">			<span class="keyword">if</span> memorySize, overflow = math.SafeMul(toWordSize(memSize), <span class="number">32</span>); overflow &#123;</span><br><span class="line">				<span class="keyword">return</span> <span class="literal">nil</span>, errGasUintOverflow</span><br><span class="line">			&#125;</span><br><span class="line">		&#125;</span><br><span class="line">		cost, err = operation.gasCost(in.gasTable, in.evm, contract, stack, mem, memorySize)</span><br><span class="line">		<span class="keyword">if</span> err != <span class="literal">nil</span> || !contract.UseGas(cost) &#123;</span><br><span class="line">			<span class="keyword">return</span> <span class="literal">nil</span>, ErrOutOfGas</span><br><span class="line">		&#125;</span><br><span class="line">		<span class="keyword">if</span> memorySize &gt; <span class="number">0</span> &#123;</span><br><span class="line">			mem.Resize(memorySize)</span><br><span class="line">		&#125;</span><br><span class="line"></span><br><span class="line">		<span class="keyword">if</span> in.cfg.Debug &#123;</span><br><span class="line">			in.cfg.Tracer.CaptureState(in.evm, pc, op, gasCopy, cost, mem, stack, contract, in.evm.depth, err)</span><br><span class="line">			logged = <span class="literal">true</span></span><br><span class="line">		&#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">		res, err = operation.execute(&amp;pc, in, contract, mem, stack)</span><br><span class="line">		<span class="keyword">if</span> verifyPool &#123;</span><br><span class="line">			verifyIntegerPool(in.intPool)</span><br><span class="line">		&#125;</span><br><span class="line">		<span class="keyword">if</span> operation.returns &#123;</span><br><span class="line">			in.returnData = res</span><br><span class="line">		&#125;</span><br><span class="line"></span><br><span class="line">		<span class="keyword">switch</span> &#123;</span><br><span class="line">		<span class="keyword">case</span> err != <span class="literal">nil</span>:</span><br><span class="line">			<span class="keyword">return</span> <span class="literal">nil</span>, err</span><br><span class="line">		<span class="keyword">case</span> operation.reverts:</span><br><span class="line">			<span class="keyword">return</span> res, errExecutionReverted</span><br><span class="line">		<span class="keyword">case</span> operation.halts:</span><br><span class="line">			<span class="keyword">return</span> res, <span class="literal">nil</span></span><br><span class="line">		<span class="keyword">case</span> !operation.jumps:</span><br><span class="line">			pc++</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">return</span> <span class="literal">nil</span>, <span class="literal">nil</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>第一步如果intPool为空，则从poolOfIntPools中取一个，poolOfIntPools是intPoolPool类型，就是intPool的缓存池。这里还定义了一个defer，是在run执行完之后回收解释器的intPool</p>
+<p>接着调用栈深度加一，也就是每执行一次Run方法调用栈深度加一。但是调用结束后会减一。接着初始化一些变量用于执行代码，如栈、内存模型、程序计数器等。然后将输入赋给合约的Input字段。中间有一步，如果传入的合约对象的代码为空的话则直接结束，对应evm的call方法中指定的合约地址不存在的情况。</p>
+<p>再往下开始了一个循环，每次都要先判断evm的abort字段是否为0，为1的话要终止操作。进入循环，首先通过合约的GetOp方法获取pc所指的操作符，再根据操作符获取JumpTable对应的operation对象。获得operation后，先检查有效性，再检测当前栈的大小是否符合操作符要求，利用的validateStack方法。如果通过检查，则调用enforceRestrictions方法<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(in *EVMInterpreter)</span> <span class="title">enforceRestrictions</span><span class="params">(op OpCode, operation operation, stack *Stack)</span> <span class="title">error</span></span> &#123;</span><br><span class="line">	<span class="keyword">if</span> in.evm.chainRules.IsByzantium &#123;</span><br><span class="line">		<span class="keyword">if</span> in.readOnly &#123;</span><br><span class="line">			<span class="keyword">if</span> operation.writes || (op == CALL &amp;&amp; stack.Back(<span class="number">2</span>).BitLen() &gt; <span class="number">0</span>) &#123;</span><br><span class="line">				<span class="keyword">return</span> errWriteProtection</span><br><span class="line">			&#125;</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">return</span> <span class="literal">nil</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>这个主要是针对拜占庭版本下只读模式时，操作符是否进行写操作，在evm的StaticCall的方法会进行只读操作，是的话触发写保护错误。</p>
+<p>一切正常的话，检查memory是否符合操作符要求，主要借助operation的memorySize获取期望的memory大小。接着又计算了gas的消耗，利用contract.UseGas检查gas是否够用。经过上面的检测，都通过的话，先对memory大小进行调整，然后执行操作符的execute方法，得到返回值和错误信息。之后，如果操作符需要返回值，则将刚才执行完后的返回值res赋给解释器的returnData字段。</p>
+<p>最后还有一个switch字段，根据operation的一些条件返回不同的值。这样一次循环结束，接着下一次循环，根据pc执行下一个操作符。</p>
+<h1 id="evm"><a href="#evm" class="headerlink" title="evm"></a>evm</h1><p>这个就是EVM的对象，他主要是运行智能合约的。<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">type</span> EVM <span class="keyword">struct</span> &#123;</span><br><span class="line"></span><br><span class="line">	Context</span><br><span class="line"></span><br><span class="line">	StateDB StateDB</span><br><span class="line"></span><br><span class="line">	depth <span class="keyword">int</span></span><br><span class="line"></span><br><span class="line">	chainConfig *params.ChainConfig</span><br><span class="line"></span><br><span class="line">	chainRules params.Rules</span><br><span class="line">.</span><br><span class="line">	vmConfig Config</span><br><span class="line"></span><br><span class="line">	interpreters []Interpreter</span><br><span class="line">	interpreter  Interpreter</span><br><span class="line"></span><br><span class="line">	abort <span class="keyword">int32</span></span><br><span class="line"></span><br><span class="line">	callGasTemp <span class="keyword">uint64</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>其中Context提供了区块链的相关上下文信息。StateDB是一个接口，实际上就是state包中stateDB，用于对合约账户操作。<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">type</span> Context <span class="keyword">struct</span> &#123;</span><br><span class="line">	CanTransfer CanTransferFunc</span><br><span class="line">	Transfer TransferFunc</span><br><span class="line">	GetHash GetHashFunc</span><br><span class="line"></span><br><span class="line">	Origin   common.Address </span><br><span class="line">	GasPrice *big.Int      </span><br><span class="line"></span><br><span class="line">	Coinbase    common.Address </span><br><span class="line">	GasLimit    <span class="keyword">uint64</span>        </span><br><span class="line">	BlockNumber *big.Int       </span><br><span class="line">	Time        *big.Int       </span><br><span class="line">	Difficulty  *big.Int      </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<h2 id="NewEVM"><a href="#NewEVM" class="headerlink" title="NewEVM"></a>NewEVM</h2><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">NewEVM</span><span class="params">(ctx Context, statedb StateDB, chainConfig *params.ChainConfig, vmConfig Config)</span> *<span class="title">EVM</span></span> &#123;</span><br><span class="line">	evm := &amp;EVM&#123;</span><br><span class="line">		Context:      ctx,</span><br><span class="line">		StateDB:      statedb,</span><br><span class="line">		vmConfig:     vmConfig,</span><br><span class="line">		chainConfig:  chainConfig,</span><br><span class="line">		chainRules:   chainConfig.Rules(ctx.BlockNumber),</span><br><span class="line">		interpreters: <span class="built_in">make</span>([]Interpreter, <span class="number">0</span>, <span class="number">1</span>),</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">if</span> chainConfig.IsEWASM(ctx.BlockNumber) &#123;</span><br><span class="line">		<span class="built_in">panic</span>(<span class="string">"No supported ewasm interpreter yet."</span>)</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	evm.interpreters = <span class="built_in">append</span>(evm.interpreters, NewEVMInterpreter(evm, vmConfig))</span><br><span class="line">	evm.interpreter = evm.interpreters[<span class="number">0</span>]</span><br><span class="line"></span><br><span class="line">	<span class="keyword">return</span> evm</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>主要是对evm的成员进行赋值。chainConfig.Rules方法主要是记录区块链的ID和以太坊版本。之后新建了一个解释器。</p>
+<h2 id="Create"><a href="#Create" class="headerlink" title="Create"></a>Create</h2><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(evm *EVM)</span> <span class="title">Create</span><span class="params">(caller ContractRef, code []<span class="keyword">byte</span>, gas <span class="keyword">uint64</span>, value *big.Int)</span> <span class="params">(ret []<span class="keyword">byte</span>, contractAddr common.Address, leftOverGas <span class="keyword">uint64</span>, err error)</span></span> &#123;</span><br><span class="line">	contractAddr = crypto.CreateAddress(caller.Address(), evm.StateDB.GetNonce(caller.Address()))</span><br><span class="line">	<span class="keyword">return</span> evm.create(caller, &amp;codeAndHash&#123;code: code&#125;, gas, value, contractAddr)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">CreateAddress</span><span class="params">(b common.Address, nonce <span class="keyword">uint64</span>)</span> <span class="title">common</span>.<span class="title">Address</span></span> &#123;</span><br><span class="line">	data, _ := rlp.EncodeToBytes([]<span class="keyword">interface</span>&#123;&#125;&#123;b, nonce&#125;)</span><br><span class="line">	<span class="keyword">return</span> common.BytesToAddress(Keccak256(data)[<span class="number">12</span>:])</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>这是创建一个合约的方法，在StateTransition处理交易时，如果接收人地址为空则调用该方法创建合约。传入的参数中caller是交易发起人的地址（ContractRef类型）、code是交易中附带的数据、gas是交易最大gas量减去固有费用后剩余的gas、value是交易中需要交易的金额。</p>
+<p>首先第一步构造合约地址，这里我们知道合约地址实际上就是发起者的地址拼接上发起者的nonce经过rlp编码后再做keccak256散列后取后20字节。接下来调用了create方法<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(evm *EVM)</span> <span class="title">create</span><span class="params">(caller ContractRef, codeAndHash *codeAndHash, gas <span class="keyword">uint64</span>, value *big.Int, address common.Address)</span> <span class="params">([]<span class="keyword">byte</span>, common.Address, <span class="keyword">uint64</span>, error)</span></span> &#123;</span><br><span class="line">	<span class="keyword">if</span> evm.depth &gt; <span class="keyword">int</span>(params.CallCreateDepth) &#123;</span><br><span class="line">		<span class="keyword">return</span> <span class="literal">nil</span>, common.Address&#123;&#125;, gas, ErrDepth</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">if</span> !evm.CanTransfer(evm.StateDB, caller.Address(), value) &#123;</span><br><span class="line">		<span class="keyword">return</span> <span class="literal">nil</span>, common.Address&#123;&#125;, gas, ErrInsufficientBalance</span><br><span class="line">	&#125;</span><br><span class="line">	nonce := evm.StateDB.GetNonce(caller.Address())</span><br><span class="line">	evm.StateDB.SetNonce(caller.Address(), nonce+<span class="number">1</span>)</span><br><span class="line"></span><br><span class="line">	contractHash := evm.StateDB.GetCodeHash(address)</span><br><span class="line">	<span class="keyword">if</span> evm.StateDB.GetNonce(address) != <span class="number">0</span> || (contractHash != (common.Hash&#123;&#125;) &amp;&amp; contractHash != emptyCodeHash) &#123;</span><br><span class="line">		<span class="keyword">return</span> <span class="literal">nil</span>, common.Address&#123;&#125;, <span class="number">0</span>, ErrContractAddressCollision</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	snapshot := evm.StateDB.Snapshot()</span><br><span class="line">	evm.StateDB.CreateAccount(address)</span><br><span class="line">	<span class="keyword">if</span> evm.ChainConfig().IsEIP158(evm.BlockNumber) &#123;</span><br><span class="line">		evm.StateDB.SetNonce(address, <span class="number">1</span>)</span><br><span class="line">	&#125;</span><br><span class="line">	evm.Transfer(evm.StateDB, caller.Address(), address, value)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">	contract := NewContract(caller, AccountRef(address), value, gas)</span><br><span class="line">	contract.SetCodeOptionalHash(&amp;address, codeAndHash)</span><br><span class="line"></span><br><span class="line">	<span class="keyword">if</span> evm.vmConfig.NoRecursion &amp;&amp; evm.depth &gt; <span class="number">0</span> &#123;</span><br><span class="line">		<span class="keyword">return</span> <span class="literal">nil</span>, address, gas, <span class="literal">nil</span></span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">if</span> evm.vmConfig.Debug &amp;&amp; evm.depth == <span class="number">0</span> &#123;</span><br><span class="line">		evm.vmConfig.Tracer.CaptureStart(caller.Address(), address, <span class="literal">true</span>, codeAndHash.code, gas, value)</span><br><span class="line">	&#125;</span><br><span class="line">	start := time.Now()</span><br><span class="line"></span><br><span class="line">	ret, err := run(evm, contract, <span class="literal">nil</span>, <span class="literal">false</span>)</span><br><span class="line"></span><br><span class="line">	maxCodeSizeExceeded := evm.ChainConfig().IsEIP158(evm.BlockNumber) &amp;&amp; <span class="built_in">len</span>(ret) &gt; params.MaxCodeSize</span><br><span class="line">	<span class="keyword">if</span> err == <span class="literal">nil</span> &amp;&amp; !maxCodeSizeExceeded &#123;</span><br><span class="line">		createDataGas := <span class="keyword">uint64</span>(<span class="built_in">len</span>(ret)) * params.CreateDataGas</span><br><span class="line">		<span class="keyword">if</span> contract.UseGas(createDataGas) &#123;</span><br><span class="line">			evm.StateDB.SetCode(address, ret)</span><br><span class="line">		&#125; <span class="keyword">else</span> &#123;</span><br><span class="line">			err = ErrCodeStoreOutOfGas</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">if</span> maxCodeSizeExceeded || (err != <span class="literal">nil</span> &amp;&amp; (evm.ChainConfig().IsHomestead(evm.BlockNumber) || err != ErrCodeStoreOutOfGas)) &#123;</span><br><span class="line">		evm.StateDB.RevertToSnapshot(snapshot)</span><br><span class="line">		<span class="keyword">if</span> err != errExecutionReverted &#123;</span><br><span class="line">			contract.UseGas(contract.Gas)</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">if</span> maxCodeSizeExceeded &amp;&amp; err == <span class="literal">nil</span> &#123;</span><br><span class="line">		err = errMaxCodeSizeExceeded</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">if</span> evm.vmConfig.Debug &amp;&amp; evm.depth == <span class="number">0</span> &#123;</span><br><span class="line">		evm.vmConfig.Tracer.CaptureEnd(ret, gas-contract.Gas, time.Since(start), err)</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">return</span> ret, address, contract.Gas, err</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>首先检测调用深度不得超过1024。之后利用CanTransfer检测账户余额是否足够<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">CanTransfer</span><span class="params">(db vm.StateDB, addr common.Address, amount *big.Int)</span> <span class="title">bool</span></span> &#123;</span><br><span class="line">	<span class="keyword">return</span> db.GetBalance(addr).Cmp(amount) &gt;= <span class="number">0</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>接着获取了发起者账户的Nonce，之后将其Nonce自增一。接下来检测该合约是否被创建过。一切检测完毕后，创建一个StateDB的快照。</p>
+<p>接下来首先调用StateDB的CreateAccount，在statedb中的表现是创建了一个stateObject并记录相应事件，这个stateObject就代表新建的合约账户。接着如果处于EIP158版本，则将合约账户nonce初始化为1。再往下执行了Transfer方法。<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">Transfer</span><span class="params">(db vm.StateDB, sender, recipient common.Address, amount *big.Int)</span></span> &#123;</span><br><span class="line">	db.SubBalance(sender, amount)</span><br><span class="line">	db.AddBalance(recipient, amount)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>到此处表示合约账户创建成功了，此时要将创建人的账户减去他给合约发送的金额，而合约账户要相应的增加对应的金额。</p>
+<p>接着调用NewContract创建一个新的合约对象，并利用SetCodeOptionalHash设置合约代码以代码hash值等数据。此时如果配置了NoRecursion（也就是不允许解释器执行call、callcode、delegate call和create）并且调用深度大于0，则直接返回。否则如果调用深度为0但是Debug模式则开始抓取信息。接下来运行run方法进行合约初始化，返回值ret是合约的代码。之后检查代码是否超过最大长度（24567）。如果没有的话存储代码，首先计算存储代码所需的gas，每字节200Gas。然后调用Contract的UseGas方法判断gas是否够用，够用的话使用statedb存储代码。如果前面代码过长或者Gas不足则回滚。最后方法结束，返回合约代码，合约地址以及合约剩余Gas。</p>
+<p>除了Create方法可以创建合约外，还有一个Create2方法，唯一区别就是合约账户地址的生成不一样，<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(evm *EVM)</span> <span class="title">Create2</span><span class="params">(caller ContractRef, code []<span class="keyword">byte</span>, gas <span class="keyword">uint64</span>, endowment *big.Int, salt *big.Int)</span> <span class="params">(ret []<span class="keyword">byte</span>, contractAddr common.Address, leftOverGas <span class="keyword">uint64</span>, err error)</span></span> &#123;</span><br><span class="line">	codeAndHash := &amp;codeAndHash&#123;code: code&#125;</span><br><span class="line">	contractAddr = crypto.CreateAddress2(caller.Address(), common.BigToHash(salt), codeAndHash.Hash().Bytes())</span><br><span class="line">	<span class="keyword">return</span> evm.create(caller, codeAndHash, gas, endowment, contractAddr)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">CreateAddress2</span><span class="params">(b common.Address, salt [32]<span class="keyword">byte</span>, inithash []<span class="keyword">byte</span>)</span> <span class="title">common</span>.<span class="title">Address</span></span> &#123;</span><br><span class="line">	<span class="keyword">return</span> common.BytesToAddress(Keccak256([]<span class="keyword">byte</span>&#123;<span class="number">0xff</span>&#125;, b.Bytes(), salt[:], inithash)[<span class="number">12</span>:])</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>Create2中地址为keccak256(0xff + 发起人地址 + salt + 代码的hash值)，取最后20字节。</p>
+<h2 id="Call"><a href="#Call" class="headerlink" title="Call"></a>Call</h2><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(evm *EVM)</span> <span class="title">Call</span><span class="params">(caller ContractRef, addr common.Address, input []<span class="keyword">byte</span>, gas <span class="keyword">uint64</span>, value *big.Int)</span> <span class="params">(ret []<span class="keyword">byte</span>, leftOverGas <span class="keyword">uint64</span>, err error)</span></span> &#123;</span><br><span class="line">	<span class="keyword">if</span> evm.vmConfig.NoRecursion &amp;&amp; evm.depth &gt; <span class="number">0</span> &#123;</span><br><span class="line">		<span class="keyword">return</span> <span class="literal">nil</span>, gas, <span class="literal">nil</span></span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">if</span> evm.depth &gt; <span class="keyword">int</span>(params.CallCreateDepth) &#123;</span><br><span class="line">		<span class="keyword">return</span> <span class="literal">nil</span>, gas, ErrDepth</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">if</span> !evm.Context.CanTransfer(evm.StateDB, caller.Address(), value) &#123;</span><br><span class="line">		<span class="keyword">return</span> <span class="literal">nil</span>, gas, ErrInsufficientBalance</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">var</span> (</span><br><span class="line">		to       = AccountRef(addr)</span><br><span class="line">		snapshot = evm.StateDB.Snapshot()</span><br><span class="line">	)</span><br><span class="line">	<span class="keyword">if</span> !evm.StateDB.Exist(addr) &#123;</span><br><span class="line">		precompiles := PrecompiledContractsHomestead</span><br><span class="line">		<span class="keyword">if</span> evm.ChainConfig().IsByzantium(evm.BlockNumber) &#123;</span><br><span class="line">			precompiles = PrecompiledContractsByzantium</span><br><span class="line">		&#125;</span><br><span class="line">		<span class="keyword">if</span> precompiles[addr] == <span class="literal">nil</span> &amp;&amp; evm.ChainConfig().IsEIP158(evm.BlockNumber) &amp;&amp; value.Sign() == <span class="number">0</span> &#123;</span><br><span class="line">			<span class="keyword">if</span> evm.vmConfig.Debug &amp;&amp; evm.depth == <span class="number">0</span> &#123;</span><br><span class="line">				evm.vmConfig.Tracer.CaptureStart(caller.Address(), addr, <span class="literal">false</span>, input, gas, value)</span><br><span class="line">				evm.vmConfig.Tracer.CaptureEnd(ret, <span class="number">0</span>, <span class="number">0</span>, <span class="literal">nil</span>)</span><br><span class="line">			&#125;</span><br><span class="line">			<span class="keyword">return</span> <span class="literal">nil</span>, gas, <span class="literal">nil</span></span><br><span class="line">		&#125;</span><br><span class="line">		evm.StateDB.CreateAccount(addr)</span><br><span class="line">	&#125;</span><br><span class="line">	evm.Transfer(evm.StateDB, caller.Address(), to.Address(), value)</span><br><span class="line">	contract := NewContract(caller, to, value, gas)</span><br><span class="line">	contract.SetCallCode(&amp;addr, evm.StateDB.GetCodeHash(addr), evm.StateDB.GetCode(addr))</span><br><span class="line"></span><br><span class="line">	start := time.Now()</span><br><span class="line"></span><br><span class="line">	<span class="keyword">if</span> evm.vmConfig.Debug &amp;&amp; evm.depth == <span class="number">0</span> &#123;</span><br><span class="line">		evm.vmConfig.Tracer.CaptureStart(caller.Address(), addr, <span class="literal">false</span>, input, gas, value)</span><br><span class="line"></span><br><span class="line">		<span class="keyword">defer</span> <span class="function"><span class="keyword">func</span><span class="params">()</span></span> &#123; </span><br><span class="line">			evm.vmConfig.Tracer.CaptureEnd(ret, gas-contract.Gas, time.Since(start), err)</span><br><span class="line">		&#125;()</span><br><span class="line">	&#125;</span><br><span class="line">	ret, err = run(evm, contract, input, <span class="literal">false</span>)</span><br><span class="line"></span><br><span class="line">	<span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">		evm.StateDB.RevertToSnapshot(snapshot)</span><br><span class="line">		<span class="keyword">if</span> err != errExecutionReverted &#123;</span><br><span class="line">			contract.UseGas(contract.Gas)</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">return</span> ret, contract.Gas, err</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>与Create方法类似，这个方法在一般交易中或者调用合约是会用到。在StateTransition中如果是一般交易的话会调用该方法。传入的参数依次是交易的发起人，交易的接受者，交易附带数据（这里解释为调用合约的输入值），交易剩余的可用gas，交易传输的金额。</p>
+<p>开始时也是先进行检测，第一步如果配置了NoRecursion且调用深度大于0，则直接返回。第二如果调用深度大于1024报错返回。第三步检测调用账户余额是否足够。</p>
+<p>之后记录交易的目标地址以及创建快照。接着使用stateDB的Exist方法判断该地址是否存在，如果不存在，也就说明该账户尚未创建，则首先加载一系列预编译的代码，然后检查所谓的目标地址是否和这些预编译的代码编号对应，如果对应不上且是EIP158版本且发送的value为0，则返回，本次没有实际的调用。</p>
+<p>否则，则是前面的几种情况有满足的，调用StateDB的CreateAccount创建一个账户对应的stateObject。接下来调用Transfer转移金额。再往下创建一个新的合约对象并设置代码及代码hash。这里只是创建一个Contract对象，提供后面执行的上下文环境，并没有实际的创建合约账户，而且Contract的代码字段也仅仅是通过给定的合约地址获取的，如果刚才这个合约地址不存在的话，这个GetCode方法取到的只能为nil，当code为空时后面的run方法会自动退出，这时表示对一个账户单纯的转账。</p>
+<p>接着如果是debug模式而且调用深度为0，开始捕获信息。然后调用run方法执行，此时有输入信息，如果前面创建的合约对象code不为空的话。这里就表示调用合约的代码。执行完之后，如果有错则进行回滚。</p>
+<h2 id="Callcode"><a href="#Callcode" class="headerlink" title="Callcode"></a>Callcode</h2><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(evm *EVM)</span> <span class="title">CallCode</span><span class="params">(caller ContractRef, addr common.Address, input []<span class="keyword">byte</span>, gas <span class="keyword">uint64</span>, value *big.Int)</span> <span class="params">(ret []<span class="keyword">byte</span>, leftOverGas <span class="keyword">uint64</span>, err error)</span></span> &#123;</span><br><span class="line">	<span class="keyword">if</span> evm.vmConfig.NoRecursion &amp;&amp; evm.depth &gt; <span class="number">0</span> &#123;</span><br><span class="line">		<span class="keyword">return</span> <span class="literal">nil</span>, gas, <span class="literal">nil</span></span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">if</span> evm.depth &gt; <span class="keyword">int</span>(params.CallCreateDepth) &#123;</span><br><span class="line">		<span class="keyword">return</span> <span class="literal">nil</span>, gas, ErrDepth</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">if</span> !evm.CanTransfer(evm.StateDB, caller.Address(), value) &#123;</span><br><span class="line">		<span class="keyword">return</span> <span class="literal">nil</span>, gas, ErrInsufficientBalance</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">var</span> (</span><br><span class="line">		snapshot = evm.StateDB.Snapshot()</span><br><span class="line">		to       = AccountRef(caller.Address())</span><br><span class="line">	)</span><br><span class="line"></span><br><span class="line">	contract := NewContract(caller, to, value, gas)</span><br><span class="line">	contract.SetCallCode(&amp;addr, evm.StateDB.GetCodeHash(addr), evm.StateDB.GetCode(addr))</span><br><span class="line"></span><br><span class="line">	ret, err = run(evm, contract, input, <span class="literal">false</span>)</span><br><span class="line">	<span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">		evm.StateDB.RevertToSnapshot(snapshot)</span><br><span class="line">		<span class="keyword">if</span> err != errExecutionReverted &#123;</span><br><span class="line">			contract.UseGas(contract.Gas)</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">return</span> ret, contract.Gas, err</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>这个方法和call类似，最大的区别是使用的是调用者的上下文，体现在创建Contract对象时，第二个参数to是一个用AccountRef包装的调用者地址，这个参数最后影响Contract对象的self字段，表示的是合约的地址，这样设置为调用者的地址后也就相当于调用者自己。回顾call，那里面的to参数就是合约的地址。最后还有一点，call方法会给目标地址转移金额，而callcode不会。</p>
+<h2 id="DelegateCall"><a href="#DelegateCall" class="headerlink" title="DelegateCall"></a>DelegateCall</h2><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(evm *EVM)</span> <span class="title">DelegateCall</span><span class="params">(caller ContractRef, addr common.Address, input []<span class="keyword">byte</span>, gas <span class="keyword">uint64</span>)</span> <span class="params">(ret []<span class="keyword">byte</span>, leftOverGas <span class="keyword">uint64</span>, err error)</span></span> &#123;</span><br><span class="line">	<span class="keyword">if</span> evm.vmConfig.NoRecursion &amp;&amp; evm.depth &gt; <span class="number">0</span> &#123;</span><br><span class="line">		<span class="keyword">return</span> <span class="literal">nil</span>, gas, <span class="literal">nil</span></span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">if</span> evm.depth &gt; <span class="keyword">int</span>(params.CallCreateDepth) &#123;</span><br><span class="line">		<span class="keyword">return</span> <span class="literal">nil</span>, gas, ErrDepth</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">var</span> (</span><br><span class="line">		snapshot = evm.StateDB.Snapshot()</span><br><span class="line">		to       = AccountRef(caller.Address())</span><br><span class="line">	)</span><br><span class="line"></span><br><span class="line">	contract := NewContract(caller, to, <span class="literal">nil</span>, gas).AsDelegate()</span><br><span class="line">	contract.SetCallCode(&amp;addr, evm.StateDB.GetCodeHash(addr), evm.StateDB.GetCode(addr))</span><br><span class="line"></span><br><span class="line">	ret, err = run(evm, contract, input, <span class="literal">false</span>)</span><br><span class="line">	<span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">		evm.StateDB.RevertToSnapshot(snapshot)</span><br><span class="line">		<span class="keyword">if</span> err != errExecutionReverted &#123;</span><br><span class="line">			contract.UseGas(contract.Gas)</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">return</span> ret, contract.Gas, err</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(c *Contract)</span> <span class="title">AsDelegate</span><span class="params">()</span> *<span class="title">Contract</span></span> &#123;</span><br><span class="line">	parent := c.caller.(*Contract)</span><br><span class="line">	c.CallerAddress = parent.CallerAddress</span><br><span class="line">	c.value = parent.value</span><br><span class="line"></span><br><span class="line">	<span class="keyword">return</span> c</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>这个和callcode方法类似，唯一的区别还是创建合约的形式不同，这里和callcode一样将Contract对象的self字段设为调用者地址，另外还使用AsDelegate对合约进行转化。主要修改的是这个合约的调用者不再是DelegateCall传入的调用者，而是DelegateCall方法给的调用者的调用者。注意这里有两层关系，这样创建出的合约实际上调用者类似，自己的地址是caller，调用者则是caller.CallerAddress。这就相当于将两个合约合为一体，效果就类似将另一个合约的代码拿来放在自己合约内执行，当然上下文环境也是自己的。</p>
+<p>实际上call、callcode、delegatecall这三个方法就相当于solidity中对应名称的三个低级调用。</p>
+<h2 id="StaticCall"><a href="#StaticCall" class="headerlink" title="StaticCall"></a>StaticCall</h2><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(evm *EVM)</span> <span class="title">StaticCall</span><span class="params">(caller ContractRef, addr common.Address, input []<span class="keyword">byte</span>, gas <span class="keyword">uint64</span>)</span> <span class="params">(ret []<span class="keyword">byte</span>, leftOverGas <span class="keyword">uint64</span>, err error)</span></span> &#123;</span><br><span class="line">	<span class="keyword">if</span> evm.vmConfig.NoRecursion &amp;&amp; evm.depth &gt; <span class="number">0</span> &#123;</span><br><span class="line">		<span class="keyword">return</span> <span class="literal">nil</span>, gas, <span class="literal">nil</span></span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">if</span> evm.depth &gt; <span class="keyword">int</span>(params.CallCreateDepth) &#123;</span><br><span class="line">		<span class="keyword">return</span> <span class="literal">nil</span>, gas, ErrDepth</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">var</span> (</span><br><span class="line">		to       = AccountRef(addr)</span><br><span class="line">		snapshot = evm.StateDB.Snapshot()</span><br><span class="line">	)</span><br><span class="line"></span><br><span class="line">	contract := NewContract(caller, to, <span class="built_in">new</span>(big.Int), gas)</span><br><span class="line">	contract.SetCallCode(&amp;addr, evm.StateDB.GetCodeHash(addr), evm.StateDB.GetCode(addr))</span><br><span class="line"></span><br><span class="line">	evm.StateDB.AddBalance(addr, bigZero)</span><br><span class="line"></span><br><span class="line">	ret, err = run(evm, contract, input, <span class="literal">true</span>)</span><br><span class="line">	<span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">		evm.StateDB.RevertToSnapshot(snapshot)</span><br><span class="line">		<span class="keyword">if</span> err != errExecutionReverted &#123;</span><br><span class="line">			contract.UseGas(contract.Gas)</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">return</span> ret, contract.Gas, err</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>这类似于前面的call方法，但是他不允许修改状态，原因是调用run方法时最后一个readOnly变量为true，而前几个都为false。</p>
+<h2 id="run"><a href="#run" class="headerlink" title="run"></a>run</h2><p>evm中多次调用了该方法，这是运行给定合约<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">run</span><span class="params">(evm *EVM, contract *Contract, input []<span class="keyword">byte</span>, readOnly <span class="keyword">bool</span>)</span> <span class="params">([]<span class="keyword">byte</span>, error)</span></span> &#123;</span><br><span class="line">	<span class="keyword">if</span> contract.CodeAddr != <span class="literal">nil</span> &#123;</span><br><span class="line">		precompiles := PrecompiledContractsHomestead</span><br><span class="line">		<span class="keyword">if</span> evm.ChainConfig().IsByzantium(evm.BlockNumber) &#123;</span><br><span class="line">			precompiles = PrecompiledContractsByzantium</span><br><span class="line">		&#125;</span><br><span class="line">		<span class="keyword">if</span> p := precompiles[*contract.CodeAddr]; p != <span class="literal">nil</span> &#123;</span><br><span class="line">			<span class="keyword">return</span> RunPrecompiledContract(p, input, contract)</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">for</span> _, interpreter := <span class="keyword">range</span> evm.interpreters &#123;</span><br><span class="line">		<span class="keyword">if</span> interpreter.CanRun(contract.Code) &#123;</span><br><span class="line">			<span class="keyword">if</span> evm.interpreter != interpreter &#123;</span><br><span class="line">				<span class="keyword">defer</span> <span class="function"><span class="keyword">func</span><span class="params">(i Interpreter)</span></span> &#123;</span><br><span class="line">					evm.interpreter = i</span><br><span class="line">				&#125;(evm.interpreter)</span><br><span class="line">				evm.interpreter = interpreter</span><br><span class="line">			&#125;</span><br><span class="line">			<span class="keyword">return</span> interpreter.Run(contract, input, readOnly)</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">return</span> <span class="literal">nil</span>, ErrNoCompatibleInterpreter</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>第一步如果合约中的CodeAddr不为空，则先加载预编译的代码，然后看合约地址是否是这些预编译代码的编号，是的话执行对应的预编译代码<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">RunPrecompiledContract</span><span class="params">(p PrecompiledContract, input []<span class="keyword">byte</span>, contract *Contract)</span> <span class="params">(ret []<span class="keyword">byte</span>, err error)</span></span> &#123;</span><br><span class="line">	gas := p.RequiredGas(input)</span><br><span class="line">	<span class="keyword">if</span> contract.UseGas(gas) &#123;</span><br><span class="line">		<span class="keyword">return</span> p.Run(input)</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">return</span> <span class="literal">nil</span>, ErrOutOfGas</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>基本就是调用了这些预编译合约的RequiredGas和Run方法，一个获取所需的gas，一个执行逻辑。我们以最简单的dataCopy为例<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">type</span> dataCopy <span class="keyword">struct</span>&#123;&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(c *dataCopy)</span> <span class="title">RequiredGas</span><span class="params">(input []<span class="keyword">byte</span>)</span> <span class="title">uint64</span></span> &#123;</span><br><span class="line">	<span class="keyword">return</span> <span class="keyword">uint64</span>(<span class="built_in">len</span>(input)+<span class="number">31</span>)/<span class="number">32</span>*params.IdentityPerWordGas + params.IdentityBaseGas</span><br><span class="line">&#125;</span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(c *dataCopy)</span> <span class="title">Run</span><span class="params">(in []<span class="keyword">byte</span>)</span> <span class="params">([]<span class="keyword">byte</span>, error)</span></span> &#123;</span><br><span class="line">	<span class="keyword">return</span> in, <span class="literal">nil</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>它的RequiredGas就是根据输入数据的长度按每32字节一个字（向上取整）消耗3Gas在加上基础消耗15Gas计算。Run方法则是直接返回输入数据，实现copy功能。</p>
+<p>类似的还有sha256hash，实现SHA256计算<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">type</span> sha256hash <span class="keyword">struct</span>&#123;&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(c *sha256hash)</span> <span class="title">RequiredGas</span><span class="params">(input []<span class="keyword">byte</span>)</span> <span class="title">uint64</span></span> &#123;</span><br><span class="line">	<span class="keyword">return</span> <span class="keyword">uint64</span>(<span class="built_in">len</span>(input)+<span class="number">31</span>)/<span class="number">32</span>*params.Sha256PerWordGas + params.Sha256BaseGas</span><br><span class="line">&#125;</span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(c *sha256hash)</span> <span class="title">Run</span><span class="params">(input []<span class="keyword">byte</span>)</span> <span class="params">([]<span class="keyword">byte</span>, error)</span></span> &#123;</span><br><span class="line">	h := sha256.Sum256(input)</span><br><span class="line">	<span class="keyword">return</span> h[:], <span class="literal">nil</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>还回到run中，如果不是预编译的代码，则遍历evm中的所有解释器，对每个解释器执行canRun方法，检查是否可以执行，可以的话则调用解释器的Run方法去执行，并返回结果。Run方法参见前面解释器的源码分析。</p>
+<blockquote>
+<p>题图来自unsplash：<a href="https://unsplash.com/photos/X0OoHrPvgXE" target="_blank" rel="noopener">https://unsplash.com/photos/X0OoHrPvgXE</a></p>
+</blockquote>
+
+      
+    </div>
+
+    
+
+    
+    
+    
+
+    
+
+    
+      
+    
+    
+      <div>
+        <div style="padding: 10px 0; margin: 20px auto; width: 90%; text-align: center;">
+  <div>谢谢你请我吃糖</div>
+  <button id="rewardButton" disable="enable" onclick="var qr = document.getElementById('QR'); if (qr.style.display === 'none') {qr.style.display='block';} else {qr.style.display='none'}">
+    <span>打赏</span>
+  </button>
+  <div id="QR" style="display: none;">
+
+    
+      <div id="wechat" style="display: inline-block">
+        <img id="wechat_qr" src="/assets/img/wechatpay.jpg" alt="AmorFati 微信支付">
+        <p>微信支付</p>
+      </div>
+    
+
+    
+      <div id="alipay" style="display: inline-block">
+        <img id="alipay_qr" src="/assets/img/alipay.jpg" alt="AmorFati 支付宝">
+        <p>支付宝</p>
+      </div>
+    
+
+    
+
+  </div>
+</div>
+
+      </div>
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/区块链/" rel="tag"># 区块链</a>
+          
+            <a href="/tags/go/" rel="tag"># go</a>
+          
+            <a href="/tags/以太坊/" rel="tag"># 以太坊</a>
+          
+            <a href="/tags/go-ethereum/" rel="tag"># go-ethereum</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2019/05/30/go-ethereum中ethash源码分析/" rel="next" title="go-ethereum中ethash源码分析">
+                <i class="fa fa-chevron-left"></i> go-ethereum中ethash源码分析
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2019/06/08/go-ethereum中Processor源码学习/" rel="prev" title="go-ethereum中Processor源码学习">
+                go-ethereum中Processor源码学习 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+  </div>
+
+
+          </div>
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image" src="/assets/img/icon.jpg" alt="AmorFati">
+            
+              <p class="site-author-name" itemprop="name">AmorFati</p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          
+            <nav class="site-state motion-element">
+              
+                <div class="site-state-item site-state-posts">
+                
+                  <a href="/archives/">
+                
+                    <span class="site-state-item-count">47</span>
+                    <span class="site-state-item-name">日志</span>
+                  </a>
+                </div>
+              
+
+              
+                
+                
+                <div class="site-state-item site-state-categories">
+                  <a href="/categories/index.html">
+                    
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">7</span>
+                    <span class="site-state-item-name">分类</span>
+                  </a>
+                </div>
+              
+
+              
+                
+                
+                <div class="site-state-item site-state-tags">
+                  <a href="/tags/index.html">
+                    
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">11</span>
+                    <span class="site-state-item-name">标签</span>
+                  </a>
+                </div>
+              
+            </nav>
+          
+
+          
+
+          
+            <div class="links-of-author motion-element">
+              
+                <span class="links-of-author-item">
+                  
+                  
+                    
+                  
+                  
+                    
+                  
+                  <a href="https://github.com/chenyaoyang" title="GitHub &rarr; https://github.com/chenyaoyang" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i>GitHub</a>
+                </span>
+              
+                <span class="links-of-author-item">
+                  
+                  
+                    
+                  
+                  
+                    
+                  
+                  <a href="mailto:chenyang4346@foxmail.com" title="E-Mail &rarr; mailto:chenyang4346@foxmail.com" rel="noopener" target="_blank"><i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+                </span>
+              
+                <span class="links-of-author-item">
+                  
+                  
+                    
+                  
+                  
+                    
+                  
+                  <a href="https://www.jianshu.com/u/52c1bec4559c" title="简书 &rarr; https://www.jianshu.com/u/52c1bec4559c" rel="noopener" target="_blank"><i class="fa fa-fw fa-globe"></i>简书</a>
+                </span>
+              
+            </div>
+          
+
+          
+
+          
+          
+
+          
+            
+          
+          
+
+        </div>
+      </div>
+
+      
+      <!--noindex-->
+        <div class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+            
+            
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#Stack"><span class="nav-number">1.</span> <span class="nav-text">Stack</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#push-amp-pop-amp-peek-amp-back"><span class="nav-number">1.1.</span> <span class="nav-text">push &amp; pop &amp; peek &amp; back</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#swap"><span class="nav-number">1.2.</span> <span class="nav-text">swap</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#dup"><span class="nav-number">1.3.</span> <span class="nav-text">dup</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#require"><span class="nav-number">1.4.</span> <span class="nav-text">require</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#stack-table"><span class="nav-number">2.</span> <span class="nav-text">stack_table</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#makeStackFunc"><span class="nav-number">2.1.</span> <span class="nav-text">makeStackFunc</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#makeDupStackFunc"><span class="nav-number">2.2.</span> <span class="nav-text">makeDupStackFunc</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#makeSwapStackFunc"><span class="nav-number">2.3.</span> <span class="nav-text">makeSwapStackFunc</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#intPool"><span class="nav-number">3.</span> <span class="nav-text">intPool</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#get"><span class="nav-number">3.1.</span> <span class="nav-text">get</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#put"><span class="nav-number">3.2.</span> <span class="nav-text">put</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#intPoolPool"><span class="nav-number">3.3.</span> <span class="nav-text">intPoolPool</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#memory"><span class="nav-number">4.</span> <span class="nav-text">memory</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#Resize"><span class="nav-number">4.1.</span> <span class="nav-text">Resize</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Set"><span class="nav-number">4.2.</span> <span class="nav-text">Set</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Get"><span class="nav-number">4.3.</span> <span class="nav-text">Get</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#memory-table-go"><span class="nav-number">5.</span> <span class="nav-text">memory_table.go</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#jump-table-go"><span class="nav-number">6.</span> <span class="nav-text">jump_table.go</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#instruction-go"><span class="nav-number">7.</span> <span class="nav-text">instruction.go</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#opAdd"><span class="nav-number">7.1.</span> <span class="nav-text">opAdd</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#opLt"><span class="nav-number">7.2.</span> <span class="nav-text">opLt</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#opCallDataLoad"><span class="nav-number">7.3.</span> <span class="nav-text">opCallDataLoad</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#opMstore"><span class="nav-number">7.4.</span> <span class="nav-text">opMstore</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#opSstore"><span class="nav-number">7.5.</span> <span class="nav-text">opSstore</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#opJump"><span class="nav-number">7.6.</span> <span class="nav-text">opJump</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#gas-table-go"><span class="nav-number">8.</span> <span class="nav-text">gas_table.go</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Contract"><span class="nav-number">9.</span> <span class="nav-text">Contract</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#NewContract"><span class="nav-number">9.1.</span> <span class="nav-text">NewContract</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#interpreter"><span class="nav-number">10.</span> <span class="nav-text">interpreter</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#CanRun"><span class="nav-number">10.1.</span> <span class="nav-text">CanRun</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Run"><span class="nav-number">10.2.</span> <span class="nav-text">Run</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#evm"><span class="nav-number">11.</span> <span class="nav-text">evm</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#NewEVM"><span class="nav-number">11.1.</span> <span class="nav-text">NewEVM</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Create"><span class="nav-number">11.2.</span> <span class="nav-text">Create</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Call"><span class="nav-number">11.3.</span> <span class="nav-text">Call</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Callcode"><span class="nav-number">11.4.</span> <span class="nav-text">Callcode</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#DelegateCall"><span class="nav-number">11.5.</span> <span class="nav-text">DelegateCall</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#StaticCall"><span class="nav-number">11.6.</span> <span class="nav-text">StaticCall</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#run"><span class="nav-number">11.7.</span> <span class="nav-text">run</span></a></li></ol></li></ol></div>
+            
+
+          </div>
+        </div>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; 2018 – <span itemprop="copyrightYear">2019</span>
+  <span class="with-love" id="animate">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">AmorFati</span>
+
+  
+
+  
+</div>
+
+
+  <div class="powered-by">由 <a href="https://hexo.io" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v3.8.0</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 – <a href="https://theme-next.org" class="theme-link" rel="noopener" target="_blank">NexT.Pisces</a> v6.6.0</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+    
+
+    
+  </div>
+
+  
+
+<script>
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+
+  
+
+
+  <script src="/js/src/utils.js?v=6.6.0"></script>
+
+  <script src="/js/src/motion.js?v=6.6.0"></script>
+
+
+
+  
+  
+
+
+  <script src="/js/src/affix.js?v=6.6.0"></script>
+
+  <script src="/js/src/schemes/pisces.js?v=6.6.0"></script>
+
+
+
+  
+  <script src="/js/src/scrollspy.js?v=6.6.0"></script>
+<script src="/js/src/post-details.js?v=6.6.0"></script>
+
+
+
+  
+
+
+  <script src="/js/src/bootstrap.js?v=6.6.0"></script>
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  <script>
+    // Popup Window;
+    var isfetched = false;
+    var isXml = true;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length === 0) {
+      search_path = "search.xml";
+    } else if (/json$/i.test(search_path)) {
+      isXml = false;
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    var onPopupClose = function (e) {
+      $('.popup').hide();
+      $('#local-search-input').val('');
+      $('.search-result-list').remove();
+      $('#no-result').remove();
+      $(".local-search-pop-overlay").remove();
+      $('body').css('overflow', '');
+    }
+
+    function proceedsearch() {
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay"></div>')
+        .css('overflow', 'hidden');
+      $('.search-popup-overlay').click(onPopupClose);
+      $('.popup').toggle();
+      var $localSearchInput = $('#local-search-input');
+      $localSearchInput.attr("autocapitalize", "none");
+      $localSearchInput.attr("autocorrect", "off");
+      $localSearchInput.focus();
+    }
+
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+      'use strict';
+
+      // start loading animation
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay">' +
+          '<div id="search-loading-icon">' +
+          '<i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>' +
+          '</div>' +
+          '</div>')
+        .css('overflow', 'hidden');
+      $("#search-loading-icon").css('margin', '20% auto 0 auto').css('text-align', 'center');
+
+      
+
+      $.ajax({
+        url: path,
+        dataType: isXml ? "xml" : "json",
+        async: true,
+        success: function(res) {
+          // get the contents from search data
+          isfetched = true;
+          $('.popup').detach().appendTo('.header-inner');
+          var datas = isXml ? $("entry", res).map(function() {
+            return {
+              title: $("title", this).text(),
+              content: $("content",this).text(),
+              url: $("url" , this).text()
+            };
+          }).get() : res;
+          var input = document.getElementById(search_id);
+          var resultContent = document.getElementById(content_id);
+          var inputEventFunction = function() {
+            var searchText = input.value.trim().toLowerCase();
+            var keywords = searchText.split(/[\s\-]+/);
+            if (keywords.length > 1) {
+              keywords.push(searchText);
+            }
+            var resultItems = [];
+            if (searchText.length > 0) {
+              // perform local searching
+              datas.forEach(function(data) {
+                var isMatch = false;
+                var hitCount = 0;
+                var searchTextCount = 0;
+                var title = data.title.trim();
+                var titleInLowerCase = title.toLowerCase();
+                var content = data.content.trim().replace(/<[^>]+>/g,"");
+                
+                var contentInLowerCase = content.toLowerCase();
+                var articleUrl = decodeURIComponent(data.url);
+                var indexOfTitle = [];
+                var indexOfContent = [];
+                // only match articles with not empty titles
+                if(title != '') {
+                  keywords.forEach(function(keyword) {
+                    function getIndexByWord(word, text, caseSensitive) {
+                      var wordLen = word.length;
+                      if (wordLen === 0) {
+                        return [];
+                      }
+                      var startPosition = 0, position = [], index = [];
+                      if (!caseSensitive) {
+                        text = text.toLowerCase();
+                        word = word.toLowerCase();
+                      }
+                      while ((position = text.indexOf(word, startPosition)) > -1) {
+                        index.push({position: position, word: word});
+                        startPosition = position + wordLen;
+                      }
+                      return index;
+                    }
+
+                    indexOfTitle = indexOfTitle.concat(getIndexByWord(keyword, titleInLowerCase, false));
+                    indexOfContent = indexOfContent.concat(getIndexByWord(keyword, contentInLowerCase, false));
+                  });
+                  if (indexOfTitle.length > 0 || indexOfContent.length > 0) {
+                    isMatch = true;
+                    hitCount = indexOfTitle.length + indexOfContent.length;
+                  }
+                }
+
+                // show search results
+
+                if (isMatch) {
+                  // sort index by position of keyword
+
+                  [indexOfTitle, indexOfContent].forEach(function (index) {
+                    index.sort(function (itemLeft, itemRight) {
+                      if (itemRight.position !== itemLeft.position) {
+                        return itemRight.position - itemLeft.position;
+                      } else {
+                        return itemLeft.word.length - itemRight.word.length;
+                      }
+                    });
+                  });
+
+                  // merge hits into slices
+
+                  function mergeIntoSlice(text, start, end, index) {
+                    var item = index[index.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    var hits = [];
+                    var searchTextCountInSlice = 0;
+                    while (position + word.length <= end && index.length != 0) {
+                      if (word === searchText) {
+                        searchTextCountInSlice++;
+                      }
+                      hits.push({position: position, length: word.length});
+                      var wordEnd = position + word.length;
+
+                      // move to next position of hit
+
+                      index.pop();
+                      while (index.length != 0) {
+                        item = index[index.length - 1];
+                        position = item.position;
+                        word = item.word;
+                        if (wordEnd > position) {
+                          index.pop();
+                        } else {
+                          break;
+                        }
+                      }
+                    }
+                    searchTextCount += searchTextCountInSlice;
+                    return {
+                      hits: hits,
+                      start: start,
+                      end: end,
+                      searchTextCount: searchTextCountInSlice
+                    };
+                  }
+
+                  var slicesOfTitle = [];
+                  if (indexOfTitle.length != 0) {
+                    slicesOfTitle.push(mergeIntoSlice(title, 0, title.length, indexOfTitle));
+                  }
+
+                  var slicesOfContent = [];
+                  while (indexOfContent.length != 0) {
+                    var item = indexOfContent[indexOfContent.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    // cut out 100 characters
+                    var start = position - 20;
+                    var end = position + 80;
+                    if(start < 0){
+                      start = 0;
+                    }
+                    if (end < position + word.length) {
+                      end = position + word.length;
+                    }
+                    if(end > content.length){
+                      end = content.length;
+                    }
+                    slicesOfContent.push(mergeIntoSlice(content, start, end, indexOfContent));
+                  }
+
+                  // sort slices in content by search text's count and hits' count
+
+                  slicesOfContent.sort(function (sliceLeft, sliceRight) {
+                    if (sliceLeft.searchTextCount !== sliceRight.searchTextCount) {
+                      return sliceRight.searchTextCount - sliceLeft.searchTextCount;
+                    } else if (sliceLeft.hits.length !== sliceRight.hits.length) {
+                      return sliceRight.hits.length - sliceLeft.hits.length;
+                    } else {
+                      return sliceLeft.start - sliceRight.start;
+                    }
+                  });
+
+                  // select top N slices in content
+
+                  var upperBound = parseInt('1');
+                  if (upperBound >= 0) {
+                    slicesOfContent = slicesOfContent.slice(0, upperBound);
+                  }
+
+                  // highlight title and content
+
+                  function highlightKeyword(text, slice) {
+                    var result = '';
+                    var prevEnd = slice.start;
+                    slice.hits.forEach(function (hit) {
+                      result += text.substring(prevEnd, hit.position);
+                      var end = hit.position + hit.length;
+                      result += '<b class="search-keyword">' + text.substring(hit.position, end) + '</b>';
+                      prevEnd = end;
+                    });
+                    result += text.substring(prevEnd, slice.end);
+                    return result;
+                  }
+
+                  var resultItem = '';
+
+                  if (slicesOfTitle.length != 0) {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + highlightKeyword(title, slicesOfTitle[0]) + "</a>";
+                  } else {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + title + "</a>";
+                  }
+
+                  slicesOfContent.forEach(function (slice) {
+                    resultItem += "<a href='" + articleUrl + "'>" +
+                      "<p class=\"search-result\">" + highlightKeyword(content, slice) +
+                      "...</p>" + "</a>";
+                  });
+
+                  resultItem += "</li>";
+                  resultItems.push({
+                    item: resultItem,
+                    searchTextCount: searchTextCount,
+                    hitCount: hitCount,
+                    id: resultItems.length
+                  });
+                }
+              })
+            };
+            if (keywords.length === 1 && keywords[0] === "") {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>'
+            } else if (resultItems.length === 0) {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>'
+            } else {
+              resultItems.sort(function (resultLeft, resultRight) {
+                if (resultLeft.searchTextCount !== resultRight.searchTextCount) {
+                  return resultRight.searchTextCount - resultLeft.searchTextCount;
+                } else if (resultLeft.hitCount !== resultRight.hitCount) {
+                  return resultRight.hitCount - resultLeft.hitCount;
+                } else {
+                  return resultRight.id - resultLeft.id;
+                }
+              });
+              var searchResultList = '<ul class=\"search-result-list\">';
+              resultItems.forEach(function (result) {
+                searchResultList += result.item;
+              })
+              searchResultList += "</ul>";
+              resultContent.innerHTML = searchResultList;
+            }
+          }
+
+          if ('auto' === 'auto') {
+            input.addEventListener('input', inputEventFunction);
+          } else {
+            $('.search-icon').click(inputEventFunction);
+            input.addEventListener('keypress', function (event) {
+              if (event.keyCode === 13) {
+                inputEventFunction();
+              }
+            });
+          }
+
+          // remove loading animation
+          $(".local-search-pop-overlay").remove();
+          $('body').css('overflow', '');
+
+          proceedsearch();
+        }
+      });
+    }
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched === false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+    });
+
+    $('.popup-btn-close').click(onPopupClose);
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+    $(document).on('keyup', function (event) {
+      var shouldDismissSearchPopup = event.which === 27 &&
+        $('.search-popup').is(':visible');
+      if (shouldDismissSearchPopup) {
+        onPopupClose();
+      }
+    });
+  </script>
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+  
+
+  
+
+
+  
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

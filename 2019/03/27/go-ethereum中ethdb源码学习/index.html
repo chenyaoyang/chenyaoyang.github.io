@@ -154,11 +154,11 @@
 <meta property="og:url" content="http://yoursite.com/2019/03/27/go-ethereum中ethdb源码学习/index.html">
 <meta property="og:site_name" content="AmorFati">
 <meta property="og:locale" content="zh-CN">
-<meta property="og:image" content="https://upload-images.jianshu.io/upload_images/5111131-46e4184dddbbe9cc.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240">
-<meta property="og:updated_time" content="2019-03-27T08:25:52.723Z">
+<meta property="og:image" content="https://raw.githubusercontent.com/chenyaoyang/blog-pic/master/1/db1.png">
+<meta property="og:updated_time" content="2019-06-02T14:43:37.000Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="go-ethereum中ethdb源码学习">
-<meta name="twitter:image" content="https://upload-images.jianshu.io/upload_images/5111131-46e4184dddbbe9cc.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240">
+<meta name="twitter:image" content="https://raw.githubusercontent.com/chenyaoyang/blog-pic/master/1/db1.png">
 
 
 
@@ -467,12 +467,24 @@
                 
               
 
-              <time title="创建时间：2019-03-27 16:19:14 / 修改时间：16:25:52" itemprop="dateCreated datePublished" datetime="2019-03-27T16:19:14+08:00">2019-03-27</time>
+              <time title="创建时间：2019-03-27 16:19:14" itemprop="dateCreated datePublished" datetime="2019-03-27T16:19:14+08:00">2019-03-27</time>
             
 
             
               
 
+              
+                
+                <span class="post-meta-divider">|</span>
+                
+
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">更新于</span>
+                
+                <time title="修改时间：2019-06-02 22:43:37" itemprop="dateModified" datetime="2019-06-02T22:43:37+08:00">2019-06-02</time>
               
             
           </span>
@@ -523,7 +535,7 @@
       
 
       
-        <p><img src="https://upload-images.jianshu.io/upload_images/5111131-46e4184dddbbe9cc.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt=""><br><a id="more"></a><br>前面学习了ethereum的编码和数据结构，这里学习一些ethereum的持久化存储也就是数据相关的源码。</p>
+        <p><img src="https://raw.githubusercontent.com/chenyaoyang/blog-pic/master/1/db1.png" alt=""><br><a id="more"></a><br>前面学习了ethereum的编码和数据结构，这里学习一些ethereum的持久化存储也就是数据相关的源码。</p>
 <h1 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h1><p>go-ethereum的数据存储时借助于<a href="http://leveldb.org/" target="_blank" rel="noopener">leveldb数据库</a>，它是Google开发的一种键值对类型的数据库，另外Facebook又基于其开发了RocksDB数据库。简单来说，leveldb具有轻量以及高性能的特点。</p>
 <p>原生的leveldb是用c++写的，并不方便直接用到go项目中，好在leveldb的开发者用go重新实现了leveldb，我们可以直接使用(<a href="https://github.com/syndtr/goleveldb" target="_blank" rel="noopener">github地址</a>)。</p>
 <p>go版本的leveldb需要go1.5以上版本，安装很简单，执行下面命令<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">go get github.com/syndtr/goleveldb/leveldb</span><br></pre></td></tr></table></figure></p>
@@ -726,7 +738,7 @@
                 
                   <a href="/archives/">
                 
-                    <span class="site-state-item-count">43</span>
+                    <span class="site-state-item-count">47</span>
                     <span class="site-state-item-name">日志</span>
                   </a>
                 </div>

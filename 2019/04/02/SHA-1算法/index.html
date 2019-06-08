@@ -154,13 +154,13 @@
 <meta property="og:url" content="http://yoursite.com/2019/04/02/SHA-1算法/index.html">
 <meta property="og:site_name" content="AmorFati">
 <meta property="og:locale" content="zh-CN">
-<meta property="og:image" content="https://upload-images.jianshu.io/upload_images/5111131-6c37344fdb123d8c.jpg?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240">
-<meta property="og:image" content="https://upload-images.jianshu.io/upload_images/5111131-584aaef9b4548a66.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240">
-<meta property="og:image" content="https://upload-images.jianshu.io/upload_images/5111131-aa377026b211f3db.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240">
-<meta property="og:updated_time" content="2019-04-02T06:19:43.202Z">
+<meta property="og:image" content="https://raw.githubusercontent.com/chenyaoyang/blog-pic/master/1/sha11.jpg">
+<meta property="og:image" content="https://raw.githubusercontent.com/chenyaoyang/blog-pic/master/1/sha12.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/chenyaoyang/blog-pic/master/1/sha13.png">
+<meta property="og:updated_time" content="2019-06-02T14:43:37.000Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="SHA-1算法">
-<meta name="twitter:image" content="https://upload-images.jianshu.io/upload_images/5111131-6c37344fdb123d8c.jpg?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240">
+<meta name="twitter:image" content="https://raw.githubusercontent.com/chenyaoyang/blog-pic/master/1/sha11.jpg">
 
 
 
@@ -469,12 +469,24 @@
                 
               
 
-              <time title="创建时间：2019-04-02 13:51:50 / 修改时间：14:19:43" itemprop="dateCreated datePublished" datetime="2019-04-02T13:51:50+08:00">2019-04-02</time>
+              <time title="创建时间：2019-04-02 13:51:50" itemprop="dateCreated datePublished" datetime="2019-04-02T13:51:50+08:00">2019-04-02</time>
             
 
             
               
 
+              
+                
+                <span class="post-meta-divider">|</span>
+                
+
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">更新于</span>
+                
+                <time title="修改时间：2019-06-02 22:43:37" itemprop="dateModified" datetime="2019-06-02T22:43:37+08:00">2019-06-02</time>
               
             
           </span>
@@ -525,13 +537,13 @@
       
 
       
-        <p><img src="https://upload-images.jianshu.io/upload_images/5111131-6c37344fdb123d8c.jpg?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt=""><br><a id="more"></a></p>
+        <p><img src="https://raw.githubusercontent.com/chenyaoyang/blog-pic/master/1/sha11.jpg" alt=""><br><a id="more"></a></p>
 <h1 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h1><p>SHA全称Secure Hash Algorithm，即安全散列算法。它是一个算法簇，包含多种算法。是FIPS所认证的安全散列算法。能计算出一个数字消息所对应到的，长度固定的字符串（又称消息摘要）的算法。且若输入的消息不同，它们对应到不同字符串的机率很高。</p>
 <p>SHA-1于1995年发布，应用相当广泛，被认为是MD5的替代者，但是随着技术的进步SHA-1已经被认为是不安全的，特别是2017年荷兰密码学研究小组CWI和Google正式宣布攻破了SHA-1</p>
 <p>SHA-2在2001年发布，包括SHA-224、SHA-256、SHA-384、SHA-512、SHA-512/224、SHA-512/256。虽然至今尚未出现对SHA-2有效的攻击，它的算法跟SHA-1基本上仍然相似，所以理论上也有漏洞</p>
 <p>SHA-3在2015年正式发布，SHA-3并不是要取代SHA-2，因为SHA-2当前并没有出现明显的弱点。由于对MD5出现成功的破解，以及对SHA-0和SHA-1出现理论上破解的方法，NIST感觉需要一个与之前算法不同的，可替换的加密散列算法，也就是现在的SHA-3。</p>
 <p>SHA家族几种算法比较如下：</p>
-<p><img src="https://upload-images.jianshu.io/upload_images/5111131-584aaef9b4548a66.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt=""></p>
+<p><img src="https://raw.githubusercontent.com/chenyaoyang/blog-pic/master/1/sha12.png" alt=""></p>
 <p>这里我们先来梳理SHA-1的详细过程</p>
 <h1 id="详细流程"><a href="#详细流程" class="headerlink" title="详细流程"></a>详细流程</h1><p>SHA-1和MD5设计非常类似，<a href="https://csrc.nist.gov/csrc/media/publications/fips/180/4/final/documents/fips180-4-draft-aug2014.pdf" target="_blank" rel="noopener">标准文档链接</a>，基本步骤如下</p>
 <h2 id="填充"><a href="#填充" class="headerlink" title="填充"></a>填充</h2><p>和MD5一样，填充总是增加的，也就是512的倍数少64</p>
@@ -544,7 +556,7 @@
 <li>SHA共4轮，每轮20步，输入为子块，abcde，常量。整体算法和MD5类似。与MD5不同，这里的常量仅有四个值，每轮用一个，分别是：5a827999,6ed9eba1,8f1bbcdc，ca62c1d6。</li>
 <li>每一步的逻辑如下图所示</li>
 </ol>
-<p><img src="https://upload-images.jianshu.io/upload_images/5111131-aa377026b211f3db.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt=""></p>
+<p><img src="https://raw.githubusercontent.com/chenyaoyang/blog-pic/master/1/sha13.png" alt=""></p>
 <p>具体来说，一次操作的数学表达式如下：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">abcde=(e + P + a&lt;&lt;5 + W[] + K[]),a,b&lt;&lt;30,c,d</span><br></pre></td></tr></table></figure></p>
 <p>P依然还是一个非线性操作，&lt;&lt;表示循环左移，W[]表示计算某一子块，K[]表示该轮的常量</p>
 <p>w是将16个子块扩展为80个，前16个就是原16个子块，后面的按照下面公式计算<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">w[t] = (w[t-16] xor w[t-14] xor w[t-8] xor w[t-3])&lt;&lt;1</span><br></pre></td></tr></table></figure></p>
@@ -702,7 +714,7 @@
                 
                   <a href="/archives/">
                 
-                    <span class="site-state-item-count">43</span>
+                    <span class="site-state-item-count">47</span>
                     <span class="site-state-item-name">日志</span>
                   </a>
                 </div>

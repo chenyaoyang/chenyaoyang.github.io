@@ -154,14 +154,14 @@
 <meta property="og:url" content="http://yoursite.com/2019/03/31/grpc学习/index.html">
 <meta property="og:site_name" content="AmorFati">
 <meta property="og:locale" content="zh-CN">
-<meta property="og:image" content="https://upload-images.jianshu.io/upload_images/5111131-bea240b690a41e47.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240">
-<meta property="og:image" content="https://upload-images.jianshu.io/upload_images/5111131-8ca7413acfb596ff.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240">
-<meta property="og:image" content="https://upload-images.jianshu.io/upload_images/5111131-c3b3b93d78f1209f.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240">
-<meta property="og:image" content="https://upload-images.jianshu.io/upload_images/5111131-5def4cc52d8b8a1c.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240">
-<meta property="og:updated_time" content="2019-03-31T04:52:03.669Z">
+<meta property="og:image" content="https://raw.githubusercontent.com/chenyaoyang/blog-pic/master/1/g1.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/chenyaoyang/blog-pic/master/1/g2.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/chenyaoyang/blog-pic/master/1/g3.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/chenyaoyang/blog-pic/master/1/g4.png">
+<meta property="og:updated_time" content="2019-06-02T14:43:37.000Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="grpc学习">
-<meta name="twitter:image" content="https://upload-images.jianshu.io/upload_images/5111131-bea240b690a41e47.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240">
+<meta name="twitter:image" content="https://raw.githubusercontent.com/chenyaoyang/blog-pic/master/1/g1.png">
 
 
 
@@ -470,12 +470,24 @@
                 
               
 
-              <time title="创建时间：2019-03-31 12:44:58 / 修改时间：12:52:03" itemprop="dateCreated datePublished" datetime="2019-03-31T12:44:58+08:00">2019-03-31</time>
+              <time title="创建时间：2019-03-31 12:44:58" itemprop="dateCreated datePublished" datetime="2019-03-31T12:44:58+08:00">2019-03-31</time>
             
 
             
               
 
+              
+                
+                <span class="post-meta-divider">|</span>
+                
+
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">更新于</span>
+                
+                <time title="修改时间：2019-06-02 22:43:37" itemprop="dateModified" datetime="2019-06-02T22:43:37+08:00">2019-06-02</time>
               
             
           </span>
@@ -526,12 +538,12 @@
       
 
       
-        <p><img src="https://upload-images.jianshu.io/upload_images/5111131-bea240b690a41e47.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt=""><br><a id="more"></a></p>
+        <p><img src="https://raw.githubusercontent.com/chenyaoyang/blog-pic/master/1/g1.png" alt=""><br><a id="more"></a></p>
 <h1 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h1><p><a href="https://grpc.io/" target="_blank" rel="noopener">gRPC</a>是一个高性能、通用的开源RPC框架，其由Google主要面向移动应用开发并基于HTTP/2协议标准而设计，基于<a href="https://developers.google.com/protocol-buffers/" target="_blank" rel="noopener">ProtoBuf</a>序列化协议开发，且支持众多开发语言。关于ProtoBuf的详细内容可以参考我的<a href="https://blog.grapefruit.tk/2019/03/22/Protobuf%E5%AD%A6%E4%B9%A0%E5%8F%8A%E7%BC%96%E7%A0%81%E6%B7%B1%E5%85%A5/" target="_blank" rel="noopener">这篇文章</a></p>
 <p>根据官方页面显示，目前支持的语言如下：</p>
-<p><img src="https://upload-images.jianshu.io/upload_images/5111131-8ca7413acfb596ff.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="image.png"></p>
+<p><img src="https://raw.githubusercontent.com/chenyaoyang/blog-pic/master/1/g2.png" alt=""></p>
 <p>也就是说在这些语言平台上，完全可以用grpc实现rpc通信，同时又由于protobuf的编码效率高，所以可以实现替代jsonrpc</p>
-<h1 id="HelloWorld"><a href="#HelloWorld" class="headerlink" title="HelloWorld"></a>HelloWorld</h1><p><img src="https://upload-images.jianshu.io/upload_images/5111131-c3b3b93d78f1209f.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt=""></p>
+<h1 id="HelloWorld"><a href="#HelloWorld" class="headerlink" title="HelloWorld"></a>HelloWorld</h1><p><img src="https://raw.githubusercontent.com/chenyaoyang/blog-pic/master/1/g3.png" alt=""></p>
 <p>国际惯例，我们先用go语言写一个grpc版本的hellworld。首先要安装grpc库<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">go get -u google.golang.org/grpc</span><br></pre></td></tr></table></figure></p>
 <h2 id="protobuf定义及编译"><a href="#protobuf定义及编译" class="headerlink" title="protobuf定义及编译"></a>protobuf定义及编译</h2><p>首先定义protobuf文件如下：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line">syntax = &quot;proto3&quot;;</span><br><span class="line"></span><br><span class="line">option java_multiple_files = true;</span><br><span class="line">option java_package = &quot;io.grpc.examples.helloworld&quot;;</span><br><span class="line">option java_outer_classname = &quot;HelloWorldProto&quot;;</span><br><span class="line"></span><br><span class="line">package helloworld;</span><br><span class="line"></span><br><span class="line">service Greeter &#123;</span><br><span class="line">    rpc SayHello (HelloRequest) returns (HelloReply) &#123;&#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">message HelloRequest &#123;</span><br><span class="line">    string name = 1;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">message HelloReply &#123;</span><br><span class="line">    string msg = 1;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
 <p>几点需要注意的，首先protobuf版本为proto3，其中定义了两个message，分别用于请求和响应，又定义了一个service，其中有一个rpc方法，接受请求返回响应</p>
@@ -545,7 +557,7 @@
 <p>可能是为了降低大家学习成本，grpc的接口设置和go rpc标准包类似。首先利用grpc提供的接口去发起一个连接。接下来，grpc很方便的帮我们包装了一个client类，其中有我们可以调用的rpc方法，省去了之前用字符串表示的麻烦，随后就像函数调用一样去调用远程方法即可，返回一个响应，然后我们从响应中读数据。</p>
 <p>有一个小问题需要注意的是，用grpc去发起连接时，目标地址如果是本机地址的话不能像go标准包那样简写为”:1234”，需要像上面代码那样写出全名。</p>
 <p>最后先运行服务端代码再运行客户端代码，就成功实现利用grpc通信。该节示例代码见<a href="https://github.com/chenyaoyang/example/tree/master/code/grpc/helloworld" target="_blank" rel="noopener">这里</a></p>
-<h1 id="grpc相关概念"><a href="#grpc相关概念" class="headerlink" title="grpc相关概念"></a>grpc相关概念</h1><h2 id="服务类型"><a href="#服务类型" class="headerlink" title="服务类型"></a>服务类型</h2><p><img src="https://upload-images.jianshu.io/upload_images/5111131-5def4cc52d8b8a1c.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt=""></p>
+<h1 id="grpc相关概念"><a href="#grpc相关概念" class="headerlink" title="grpc相关概念"></a>grpc相关概念</h1><h2 id="服务类型"><a href="#服务类型" class="headerlink" title="服务类型"></a>服务类型</h2><p><img src="https://raw.githubusercontent.com/chenyaoyang/blog-pic/master/1/g4.png" alt=""></p>
 <p>grpc定义了四种服务</p>
 <h3 id="单项rpc"><a href="#单项rpc" class="headerlink" title="单项rpc"></a>单项rpc</h3><p>就是最普通的请求响应模式<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">rpc SayHello(HelloRequest) returns (HelloResponse)&#123;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
 <h3 id="服务端流式rpc"><a href="#服务端流式rpc" class="headerlink" title="服务端流式rpc"></a>服务端流式rpc</h3><p>客户端向服务端发起一个请求，服务端返回一个数据流响应<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">rpc LotsOfReplies(HelloRequest) returns (stream HelloResponse)&#123;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
@@ -734,7 +746,7 @@
                 
                   <a href="/archives/">
                 
-                    <span class="site-state-item-count">43</span>
+                    <span class="site-state-item-count">47</span>
                     <span class="site-state-item-name">日志</span>
                   </a>
                 </div>

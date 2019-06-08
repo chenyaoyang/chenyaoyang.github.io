@@ -154,12 +154,12 @@
 <meta property="og:url" content="http://yoursite.com/2019/03/27/RC4加密/index.html">
 <meta property="og:site_name" content="AmorFati">
 <meta property="og:locale" content="zh-CN">
-<meta property="og:image" content="https://upload-images.jianshu.io/upload_images/5111131-b31f95c058600c24.jpg?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240">
-<meta property="og:image" content="https://upload-images.jianshu.io/upload_images/5111131-17f707e7e8c08ce6.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240">
-<meta property="og:updated_time" content="2019-04-10T09:43:38.257Z">
+<meta property="og:image" content="https://raw.githubusercontent.com/chenyaoyang/blog-pic/master/1/rc1.jpg">
+<meta property="og:image" content="https://raw.githubusercontent.com/chenyaoyang/blog-pic/master/1/rc2.png">
+<meta property="og:updated_time" content="2019-06-02T14:43:37.000Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="RC4加密与实现">
-<meta name="twitter:image" content="https://upload-images.jianshu.io/upload_images/5111131-b31f95c058600c24.jpg?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240">
+<meta name="twitter:image" content="https://raw.githubusercontent.com/chenyaoyang/blog-pic/master/1/rc1.jpg">
 
 
 
@@ -485,7 +485,7 @@
                 
                   <span class="post-meta-item-text">更新于</span>
                 
-                <time title="修改时间：2019-04-10 17:43:38" itemprop="dateModified" datetime="2019-04-10T17:43:38+08:00">2019-04-10</time>
+                <time title="修改时间：2019-06-02 22:43:37" itemprop="dateModified" datetime="2019-06-02T22:43:37+08:00">2019-06-02</time>
               
             
           </span>
@@ -536,7 +536,7 @@
       
 
       
-        <p><img src="https://upload-images.jianshu.io/upload_images/5111131-b31f95c058600c24.jpg?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt=""><br><a id="more"></a></p>
+        <p><img src="https://raw.githubusercontent.com/chenyaoyang/blog-pic/master/1/rc1.jpg" alt=""><br><a id="more"></a></p>
 <h1 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h1><p>RC4全名Rivest Cipher 4，是1987年Ron Rivest设计的一种流加密法，属于对称加密算法，曾经是WEP、TLS等使用的加密算法，它速度较快，且设计简单，所以使用较广</p>
 <h1 id="基本原理"><a href="#基本原理" class="headerlink" title="基本原理"></a>基本原理</h1><p>首先RC4的秘钥是可变的，长度在1~256个字节之间，开始前我们需要一个初始化状态向量，在进行初始置换后生产流秘钥进行加密。对于解密则是和加密一样的算法。</p>
 <h1 id="详细流程"><a href="#详细流程" class="headerlink" title="详细流程"></a>详细流程</h1><h2 id="S的初始化"><a href="#S的初始化" class="headerlink" title="S的初始化"></a>S的初始化</h2><ol>
@@ -550,7 +550,7 @@
 <h1 id="验证"><a href="#验证" class="headerlink" title="验证"></a>验证</h1><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">        RC4 rc4 = <span class="keyword">new</span> RC4(<span class="string">"123"</span>.getBytes());</span><br><span class="line">        <span class="keyword">byte</span>[] out = rc4.encrypt(<span class="string">"abcdefg"</span>.getBytes());</span><br><span class="line">        Base64.Encoder encoder = Base64.getEncoder();</span><br><span class="line">        System.out.println(<span class="keyword">new</span> String(encoder.encode(out)));</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
 <p>最后输出：MpLc5oASYw==  </p>
 <p>使用第三方RC4加密验证：</p>
-<p><img src="https://upload-images.jianshu.io/upload_images/5111131-17f707e7e8c08ce6.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt=""></p>
+<p><img src="https://raw.githubusercontent.com/chenyaoyang/blog-pic/master/1/rc2.png" alt=""></p>
 <p>解密验证，由于说解密算法和加密算法一致，所以我们不必做任何修改，直接如下：<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">        RC4 rc4 = <span class="keyword">new</span> RC4(<span class="string">"123"</span>.getBytes());</span><br><span class="line">        <span class="keyword">byte</span>[] out = rc4.encrypt(<span class="string">"abcdefg"</span>.getBytes());</span><br><span class="line"></span><br><span class="line">        RC4 rc41 = <span class="keyword">new</span> RC4(<span class="string">"123"</span>.getBytes());</span><br><span class="line">        System.out.println(<span class="keyword">new</span> String(rc41.encrypt(out)));</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure></p>
 <p>需要注意的一点是，解密时要新建一个RC4对象，原来的对象在加密时S数组已经发生交换，不能使用。</p>
 <h1 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h1><p>RC4算法通过上面实现来看非常简单，没有什么复杂计算，只有简单的交换和异或运算，秘钥也足够长，是一种比较理想的算法。但是弱密钥会导致算法不安全，另外由于更好的算法出现，RC4目前已经很少使用。</p>
@@ -708,7 +708,7 @@
                 
                   <a href="/archives/">
                 
-                    <span class="site-state-item-count">43</span>
+                    <span class="site-state-item-count">47</span>
                     <span class="site-state-item-name">日志</span>
                   </a>
                 </div>
