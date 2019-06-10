@@ -1,0 +1,1386 @@
+<!DOCTYPE html>
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+<html class="theme-next pisces use-motion" lang="zh-CN">
+<head><meta name="generator" content="Hexo 3.8.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+    
+      
+    
+
+    
+  
+
+  
+
+  
+    
+      
+    
+
+    
+  
+
+  
+    
+      
+    
+
+    
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Monda:300,300italic,400,400italic,700,700italic|Roboto Slab:300,300italic,400,400italic,700,700italic|Dancing Script:300,300italic,400,400italic,700,700italic|Consolas:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css">
+
+<link href="/css/main.css?v=6.6.0" rel="stylesheet" type="text/css">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=6.6.0">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=6.6.0">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=6.6.0">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=6.6.0" color="#222">
+
+
+
+
+
+
+
+
+
+<script id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    version: '6.6.0',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: false,
+    fastclick: false,
+    lazyload: false,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+  
+
+
+
+
+  <meta name="keywords" content="go,区块链,以太坊,go-ethereum">
+<meta property="og:type" content="article">
+<meta property="og:title" content="go-ethereum中miner源码分析">
+<meta property="og:url" content="http://yoursite.com/2019/06/10/go-ethereum中miner源码分析/index.html">
+<meta property="og:site_name" content="AmorFati">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:image" content="https://raw.githubusercontent.com/chenyaoyang/blog-pic/master/201906/alexey-topolyanskiy-37372-unsplash.jpg">
+<meta property="og:updated_time" content="2019-06-10T09:22:31.870Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="go-ethereum中miner源码分析">
+<meta name="twitter:image" content="https://raw.githubusercontent.com/chenyaoyang/blog-pic/master/201906/alexey-topolyanskiy-37372-unsplash.jpg">
+
+
+
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2019/06/10/go-ethereum中miner源码分析/">
+
+
+
+<script id="page.configurations">
+  CONFIG.page = {
+    sidebar: "",
+  };
+</script>
+
+  <title>go-ethereum中miner源码分析 | AmorFati</title>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  <noscript>
+  <style>
+    .use-motion .motion-element,
+    .use-motion .brand,
+    .use-motion .menu-item,
+    .sidebar-inner,
+    .use-motion .post-block,
+    .use-motion .pagination,
+    .use-motion .comments,
+    .use-motion .post-header,
+    .use-motion .post-body,
+    .use-motion .collection-title { opacity: initial; }
+
+    .use-motion .logo,
+    .use-motion .site-title,
+    .use-motion .site-subtitle {
+      opacity: initial;
+      top: initial;
+    }
+
+    .use-motion .logo-line-before i { left: initial; }
+    .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope="" itemtype="http://schema.org/WebPage" lang="zh-CN">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope="" itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">AmorFati</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+    
+      
+        <p class="site-subtitle">风吹过窗前的书，又翻过一页</p>
+      
+    
+    
+  </div>
+
+  <div class="site-nav-toggle">
+    <button aria-label="切换导航栏">
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  
+    <ul id="menu" class="menu">
+      
+        
+        
+        
+          
+          <li class="menu-item menu-item-home">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/" rel="section"><i class="menu-item-icon fa fa-fw fa-home"></i> <br>首页</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-about">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/about/" rel="section"><i class="menu-item-icon fa fa-fw fa-user"></i> <br>关于</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-tags">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/tags/" rel="section"><i class="menu-item-icon fa fa-fw fa-tags"></i> <br>标签</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-categories">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/categories/" rel="section"><i class="menu-item-icon fa fa-fw fa-th"></i> <br>分类</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-archives">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/archives/" rel="section"><i class="menu-item-icon fa fa-fw fa-archive"></i> <br>归档</a>
+
+  </li>
+
+      
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br>搜索</a>
+        </li>
+      
+    </ul>
+  
+
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup search-popup local-search-popup">
+  <div class="local-search-header clearfix">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+    <div class="local-search-input-wrapper">
+      <input autocomplete="off" placeholder="搜索..." spellcheck="false" type="text" id="local-search-input">
+    </div>
+  </div>
+  <div id="local-search-result"></div>
+</div>
+
+
+
+    </div>
+  
+</nav>
+
+
+
+  
+
+
+
+</div>
+    </header>
+
+    
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+            
+
+          
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  
+
+  <article class="post post-type-normal" itemscope="" itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/06/10/go-ethereum中miner源码分析/">
+
+    <span hidden itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="AmorFati">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/assets/img/icon.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope="" itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="AmorFati">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">go-ethereum中miner源码分析
+
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+
+            
+            
+            
+
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+
+              
+                
+              
+
+              <time title="创建时间：2019-06-10 17:16:59 / 修改时间：17:22:31" itemprop="dateCreated datePublished" datetime="2019-06-10T17:16:59+08:00">2019-06-10</time>
+            
+
+            
+              
+
+              
+            
+          </span>
+
+          
+            <span class="post-category">
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope="" itemtype="http://schema.org/Thing"><a href="/categories/go-ethereum源码学习/" itemprop="url" rel="index"><span itemprop="name">go-ethereum源码学习</span></a></span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p><img src="https://raw.githubusercontent.com/chenyaoyang/blog-pic/master/201906/alexey-topolyanskiy-37372-unsplash.jpg" alt=""><br><a id="more"></a></p>
+<h1 id="入口"><a href="#入口" class="headerlink" title="入口"></a>入口</h1><h1 id="StartMining"><a href="#StartMining" class="headerlink" title="StartMining"></a>StartMining</h1><p>一般来说有两个途径去启动挖矿：</p>
+<p>第一个是在启动geth是使用–mine参数启动挖矿，回顾之前geth启动流程，在startNode最后，判断如果使用了–mine参数则调用Ethereim的StartMining方法启动挖矿。</p>
+<p>第二个是在节点启动后，通过rpc去连接节点，然后使用mine.start()方法启动，该rpc服务对应的逻辑如下<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// go-ethereum\eth\api.go</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(api *PrivateMinerAPI)</span> <span class="title">Start</span><span class="params">(threads *<span class="keyword">int</span>)</span> <span class="title">error</span></span> &#123;</span><br><span class="line">	<span class="keyword">if</span> threads == <span class="literal">nil</span> &#123;</span><br><span class="line">		<span class="keyword">return</span> api.e.StartMining(runtime.NumCPU())</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">return</span> api.e.StartMining(*threads)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>可见也是使用Ethereim的StartMining方法，该方法参数就是挖矿使用的线程数。<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(s *Ethereum)</span> <span class="title">StartMining</span><span class="params">(threads <span class="keyword">int</span>)</span> <span class="title">error</span></span> &#123;</span><br><span class="line">	<span class="keyword">type</span> threaded <span class="keyword">interface</span> &#123;</span><br><span class="line">		SetThreads(threads <span class="keyword">int</span>)</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">if</span> th, ok := s.engine.(threaded); ok &#123;</span><br><span class="line">		log.Info(<span class="string">"Updated mining threads"</span>, <span class="string">"threads"</span>, threads)</span><br><span class="line">		<span class="keyword">if</span> threads == <span class="number">0</span> &#123;</span><br><span class="line">			threads = <span class="number">-1</span> </span><br><span class="line">		&#125;</span><br><span class="line">		th.SetThreads(threads)</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">if</span> !s.IsMining() &#123;</span><br><span class="line">		s.lock.RLock()</span><br><span class="line">		price := s.gasPrice</span><br><span class="line">		s.lock.RUnlock()</span><br><span class="line">		s.txPool.SetGasPrice(price)</span><br><span class="line"></span><br><span class="line">		eb, err := s.Etherbase()</span><br><span class="line">		<span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">			log.Error(<span class="string">"Cannot start mining without etherbase"</span>, <span class="string">"err"</span>, err)</span><br><span class="line">			<span class="keyword">return</span> fmt.Errorf(<span class="string">"etherbase missing: %v"</span>, err)</span><br><span class="line">		&#125;</span><br><span class="line">		<span class="keyword">if</span> clique, ok := s.engine.(*clique.Clique); ok &#123;</span><br><span class="line">			wallet, err := s.accountManager.Find(accounts.Account&#123;Address: eb&#125;)</span><br><span class="line">			<span class="keyword">if</span> wallet == <span class="literal">nil</span> || err != <span class="literal">nil</span> &#123;</span><br><span class="line">				log.Error(<span class="string">"Etherbase account unavailable locally"</span>, <span class="string">"err"</span>, err)</span><br><span class="line">				<span class="keyword">return</span> fmt.Errorf(<span class="string">"signer missing: %v"</span>, err)</span><br><span class="line">			&#125;</span><br><span class="line">			clique.Authorize(eb, wallet.SignData)</span><br><span class="line">		&#125;</span><br><span class="line">		atomic.StoreUint32(&amp;s.protocolManager.acceptTxs, <span class="number">1</span>)</span><br><span class="line"></span><br><span class="line">		<span class="keyword">go</span> s.miner.Start(eb)</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">return</span> <span class="literal">nil</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>第一步是共识引擎修改挖矿线程数，这里我们以Ethash为例，<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(ethash *Ethash)</span> <span class="title">SetThreads</span><span class="params">(threads <span class="keyword">int</span>)</span></span> &#123;</span><br><span class="line">	ethash.lock.Lock()</span><br><span class="line">	<span class="keyword">defer</span> ethash.lock.Unlock()</span><br><span class="line"></span><br><span class="line">	<span class="keyword">if</span> ethash.shared != <span class="literal">nil</span> &#123;</span><br><span class="line">		ethash.shared.SetThreads(threads)</span><br><span class="line">		<span class="keyword">return</span></span><br><span class="line">	&#125;</span><br><span class="line">	ethash.threads = threads</span><br><span class="line">	<span class="keyword">select</span> &#123;</span><br><span class="line">	<span class="keyword">case</span> ethash.update &lt;- <span class="keyword">struct</span>&#123;&#125;&#123;&#125;:</span><br><span class="line">	<span class="keyword">default</span>:</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>主要就是修改threads字段。接着判断是否正在挖矿，<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(s *Ethereum)</span> <span class="title">IsMining</span><span class="params">()</span> <span class="title">bool</span></span>      &#123; <span class="keyword">return</span> s.miner.Mining() &#125;</span><br></pre></td></tr></table></figure></p>
+<p>如果没有在挖矿，则在一个单独的goroutine中运行miner的start方法。</p>
+<h1 id="miner"><a href="#miner" class="headerlink" title="miner"></a>miner</h1><p>这是一个挖矿工作的帮助类<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">type</span> Miner <span class="keyword">struct</span> &#123;</span><br><span class="line">	mux      *event.TypeMux</span><br><span class="line">	worker   *worker</span><br><span class="line">	coinbase common.Address</span><br><span class="line">	eth      Backend</span><br><span class="line">	engine   consensus.Engine</span><br><span class="line">	exitCh   <span class="keyword">chan</span> <span class="keyword">struct</span>&#123;&#125;</span><br><span class="line"></span><br><span class="line">	canStart    <span class="keyword">int32</span> </span><br><span class="line">	shouldStart <span class="keyword">int32</span> </span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">New</span><span class="params">(eth Backend, config *params.ChainConfig, mux *event.TypeMux, engine consensus.Engine, recommit time.Duration, gasFloor, gasCeil <span class="keyword">uint64</span>, isLocalBlock <span class="keyword">func</span>(block *types.Block)</span> <span class="title">bool</span>) *<span class="title">Miner</span></span> &#123;</span><br><span class="line">	miner := &amp;Miner&#123;</span><br><span class="line">		eth:      eth,</span><br><span class="line">		mux:      mux,</span><br><span class="line">		engine:   engine,</span><br><span class="line">		exitCh:   <span class="built_in">make</span>(<span class="keyword">chan</span> <span class="keyword">struct</span>&#123;&#125;),</span><br><span class="line">		worker:   newWorker(config, engine, eth, mux, recommit, gasFloor, gasCeil, isLocalBlock),</span><br><span class="line">		canStart: <span class="number">1</span>,</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">go</span> miner.update()</span><br><span class="line"></span><br><span class="line">	<span class="keyword">return</span> miner</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>它的new方法子创建Ethereum时被调用来构建一个miner对象，new方法中在一个单独的goroutine中调用了updateff</p>
+<h2 id="update"><a href="#update" class="headerlink" title="update"></a>update</h2><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(self *Miner)</span> <span class="title">update</span><span class="params">()</span></span> &#123;</span><br><span class="line">	events := self.mux.Subscribe(downloader.StartEvent&#123;&#125;, downloader.DoneEvent&#123;&#125;, downloader.FailedEvent&#123;&#125;)</span><br><span class="line">	<span class="keyword">defer</span> events.Unsubscribe()</span><br><span class="line"></span><br><span class="line">	<span class="keyword">for</span> &#123;</span><br><span class="line">		<span class="keyword">select</span> &#123;</span><br><span class="line">		<span class="keyword">case</span> ev := &lt;-events.Chan():</span><br><span class="line">			<span class="keyword">if</span> ev == <span class="literal">nil</span> &#123;</span><br><span class="line">				<span class="keyword">return</span></span><br><span class="line">			&#125;</span><br><span class="line">			<span class="keyword">switch</span> ev.Data.(<span class="keyword">type</span>) &#123;</span><br><span class="line">			<span class="keyword">case</span> downloader.StartEvent:</span><br><span class="line">				atomic.StoreInt32(&amp;self.canStart, <span class="number">0</span>)</span><br><span class="line">				<span class="keyword">if</span> self.Mining() &#123;</span><br><span class="line">					self.Stop()</span><br><span class="line">					atomic.StoreInt32(&amp;self.shouldStart, <span class="number">1</span>)</span><br><span class="line">					log.Info(<span class="string">"Mining aborted due to sync"</span>)</span><br><span class="line">				&#125;</span><br><span class="line">			<span class="keyword">case</span> downloader.DoneEvent, downloader.FailedEvent:</span><br><span class="line">				shouldStart := atomic.LoadInt32(&amp;self.shouldStart) == <span class="number">1</span></span><br><span class="line"></span><br><span class="line">				atomic.StoreInt32(&amp;self.canStart, <span class="number">1</span>)</span><br><span class="line">				atomic.StoreInt32(&amp;self.shouldStart, <span class="number">0</span>)</span><br><span class="line">				<span class="keyword">if</span> shouldStart &#123;</span><br><span class="line">					self.Start(self.coinbase)</span><br><span class="line">				&#125;</span><br><span class="line">				<span class="keyword">return</span></span><br><span class="line">			&#125;</span><br><span class="line">		<span class="keyword">case</span> &lt;-self.exitCh:</span><br><span class="line">			<span class="keyword">return</span></span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>这是一个事件订阅接受的逻辑，首先订阅了downloader的三种事件，根据每种事件都有对应逻辑。StartEvent是在节点同步时发出，此时节点正在同步数据，网卡要暂停。FailedEvent与DoneEvent是在同步完成后发出此时可以开始挖矿。还有一点是一旦接受到FailedEvent或DoneEvent事件时就要退出循环。</p>
+<h2 id="Start"><a href="#Start" class="headerlink" title="Start"></a>Start</h2><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(self *Miner)</span> <span class="title">Start</span><span class="params">(coinbase common.Address)</span></span> &#123;</span><br><span class="line">	atomic.StoreInt32(&amp;self.shouldStart, <span class="number">1</span>)</span><br><span class="line">	self.SetEtherbase(coinbase)</span><br><span class="line"></span><br><span class="line">	<span class="keyword">if</span> atomic.LoadInt32(&amp;self.canStart) == <span class="number">0</span> &#123;</span><br><span class="line">		log.Info(<span class="string">"Network syncing, will start miner afterwards"</span>)</span><br><span class="line">		<span class="keyword">return</span></span><br><span class="line">	&#125;</span><br><span class="line">	self.worker.start()</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>指定一个coinbase开始挖矿，实际执行的是worker</p>
+<h2 id="Stop"><a href="#Stop" class="headerlink" title="Stop"></a>Stop</h2><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(self *Miner)</span> <span class="title">Stop</span><span class="params">()</span></span> &#123;</span><br><span class="line">	self.worker.stop()</span><br><span class="line">	atomic.StoreInt32(&amp;self.shouldStart, <span class="number">0</span>)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h2 id="Mining"><a href="#Mining" class="headerlink" title="Mining"></a>Mining</h2><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(self *Miner)</span> <span class="title">Mining</span><span class="params">()</span> <span class="title">bool</span></span> &#123;</span><br><span class="line">	<span class="keyword">return</span> self.worker.isRunning()</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>判断是否在挖矿</p>
+<h1 id="worker"><a href="#worker" class="headerlink" title="worker"></a>worker</h1><p>这个才是真正工作的，miner只是在控制worker，在创建miner是也就创建了worker<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">newWorker</span><span class="params">(config *params.ChainConfig, engine consensus.Engine, eth Backend, mux *event.TypeMux, recommit time.Duration, gasFloor, gasCeil <span class="keyword">uint64</span>, isLocalBlock <span class="keyword">func</span>(*types.Block)</span> <span class="title">bool</span>) *<span class="title">worker</span></span> &#123;</span><br><span class="line">	worker := &amp;worker&#123;</span><br><span class="line">		config:             config,</span><br><span class="line">		engine:             engine,</span><br><span class="line">		eth:                eth,</span><br><span class="line">		mux:                mux,</span><br><span class="line">		chain:              eth.BlockChain(),</span><br><span class="line">		gasFloor:           gasFloor,</span><br><span class="line">		gasCeil:            gasCeil,</span><br><span class="line">		isLocalBlock:       isLocalBlock,</span><br><span class="line">		localUncles:        <span class="built_in">make</span>(<span class="keyword">map</span>[common.Hash]*types.Block),</span><br><span class="line">		remoteUncles:       <span class="built_in">make</span>(<span class="keyword">map</span>[common.Hash]*types.Block),</span><br><span class="line">		unconfirmed:        newUnconfirmedBlocks(eth.BlockChain(), miningLogAtDepth),</span><br><span class="line">		pendingTasks:       <span class="built_in">make</span>(<span class="keyword">map</span>[common.Hash]*task),</span><br><span class="line">		txsCh:              <span class="built_in">make</span>(<span class="keyword">chan</span> core.NewTxsEvent, txChanSize),</span><br><span class="line">		chainHeadCh:        <span class="built_in">make</span>(<span class="keyword">chan</span> core.ChainHeadEvent, chainHeadChanSize),</span><br><span class="line">		chainSideCh:        <span class="built_in">make</span>(<span class="keyword">chan</span> core.ChainSideEvent, chainSideChanSize),</span><br><span class="line">		newWorkCh:          <span class="built_in">make</span>(<span class="keyword">chan</span> *newWorkReq),</span><br><span class="line">		taskCh:             <span class="built_in">make</span>(<span class="keyword">chan</span> *task),</span><br><span class="line">		resultCh:           <span class="built_in">make</span>(<span class="keyword">chan</span> *types.Block, resultQueueSize),</span><br><span class="line">		exitCh:             <span class="built_in">make</span>(<span class="keyword">chan</span> <span class="keyword">struct</span>&#123;&#125;),</span><br><span class="line">		startCh:            <span class="built_in">make</span>(<span class="keyword">chan</span> <span class="keyword">struct</span>&#123;&#125;, <span class="number">1</span>),</span><br><span class="line">		resubmitIntervalCh: <span class="built_in">make</span>(<span class="keyword">chan</span> time.Duration),</span><br><span class="line">		resubmitAdjustCh:   <span class="built_in">make</span>(<span class="keyword">chan</span> *intervalAdjust, resubmitAdjustChanSize),</span><br><span class="line">	&#125;</span><br><span class="line">	worker.txsSub = eth.TxPool().SubscribeNewTxsEvent(worker.txsCh)</span><br><span class="line">	worker.chainHeadSub = eth.BlockChain().SubscribeChainHeadEvent(worker.chainHeadCh)</span><br><span class="line">	worker.chainSideSub = eth.BlockChain().SubscribeChainSideEvent(worker.chainSideCh)</span><br><span class="line"></span><br><span class="line">	<span class="keyword">if</span> recommit &lt; minRecommitInterval &#123;</span><br><span class="line">		log.Warn(<span class="string">"Sanitizing miner recommit interval"</span>, <span class="string">"provided"</span>, recommit, <span class="string">"updated"</span>, minRecommitInterval)</span><br><span class="line">		recommit = minRecommitInterval</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">go</span> worker.mainLoop()</span><br><span class="line">	<span class="keyword">go</span> worker.newWorkLoop(recommit)</span><br><span class="line">	<span class="keyword">go</span> worker.resultLoop()</span><br><span class="line">	<span class="keyword">go</span> worker.taskLoop()</span><br><span class="line"></span><br><span class="line">	worker.startCh &lt;- <span class="keyword">struct</span>&#123;&#125;&#123;&#125;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">return</span> worker</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>主要是构建了对象并订阅了几个事件。然后启动了4个goroutine取执行几个方法。每个方法都是事件循环机制。</p>
+<h2 id="start"><a href="#start" class="headerlink" title="start"></a>start</h2><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(w *worker)</span> <span class="title">start</span><span class="params">()</span></span> &#123;</span><br><span class="line">	atomic.StoreInt32(&amp;w.running, <span class="number">1</span>)</span><br><span class="line">	w.startCh &lt;- <span class="keyword">struct</span>&#123;&#125;&#123;&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>miner通过调用start开始挖矿。这里只是给running赋值1标记开始挖矿，另外给startCh赋值触发逻辑。startCh在newWorkLoop中<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//worker::newWorkLoop</span></span><br><span class="line"><span class="keyword">case</span> &lt;-w.startCh:</span><br><span class="line">	clearPending(w.chain.CurrentBlock().NumberU64())</span><br><span class="line">	timestamp = time.Now().Unix()</span><br><span class="line">	commit(<span class="literal">false</span>, commitInterruptNewHead)</span><br><span class="line">	</span><br><span class="line">clearPending := <span class="function"><span class="keyword">func</span><span class="params">(number <span class="keyword">uint64</span>)</span></span> &#123;</span><br><span class="line">	w.pendingMu.Lock()</span><br><span class="line">	<span class="keyword">for</span> h, t := <span class="keyword">range</span> w.pendingTasks &#123;</span><br><span class="line">		<span class="keyword">if</span> t.block.NumberU64()+staleThreshold &lt;= number &#123;</span><br><span class="line">			<span class="built_in">delete</span>(w.pendingTasks, h)</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">	w.pendingMu.Unlock()</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">commit := <span class="function"><span class="keyword">func</span><span class="params">(noempty <span class="keyword">bool</span>, s <span class="keyword">int32</span>)</span></span> &#123;</span><br><span class="line">	<span class="keyword">if</span> interrupt != <span class="literal">nil</span> &#123;</span><br><span class="line">		atomic.StoreInt32(interrupt, s)</span><br><span class="line">	&#125;</span><br><span class="line">	interrupt = <span class="built_in">new</span>(<span class="keyword">int32</span>)</span><br><span class="line">	w.newWorkCh &lt;- &amp;newWorkReq&#123;interrupt: interrupt, noempty: noempty, timestamp: timestamp&#125;</span><br><span class="line">	timer.Reset(recommit)</span><br><span class="line">	atomic.StoreInt32(&amp;w.newTxs, <span class="number">0</span>)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>首先调用clearPending方法清理一些过于旧的task，然后记录当前时间戳，调用commit方法，这里主要是给newWorkCh传递了事件，接着启动了一个定时器（默认3秒触发）。先看newWorkCh的逻辑<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">//worker::mainLoop</span><br><span class="line">case req := &lt;-w.newWorkCh:</span><br><span class="line">	w.commitNewWork(req.interrupt, req.noempty, req.timestamp)</span><br></pre></td></tr></table></figure></p>
+<p>直接调用commitNewWork方法<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(w *worker)</span> <span class="title">commitNewWork</span><span class="params">(interrupt *<span class="keyword">int32</span>, noempty <span class="keyword">bool</span>, timestamp <span class="keyword">int64</span>)</span></span> &#123;</span><br><span class="line">	w.mu.RLock()</span><br><span class="line">	<span class="keyword">defer</span> w.mu.RUnlock()</span><br><span class="line"></span><br><span class="line">	tstart := time.Now()</span><br><span class="line">	parent := w.chain.CurrentBlock()</span><br><span class="line"></span><br><span class="line">	<span class="keyword">if</span> parent.Time().Cmp(<span class="built_in">new</span>(big.Int).SetInt64(timestamp)) &gt;= <span class="number">0</span> &#123;</span><br><span class="line">		timestamp = parent.Time().Int64() + <span class="number">1</span></span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">if</span> now := time.Now().Unix(); timestamp &gt; now+<span class="number">1</span> &#123;</span><br><span class="line">		wait := time.Duration(timestamp-now) * time.Second</span><br><span class="line">		log.Info(<span class="string">"Mining too far in the future"</span>, <span class="string">"wait"</span>, common.PrettyDuration(wait))</span><br><span class="line">		time.Sleep(wait)</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	num := parent.Number()</span><br><span class="line">	header := &amp;types.Header&#123;</span><br><span class="line">		ParentHash: parent.Hash(),</span><br><span class="line">		Number:     num.Add(num, common.Big1),</span><br><span class="line">		GasLimit:   core.CalcGasLimit(parent, w.gasFloor, w.gasCeil),</span><br><span class="line">		Extra:      w.extra,</span><br><span class="line">		Time:       big.NewInt(timestamp),</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">if</span> w.isRunning() &#123;</span><br><span class="line">		<span class="keyword">if</span> w.coinbase == (common.Address&#123;&#125;) &#123;</span><br><span class="line">			log.Error(<span class="string">"Refusing to mine without etherbase"</span>)</span><br><span class="line">			<span class="keyword">return</span></span><br><span class="line">		&#125;</span><br><span class="line">		header.Coinbase = w.coinbase</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">if</span> err := w.engine.Prepare(w.chain, header); err != <span class="literal">nil</span> &#123;</span><br><span class="line">		log.Error(<span class="string">"Failed to prepare header for mining"</span>, <span class="string">"err"</span>, err)</span><br><span class="line">		<span class="keyword">return</span></span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">if</span> daoBlock := w.config.DAOForkBlock; daoBlock != <span class="literal">nil</span> &#123;</span><br><span class="line">		limit := <span class="built_in">new</span>(big.Int).Add(daoBlock, params.DAOForkExtraRange)</span><br><span class="line">		<span class="keyword">if</span> header.Number.Cmp(daoBlock) &gt;= <span class="number">0</span> &amp;&amp; header.Number.Cmp(limit) &lt; <span class="number">0</span> &#123;</span><br><span class="line">			<span class="keyword">if</span> w.config.DAOForkSupport &#123;</span><br><span class="line">				header.Extra = common.CopyBytes(params.DAOForkBlockExtra)</span><br><span class="line">			&#125; <span class="keyword">else</span> <span class="keyword">if</span> bytes.Equal(header.Extra, params.DAOForkBlockExtra) &#123;</span><br><span class="line">				header.Extra = []<span class="keyword">byte</span>&#123;&#125; </span><br><span class="line">			&#125;</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">	err := w.makeCurrent(parent, header)</span><br><span class="line">	<span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">		log.Error(<span class="string">"Failed to create mining context"</span>, <span class="string">"err"</span>, err)</span><br><span class="line">		<span class="keyword">return</span></span><br><span class="line">	&#125;</span><br><span class="line">	env := w.current</span><br><span class="line">	<span class="keyword">if</span> w.config.DAOForkSupport &amp;&amp; w.config.DAOForkBlock != <span class="literal">nil</span> &amp;&amp; w.config.DAOForkBlock.Cmp(header.Number) == <span class="number">0</span> &#123;</span><br><span class="line">		misc.ApplyDAOHardFork(env.state)</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	uncles := <span class="built_in">make</span>([]*types.Header, <span class="number">0</span>, <span class="number">2</span>)</span><br><span class="line">	commitUncles := <span class="function"><span class="keyword">func</span><span class="params">(blocks <span class="keyword">map</span>[common.Hash]*types.Block)</span></span> &#123;</span><br><span class="line"></span><br><span class="line">		<span class="keyword">for</span> hash, uncle := <span class="keyword">range</span> blocks &#123;</span><br><span class="line">			<span class="keyword">if</span> uncle.NumberU64()+staleThreshold &lt;= header.Number.Uint64() &#123;</span><br><span class="line">				<span class="built_in">delete</span>(blocks, hash)</span><br><span class="line">			&#125;</span><br><span class="line">		&#125;</span><br><span class="line">		<span class="keyword">for</span> hash, uncle := <span class="keyword">range</span> blocks &#123;</span><br><span class="line">			<span class="keyword">if</span> <span class="built_in">len</span>(uncles) == <span class="number">2</span> &#123;</span><br><span class="line">				<span class="keyword">break</span></span><br><span class="line">			&#125;</span><br><span class="line">			<span class="keyword">if</span> err := w.commitUncle(env, uncle.Header()); err != <span class="literal">nil</span> &#123;</span><br><span class="line">				log.Trace(<span class="string">"Possible uncle rejected"</span>, <span class="string">"hash"</span>, hash, <span class="string">"reason"</span>, err)</span><br><span class="line">			&#125; <span class="keyword">else</span> &#123;</span><br><span class="line">				log.Debug(<span class="string">"Committing new uncle to block"</span>, <span class="string">"hash"</span>, hash)</span><br><span class="line">				uncles = <span class="built_in">append</span>(uncles, uncle.Header())</span><br><span class="line">			&#125;</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	commitUncles(w.localUncles)</span><br><span class="line">	commitUncles(w.remoteUncles)</span><br><span class="line"></span><br><span class="line">	<span class="keyword">if</span> !noempty &#123;</span><br><span class="line">		w.commit(uncles, <span class="literal">nil</span>, <span class="literal">false</span>, tstart)</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	pending, err := w.eth.TxPool().Pending()</span><br><span class="line">	<span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">		log.Error(<span class="string">"Failed to fetch pending transactions"</span>, <span class="string">"err"</span>, err)</span><br><span class="line">		<span class="keyword">return</span></span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">if</span> <span class="built_in">len</span>(pending) == <span class="number">0</span> &#123;</span><br><span class="line">		w.updateSnapshot()</span><br><span class="line">		<span class="keyword">return</span></span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	localTxs, remoteTxs := <span class="built_in">make</span>(<span class="keyword">map</span>[common.Address]types.Transactions), pending</span><br><span class="line">	<span class="keyword">for</span> _, account := <span class="keyword">range</span> w.eth.TxPool().Locals() &#123;</span><br><span class="line">		<span class="keyword">if</span> txs := remoteTxs[account]; <span class="built_in">len</span>(txs) &gt; <span class="number">0</span> &#123;</span><br><span class="line">			<span class="built_in">delete</span>(remoteTxs, account)</span><br><span class="line">			localTxs[account] = txs</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">if</span> <span class="built_in">len</span>(localTxs) &gt; <span class="number">0</span> &#123;</span><br><span class="line">		txs := types.NewTransactionsByPriceAndNonce(w.current.signer, localTxs)</span><br><span class="line">		<span class="keyword">if</span> w.commitTransactions(txs, w.coinbase, interrupt) &#123;</span><br><span class="line">			<span class="keyword">return</span></span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">if</span> <span class="built_in">len</span>(remoteTxs) &gt; <span class="number">0</span> &#123;</span><br><span class="line">		txs := types.NewTransactionsByPriceAndNonce(w.current.signer, remoteTxs)</span><br><span class="line">		<span class="keyword">if</span> w.commitTransactions(txs, w.coinbase, interrupt) &#123;</span><br><span class="line">			<span class="keyword">return</span></span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">	w.commit(uncles, w.fullTaskHook, <span class="literal">true</span>, tstart)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>首先获取区块链当前区块记为父块，如果提交任务的时间戳比父块时间戳还小，要重设时间戳为父块时间戳加1。另外时间戳也不能比当前时间大，否则睡眠一段时间。</p>
+<p>之后构建一个洗呢区块头，先填充父块hash，区块编号，gaslimit，额外数据（默认为geth版本等信息）以及时间戳。如果正在挖矿还要填入Coinbase。之后调用engine.Prepare方法，主要是计算区块应有的难度。再往下调用了makeCurrent方法<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(w *worker)</span> <span class="title">makeCurrent</span><span class="params">(parent *types.Block, header *types.Header)</span> <span class="title">error</span></span> &#123;</span><br><span class="line">	state, err := w.chain.StateAt(parent.Root())</span><br><span class="line">	<span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">		<span class="keyword">return</span> err</span><br><span class="line">	&#125;</span><br><span class="line">	env := &amp;environment&#123;</span><br><span class="line">		signer:    types.NewEIP155Signer(w.config.ChainID),</span><br><span class="line">		state:     state,</span><br><span class="line">		ancestors: mapset.NewSet(),</span><br><span class="line">		family:    mapset.NewSet(),</span><br><span class="line">		uncles:    mapset.NewSet(),</span><br><span class="line">		header:    header,</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">for</span> _, ancestor := <span class="keyword">range</span> w.chain.GetBlocksFromHash(parent.Hash(), <span class="number">7</span>) &#123;</span><br><span class="line">		<span class="keyword">for</span> _, uncle := <span class="keyword">range</span> ancestor.Uncles() &#123;</span><br><span class="line">			env.family.Add(uncle.Hash())</span><br><span class="line">		&#125;</span><br><span class="line">		env.family.Add(ancestor.Hash())</span><br><span class="line">		env.ancestors.Add(ancestor.Hash())</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	env.tcount = <span class="number">0</span></span><br><span class="line">	w.current = env</span><br><span class="line">	<span class="keyword">return</span> <span class="literal">nil</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>makeCurrent先获取了父区块的状态树，然后构建了一个environment对象。之后获取了父区块的7个祖先区块，记录每一个祖先hash一起对于的叔块hash，然后设置worker的current为刚才构建的environment。</p>
+<p>回到commitNewWork中，接着调用了两次commitUncles分别处理localUncles和remoteUncles。这两个map是在收到ChainSideEvent事件时按照区块的性质添加的。具体处理逻辑是遍历map中的所有区块，对于编号在当前区块之上七代以内的，作为该区块的叔块，但最多只有两个叔块，选择叔块是要先用commitUncle检查，主要检查是否已被作为叔块添加过。接着如果noempty参数为false，commit方法其中update参数为false。否则先从txpool中取出那些可以执行的交易，也就是pending队列中。如果没有可执行交易调用updateSnapshot并返回<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(w *worker)</span> <span class="title">updateSnapshot</span><span class="params">()</span></span> &#123;</span><br><span class="line">	w.snapshotMu.Lock()</span><br><span class="line">	<span class="keyword">defer</span> w.snapshotMu.Unlock()</span><br><span class="line"></span><br><span class="line">	<span class="keyword">var</span> uncles []*types.Header</span><br><span class="line">	w.current.uncles.Each(<span class="function"><span class="keyword">func</span><span class="params">(item <span class="keyword">interface</span>&#123;&#125;)</span> <span class="title">bool</span></span> &#123;</span><br><span class="line">		hash, ok := item.(common.Hash)</span><br><span class="line">		<span class="keyword">if</span> !ok &#123;</span><br><span class="line">			<span class="keyword">return</span> <span class="literal">false</span></span><br><span class="line">		&#125;</span><br><span class="line">		uncle, exist := w.localUncles[hash]</span><br><span class="line">		<span class="keyword">if</span> !exist &#123;</span><br><span class="line">			uncle, exist = w.remoteUncles[hash]</span><br><span class="line">		&#125;</span><br><span class="line">		<span class="keyword">if</span> !exist &#123;</span><br><span class="line">			<span class="keyword">return</span> <span class="literal">false</span></span><br><span class="line">		&#125;</span><br><span class="line">		uncles = <span class="built_in">append</span>(uncles, uncle.Header())</span><br><span class="line">		<span class="keyword">return</span> <span class="literal">false</span></span><br><span class="line">	&#125;)</span><br><span class="line"></span><br><span class="line">	w.snapshotBlock = types.NewBlock(</span><br><span class="line">		w.current.header,</span><br><span class="line">		w.current.txs,</span><br><span class="line">		uncles,</span><br><span class="line">		w.current.receipts,</span><br><span class="line">	)</span><br><span class="line"></span><br><span class="line">	w.snapshotState = w.current.state.Copy()</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>这里主要是手机有效叔块然后构建一个区块赋值给snapshotBlock，同时复制状态树。</p>
+<p>回到commitNewWork中，如果有可执行交易则将交易分为本地交易和远端交易两部分。如果本地交易数量大于0，则执行NewTransactionsByPriceAndNonce，这是将交易按照gasprice排序（pending内部每个地址对应的交易按nonce排序，这里去每个地址的第一个交易按gasprice排序），然后调用commitTransactions方法<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(w *worker)</span> <span class="title">commitTransactions</span><span class="params">(txs *types.TransactionsByPriceAndNonce, coinbase common.Address, interrupt *<span class="keyword">int32</span>)</span> <span class="title">bool</span></span> &#123;</span><br><span class="line">	<span class="keyword">if</span> w.current == <span class="literal">nil</span> &#123;</span><br><span class="line">		<span class="keyword">return</span> <span class="literal">true</span></span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">if</span> w.current.gasPool == <span class="literal">nil</span> &#123;</span><br><span class="line">		w.current.gasPool = <span class="built_in">new</span>(core.GasPool).AddGas(w.current.header.GasLimit)</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">var</span> coalescedLogs []*types.Log</span><br><span class="line"></span><br><span class="line">	<span class="keyword">for</span> &#123;</span><br><span class="line">		<span class="keyword">if</span> interrupt != <span class="literal">nil</span> &amp;&amp; atomic.LoadInt32(interrupt) != commitInterruptNone &#123;</span><br><span class="line">			<span class="keyword">if</span> atomic.LoadInt32(interrupt) == commitInterruptResubmit &#123;</span><br><span class="line">				ratio := <span class="keyword">float64</span>(w.current.header.GasLimit-w.current.gasPool.Gas()) / <span class="keyword">float64</span>(w.current.header.GasLimit)</span><br><span class="line">				<span class="keyword">if</span> ratio &lt; <span class="number">0.1</span> &#123;</span><br><span class="line">					ratio = <span class="number">0.1</span></span><br><span class="line">				&#125;</span><br><span class="line">				w.resubmitAdjustCh &lt;- &amp;intervalAdjust&#123;</span><br><span class="line">					ratio: ratio,</span><br><span class="line">					inc:   <span class="literal">true</span>,</span><br><span class="line">				&#125;</span><br><span class="line">			&#125;</span><br><span class="line">			<span class="keyword">return</span> atomic.LoadInt32(interrupt) == commitInterruptNewHead</span><br><span class="line">		&#125;</span><br><span class="line">		<span class="keyword">if</span> w.current.gasPool.Gas() &lt; params.TxGas &#123;</span><br><span class="line">			log.Trace(<span class="string">"Not enough gas for further transactions"</span>, <span class="string">"have"</span>, w.current.gasPool, <span class="string">"want"</span>, params.TxGas)</span><br><span class="line">			<span class="keyword">break</span></span><br><span class="line">		&#125;</span><br><span class="line">		tx := txs.Peek()</span><br><span class="line">		<span class="keyword">if</span> tx == <span class="literal">nil</span> &#123;</span><br><span class="line">			<span class="keyword">break</span></span><br><span class="line">		&#125;</span><br><span class="line">		<span class="keyword">if</span> tx.Protected() &amp;&amp; !w.config.IsEIP155(w.current.header.Number) &#123;</span><br><span class="line">			log.Trace(<span class="string">"Ignoring reply protected transaction"</span>, <span class="string">"hash"</span>, tx.Hash(), <span class="string">"eip155"</span>, w.config.EIP155Block)</span><br><span class="line"></span><br><span class="line">			txs.Pop()</span><br><span class="line">			<span class="keyword">continue</span></span><br><span class="line">		&#125;</span><br><span class="line">		w.current.state.Prepare(tx.Hash(), common.Hash&#123;&#125;, w.current.tcount)</span><br><span class="line"></span><br><span class="line">		logs, err := w.commitTransaction(tx, coinbase)</span><br><span class="line">		<span class="keyword">switch</span> err &#123;</span><br><span class="line">		<span class="keyword">case</span> core.ErrGasLimitReached:</span><br><span class="line">			log.Trace(<span class="string">"Gas limit exceeded for current block"</span>, <span class="string">"sender"</span>, from)</span><br><span class="line">			txs.Pop()</span><br><span class="line"></span><br><span class="line">		<span class="keyword">case</span> core.ErrNonceTooLow:</span><br><span class="line">			log.Trace(<span class="string">"Skipping transaction with low nonce"</span>, <span class="string">"sender"</span>, from, <span class="string">"nonce"</span>, tx.Nonce())</span><br><span class="line">			txs.Shift()</span><br><span class="line"></span><br><span class="line">		<span class="keyword">case</span> core.ErrNonceTooHigh: pool and miner, skip account =</span><br><span class="line">			log.Trace(<span class="string">"Skipping account with hight nonce"</span>, <span class="string">"sender"</span>, from, <span class="string">"nonce"</span>, tx.Nonce())</span><br><span class="line">			txs.Pop()</span><br><span class="line"></span><br><span class="line">		<span class="keyword">case</span> <span class="literal">nil</span>:</span><br><span class="line">			coalescedLogs = <span class="built_in">append</span>(coalescedLogs, logs...)</span><br><span class="line">			w.current.tcount++</span><br><span class="line">			txs.Shift()</span><br><span class="line"></span><br><span class="line">		<span class="keyword">default</span>:</span><br><span class="line">			log.Debug(<span class="string">"Transaction failed, account skipped"</span>, <span class="string">"hash"</span>, tx.Hash(), <span class="string">"err"</span>, err)</span><br><span class="line">			txs.Shift()</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">if</span> !w.isRunning() &amp;&amp; <span class="built_in">len</span>(coalescedLogs) &gt; <span class="number">0</span> &#123;</span><br><span class="line">		cpy := <span class="built_in">make</span>([]*types.Log, <span class="built_in">len</span>(coalescedLogs))</span><br><span class="line">		<span class="keyword">for</span> i, l := <span class="keyword">range</span> coalescedLogs &#123;</span><br><span class="line">			cpy[i] = <span class="built_in">new</span>(types.Log)</span><br><span class="line">			*cpy[i] = *l</span><br><span class="line">		&#125;</span><br><span class="line">		<span class="keyword">go</span> w.mux.Post(core.PendingLogsEvent&#123;Logs: cpy&#125;)</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">if</span> interrupt != <span class="literal">nil</span> &#123;</span><br><span class="line">		w.resubmitAdjustCh &lt;- &amp;intervalAdjust&#123;inc: <span class="literal">false</span>&#125;</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">return</span> <span class="literal">false</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>首先创建一个gaspool来记录gas用量。只有有一个循环，每次从给定的交易集合中取一个，使用peek方法，取的是gasprice最大的那个，然后恢复出该交易的发送人，如果该交易被保护并且不是EIP155分叉则忽略该交易。接着去执行这个交易<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(w *worker)</span> <span class="title">commitTransaction</span><span class="params">(tx *types.Transaction, coinbase common.Address)</span> <span class="params">([]*types.Log, error)</span></span> &#123;</span><br><span class="line">	snap := w.current.state.Snapshot()</span><br><span class="line"></span><br><span class="line">	receipt, _, err := core.ApplyTransaction(w.config, w.chain, &amp;coinbase, w.current.gasPool, w.current.state, w.current.header, tx, &amp;w.current.header.GasUsed, *w.chain.GetVMConfig())</span><br><span class="line">	<span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">		w.current.state.RevertToSnapshot(snap)</span><br><span class="line">		<span class="keyword">return</span> <span class="literal">nil</span>, err</span><br><span class="line">	&#125;</span><br><span class="line">	w.current.txs = <span class="built_in">append</span>(w.current.txs, tx)</span><br><span class="line">	w.current.receipts = <span class="built_in">append</span>(w.current.receipts, receipt)</span><br><span class="line"></span><br><span class="line">	<span class="keyword">return</span> receipt.Logs, <span class="literal">nil</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>先获得状态树快照，庵后使用ApplyTransaction执行交易这个我们之前分析过，如果执行出错回滚状态树，否则将交易及收据放到current对应字段，并返回收据logs。回到commitTransactions中，根据对应错误打印不同log并弹出该交易，若没有错收集log，然后调用Shift方法，这个方法是将对应地址的交易集合中第一个交易踢出并重排顺序。</p>
+<p>就这样循环直到处理完所有给定的交易，回到commitNewWork中，刚才处理的是本地交易，然后处理远端交集。都处理完后调用commit方法<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(w *worker)</span> <span class="title">commit</span><span class="params">(uncles []*types.Header, interval <span class="keyword">func</span>()</span>, <span class="title">update</span> <span class="title">bool</span>, <span class="title">start</span> <span class="title">time</span>.<span class="title">Time</span>) <span class="title">error</span></span> &#123;</span><br><span class="line">	receipts := <span class="built_in">make</span>([]*types.Receipt, <span class="built_in">len</span>(w.current.receipts))</span><br><span class="line">	<span class="keyword">for</span> i, l := <span class="keyword">range</span> w.current.receipts &#123;</span><br><span class="line">		receipts[i] = <span class="built_in">new</span>(types.Receipt)</span><br><span class="line">		*receipts[i] = *l</span><br><span class="line">	&#125;</span><br><span class="line">	s := w.current.state.Copy()</span><br><span class="line">	block, err := w.engine.Finalize(w.chain, w.current.header, s, w.current.txs, uncles, w.current.receipts)</span><br><span class="line">	<span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">		<span class="keyword">return</span> err</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">if</span> w.isRunning() &#123;</span><br><span class="line">		<span class="keyword">if</span> interval != <span class="literal">nil</span> &#123;</span><br><span class="line">			interval()</span><br><span class="line">		&#125;</span><br><span class="line">		<span class="keyword">select</span> &#123;</span><br><span class="line">		<span class="keyword">case</span> w.taskCh &lt;- &amp;task&#123;receipts: receipts, state: s, block: block, createdAt: time.Now()&#125;:</span><br><span class="line">			w.unconfirmed.Shift(block.NumberU64() - <span class="number">1</span>)</span><br><span class="line"></span><br><span class="line">			feesWei := <span class="built_in">new</span>(big.Int)</span><br><span class="line">			<span class="keyword">for</span> i, tx := <span class="keyword">range</span> block.Transactions() &#123;</span><br><span class="line">				feesWei.Add(feesWei, <span class="built_in">new</span>(big.Int).Mul(<span class="built_in">new</span>(big.Int).SetUint64(receipts[i].GasUsed), tx.GasPrice()))</span><br><span class="line">			&#125;</span><br><span class="line">			feesEth := <span class="built_in">new</span>(big.Float).Quo(<span class="built_in">new</span>(big.Float).SetInt(feesWei), <span class="built_in">new</span>(big.Float).SetInt(big.NewInt(params.Ether)))</span><br><span class="line"></span><br><span class="line">			log.Info(<span class="string">"Commit new mining work"</span>, <span class="string">"number"</span>, block.Number(), <span class="string">"sealhash"</span>, w.engine.SealHash(block.Header()),</span><br><span class="line">				<span class="string">"uncles"</span>, <span class="built_in">len</span>(uncles), <span class="string">"txs"</span>, w.current.tcount, <span class="string">"gas"</span>, block.GasUsed(), <span class="string">"fees"</span>, feesEth, <span class="string">"elapsed"</span>, common.PrettyDuration(time.Since(start)))</span><br><span class="line"></span><br><span class="line">		<span class="keyword">case</span> &lt;-w.exitCh:</span><br><span class="line">			log.Info(<span class="string">"Worker has exited"</span>)</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">if</span> update &#123;</span><br><span class="line">		w.updateSnapshot()</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">return</span> <span class="literal">nil</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>到这里该处理的交易都处理完了，首先复制所有收据及窗台书，然后调用engine.Finalize方法发放奖励并生成区块。接着如果正在挖矿且没有中断，则给taskCh赋值触发相应逻辑。<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//worker::taskLoop</span></span><br><span class="line"><span class="keyword">case</span> task := &lt;-w.taskCh:</span><br><span class="line">	<span class="keyword">if</span> w.newTaskHook != <span class="literal">nil</span> &#123;</span><br><span class="line">		w.newTaskHook(task)</span><br><span class="line">	&#125;</span><br><span class="line">	sealHash := w.engine.SealHash(task.block.Header())</span><br><span class="line">	<span class="keyword">if</span> sealHash == prev &#123;</span><br><span class="line">		<span class="keyword">continue</span></span><br><span class="line">	&#125;</span><br><span class="line">	interrupt()</span><br><span class="line">	stopCh, prev = <span class="built_in">make</span>(<span class="keyword">chan</span> <span class="keyword">struct</span>&#123;&#125;), sealHash</span><br><span class="line"></span><br><span class="line">	<span class="keyword">if</span> w.skipSealHook != <span class="literal">nil</span> &amp;&amp; w.skipSealHook(task) &#123;</span><br><span class="line">		<span class="keyword">continue</span></span><br><span class="line">	&#125;</span><br><span class="line">	w.pendingMu.Lock()</span><br><span class="line">	w.pendingTasks[w.engine.SealHash(task.block.Header())] = task</span><br><span class="line">	w.pendingMu.Unlock()</span><br><span class="line"></span><br><span class="line">	<span class="keyword">if</span> err := w.engine.Seal(w.chain, task.block, w.resultCh, stopCh); err != <span class="literal">nil</span> &#123;</span><br><span class="line">		log.Warn(<span class="string">"Block sealing failed"</span>, <span class="string">"err"</span>, err)</span><br><span class="line">	&#125;</span><br></pre></td></tr></table></figure></p>
+<p>这里首先计算新区快头的hash值，如果等于前一次任务的，即prev，则退出。否则终止之前操作，然后记录该hash值为prev。然后在pendingTasks中记录这个task，并调用共识引擎的Seal方法，也就是实际的挖矿算法取寻找nonce（<a href="https://blog.grapefruit.tk/2019/05/30/go-ethereum%E4%B8%ADethash%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/" target="_blank" rel="noopener">详见这里</a>）。当找到后resultCh会收到信号触发对应逻辑<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">case</span> block := &lt;-w.resultCh:</span><br><span class="line">	<span class="keyword">if</span> block == <span class="literal">nil</span> &#123;</span><br><span class="line">		<span class="keyword">continue</span></span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">if</span> w.chain.HasBlock(block.Hash(), block.NumberU64()) &#123;</span><br><span class="line">		<span class="keyword">continue</span></span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">var</span> (</span><br><span class="line">		sealhash = w.engine.SealHash(block.Header())</span><br><span class="line">		hash     = block.Hash()</span><br><span class="line">	)</span><br><span class="line">	w.pendingMu.RLock()</span><br><span class="line">	task, exist := w.pendingTasks[sealhash]</span><br><span class="line">	w.pendingMu.RUnlock()</span><br><span class="line">	<span class="keyword">if</span> !exist &#123;</span><br><span class="line">		log.Error(<span class="string">"Block found but no relative pending task"</span>, <span class="string">"number"</span>, block.Number(), <span class="string">"sealhash"</span>, sealhash, <span class="string">"hash"</span>, hash)</span><br><span class="line">		<span class="keyword">continue</span></span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">var</span> (</span><br><span class="line">		receipts = <span class="built_in">make</span>([]*types.Receipt, <span class="built_in">len</span>(task.receipts))</span><br><span class="line">		logs     []*types.Log</span><br><span class="line">	)</span><br><span class="line">	<span class="keyword">for</span> i, receipt := <span class="keyword">range</span> task.receipts &#123;</span><br><span class="line">		receipts[i] = <span class="built_in">new</span>(types.Receipt)</span><br><span class="line">		*receipts[i] = *receipt</span><br><span class="line">		<span class="keyword">for</span> _, log := <span class="keyword">range</span> receipt.Logs &#123;</span><br><span class="line">			log.BlockHash = hash</span><br><span class="line">		&#125;</span><br><span class="line">		logs = <span class="built_in">append</span>(logs, receipt.Logs...)</span><br><span class="line">	&#125;</span><br><span class="line">	stat, err := w.chain.WriteBlockWithState(block, receipts, task.state)</span><br><span class="line">	<span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">		log.Error(<span class="string">"Failed writing block to chain"</span>, <span class="string">"err"</span>, err)</span><br><span class="line">		<span class="keyword">continue</span></span><br><span class="line">	&#125;</span><br><span class="line">	log.Info(<span class="string">"Successfully sealed new block"</span>, <span class="string">"number"</span>, block.Number(), <span class="string">"sealhash"</span>, sealhash, <span class="string">"hash"</span>, hash,</span><br><span class="line">		<span class="string">"elapsed"</span>, common.PrettyDuration(time.Since(task.createdAt)))</span><br><span class="line"></span><br><span class="line">	w.mux.Post(core.NewMinedBlockEvent&#123;Block: block&#125;)</span><br><span class="line"></span><br><span class="line">	<span class="keyword">var</span> events []<span class="keyword">interface</span>&#123;&#125;</span><br><span class="line">	<span class="keyword">switch</span> stat &#123;</span><br><span class="line">	<span class="keyword">case</span> core.CanonStatTy:</span><br><span class="line">		events = <span class="built_in">append</span>(events, core.ChainEvent&#123;Block: block, Hash: block.Hash(), Logs: logs&#125;)</span><br><span class="line">		events = <span class="built_in">append</span>(events, core.ChainHeadEvent&#123;Block: block&#125;)</span><br><span class="line">	<span class="keyword">case</span> core.SideStatTy:</span><br><span class="line">		events = <span class="built_in">append</span>(events, core.ChainSideEvent&#123;Block: block&#125;)</span><br><span class="line">	&#125;</span><br><span class="line">	w.chain.PostChainEvents(events, logs)</span><br><span class="line">	w.unconfirmed.Insert(block.NumberU64(), block.Hash())</span><br></pre></td></tr></table></figure></p>
+<p>先判断这个找到的block是否为空或已经有了，一切正常的话，从pendingTasks中找到对应task，遍历它的所有收据然后补齐收据中log的BlockHash字段。之后调用WriteBlockWithState写入本地区块链，成功的话发送NewMinedBlockEvent事件，这个事件被ProtocolManager接受并广播新块。在worker中，根据插入结果广播事件。最后将新区快插入到unconfirmed中。</p>
+<h2 id="中断"><a href="#中断" class="headerlink" title="中断"></a>中断</h2><p>刚才梳理了正常的挖矿流程，在最开始的时候，newWorkLoop收到startCh事件后，会设置一个定时器，他到时间后也会执行commit方法，只不过noempty参数为true，还是一样的流程，在taskLoop收到taskCh启动挖矿是会先执行一次interrupt方法<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">interrupt := <span class="function"><span class="keyword">func</span><span class="params">()</span></span> &#123;</span><br><span class="line">	<span class="keyword">if</span> stopCh != <span class="literal">nil</span> &#123;</span><br><span class="line">		<span class="built_in">close</span>(stopCh)</span><br><span class="line">		stopCh = <span class="literal">nil</span></span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>这里关闭的stopCh就是控制挖矿的，他会停止挖矿，然后随后又重新开始一次</p>
+<h1 id="unconfirmedBlocks"><a href="#unconfirmedBlocks" class="headerlink" title="unconfirmedBlocks"></a>unconfirmedBlocks</h1><p>这个表示那些本地挖到的但是还未确认的区块，创建worker是被创建<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">newUnconfirmedBlocks</span><span class="params">(chain chainRetriever, depth <span class="keyword">uint</span>)</span> *<span class="title">unconfirmedBlocks</span></span> &#123;</span><br><span class="line">	<span class="keyword">return</span> &amp;unconfirmedBlocks&#123;</span><br><span class="line">		chain: chain,</span><br><span class="line">		depth: depth,</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">type</span> unconfirmedBlocks <span class="keyword">struct</span> &#123;</span><br><span class="line">	chain  chainRetriever </span><br><span class="line">	depth  <span class="keyword">uint</span>          </span><br><span class="line">	blocks *ring.Ring    </span><br><span class="line">	lock   sync.RWMutex   </span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">type</span> unconfirmedBlock <span class="keyword">struct</span> &#123;</span><br><span class="line">	index <span class="keyword">uint64</span></span><br><span class="line">	hash  common.Hash</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<h2 id="Insert"><a href="#Insert" class="headerlink" title="Insert"></a>Insert</h2><p>每挖到一个区块就调用一次<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(set *unconfirmedBlocks)</span> <span class="title">Insert</span><span class="params">(index <span class="keyword">uint64</span>, hash common.Hash)</span></span> &#123;</span><br><span class="line">	set.Shift(index)</span><br><span class="line"></span><br><span class="line">	item := ring.New(<span class="number">1</span>)</span><br><span class="line">	item.Value = &amp;unconfirmedBlock&#123;</span><br><span class="line">		index: index,</span><br><span class="line">		hash:  hash,</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	set.lock.Lock()</span><br><span class="line">	<span class="keyword">defer</span> set.lock.Unlock()</span><br><span class="line"></span><br><span class="line">	<span class="keyword">if</span> set.blocks == <span class="literal">nil</span> &#123;</span><br><span class="line">		set.blocks = item</span><br><span class="line">	&#125; <span class="keyword">else</span> &#123;</span><br><span class="line">		set.blocks.Move(<span class="number">-1</span>).Link(item)</span><br><span class="line">	&#125;</span><br><span class="line">	</span><br><span class="line">	log.Info(<span class="string">"ðŸ”¨ mined potential block"</span>, <span class="string">"number"</span>, index, <span class="string">"hash"</span>, hash)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>先删除从新区快高度减去depth之外的所有区块，然后新建一个unconfirmedBlock对象，将其加入集合中。</p>
+<h2 id="Shift"><a href="#Shift" class="headerlink" title="Shift"></a>Shift</h2><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(set *unconfirmedBlocks)</span> <span class="title">Shift</span><span class="params">(height <span class="keyword">uint64</span>)</span></span> &#123;</span><br><span class="line">	set.lock.Lock()</span><br><span class="line">	<span class="keyword">defer</span> set.lock.Unlock()</span><br><span class="line"></span><br><span class="line">	<span class="keyword">for</span> set.blocks != <span class="literal">nil</span> &#123;</span><br><span class="line">		next := set.blocks.Value.(*unconfirmedBlock)</span><br><span class="line">		<span class="keyword">if</span> next.index+<span class="keyword">uint64</span>(set.depth) &gt; height &#123;</span><br><span class="line">			<span class="keyword">break</span></span><br><span class="line">		&#125;</span><br><span class="line">		header := set.chain.GetHeaderByNumber(next.index)</span><br><span class="line">		<span class="keyword">switch</span> &#123;</span><br><span class="line">		<span class="keyword">case</span> header == <span class="literal">nil</span>:</span><br><span class="line">			log.Warn(<span class="string">"Failed to retrieve header of mined block"</span>, <span class="string">"number"</span>, next.index, <span class="string">"hash"</span>, next.hash)</span><br><span class="line">		<span class="keyword">case</span> header.Hash() == next.hash:</span><br><span class="line">			log.Info(<span class="string">"ðŸ”— block reached canonical chain"</span>, <span class="string">"number"</span>, next.index, <span class="string">"hash"</span>, next.hash)</span><br><span class="line">		<span class="keyword">default</span>:</span><br><span class="line">			included := <span class="literal">false</span></span><br><span class="line">			<span class="keyword">for</span> number := next.index; !included &amp;&amp; number &lt; next.index+<span class="keyword">uint64</span>(set.depth) &amp;&amp; number &lt;= height; number++ &#123;</span><br><span class="line">				<span class="keyword">if</span> block := set.chain.GetBlockByNumber(number); block != <span class="literal">nil</span> &#123;</span><br><span class="line">					<span class="keyword">for</span> _, uncle := <span class="keyword">range</span> block.Uncles() &#123;</span><br><span class="line">						<span class="keyword">if</span> uncle.Hash() == next.hash &#123;</span><br><span class="line">							included = <span class="literal">true</span></span><br><span class="line">							<span class="keyword">break</span></span><br><span class="line">						&#125;</span><br><span class="line">					&#125;</span><br><span class="line">				&#125;</span><br><span class="line">			&#125;</span><br><span class="line">			<span class="keyword">if</span> included &#123;</span><br><span class="line">				log.Info(<span class="string">"â‘‚ block became an uncle"</span>, <span class="string">"number"</span>, next.index, <span class="string">"hash"</span>, next.hash)</span><br><span class="line">			&#125; <span class="keyword">else</span> &#123;</span><br><span class="line">				log.Info(<span class="string">"ðŸ˜± block lost"</span>, <span class="string">"number"</span>, next.index, <span class="string">"hash"</span>, next.hash)</span><br><span class="line">			&#125;</span><br><span class="line">		&#125;</span><br><span class="line">		<span class="keyword">if</span> set.blocks.Value == set.blocks.Next().Value &#123;</span><br><span class="line">			set.blocks = <span class="literal">nil</span></span><br><span class="line">		&#125; <span class="keyword">else</span> &#123;</span><br><span class="line">			set.blocks = set.blocks.Move(<span class="number">-1</span>)</span><br><span class="line">			set.blocks.Unlink(<span class="number">1</span>)</span><br><span class="line">			set.blocks = set.blocks.Move(<span class="number">1</span>)</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>会删除那些过于早的区块。遍历其中给的每一个区块，如果其高度加上depth（默认是7）高于给定的高度则跳过，否则按照高度从区块链中取出区块头，如果该区块头hash等于正在遍历的区块头hash，则表示我们挖的区块进入主链。如果不是，则检查是否称为叔块。这一部分检查主要是为了打印log，主要逻辑在最后，此时这个区块在给定区块高度减depth以外，需要从中删除。</p>
+<p>unconfirmedBlocks使用了环形链表ring作为主要的数据结构。</p>
+<blockquote>
+<p>题图来自unsplash：<a href="https://unsplash.com/photos/-oWyJoSqBRM" target="_blank" rel="noopener">https://unsplash.com/photos/-oWyJoSqBRM</a></p>
+</blockquote>
+
+      
+    </div>
+
+    
+
+    
+    
+    
+
+    
+
+    
+      
+    
+    
+      <div>
+        <div style="padding: 10px 0; margin: 20px auto; width: 90%; text-align: center;">
+  <div>谢谢你请我吃糖</div>
+  <button id="rewardButton" disable="enable" onclick="var qr = document.getElementById('QR'); if (qr.style.display === 'none') {qr.style.display='block';} else {qr.style.display='none'}">
+    <span>打赏</span>
+  </button>
+  <div id="QR" style="display: none;">
+
+    
+      <div id="wechat" style="display: inline-block">
+        <img id="wechat_qr" src="/assets/img/wechatpay.jpg" alt="AmorFati 微信支付">
+        <p>微信支付</p>
+      </div>
+    
+
+    
+      <div id="alipay" style="display: inline-block">
+        <img id="alipay_qr" src="/assets/img/alipay.jpg" alt="AmorFati 支付宝">
+        <p>支付宝</p>
+      </div>
+    
+
+    
+
+  </div>
+</div>
+
+      </div>
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/go/" rel="tag"># go</a>
+          
+            <a href="/tags/区块链/" rel="tag"># 区块链</a>
+          
+            <a href="/tags/以太坊/" rel="tag"># 以太坊</a>
+          
+            <a href="/tags/go-ethereum/" rel="tag"># go-ethereum</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2019/06/10/go-ethereum中event源码分析/" rel="next" title="go-ethereum中event源码分析">
+                <i class="fa fa-chevron-left"></i> go-ethereum中event源码分析
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+  </div>
+
+
+          </div>
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image" src="/assets/img/icon.jpg" alt="AmorFati">
+            
+              <p class="site-author-name" itemprop="name">AmorFati</p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          
+            <nav class="site-state motion-element">
+              
+                <div class="site-state-item site-state-posts">
+                
+                  <a href="/archives/">
+                
+                    <span class="site-state-item-count">50</span>
+                    <span class="site-state-item-name">日志</span>
+                  </a>
+                </div>
+              
+
+              
+                
+                
+                <div class="site-state-item site-state-categories">
+                  <a href="/categories/index.html">
+                    
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">7</span>
+                    <span class="site-state-item-name">分类</span>
+                  </a>
+                </div>
+              
+
+              
+                
+                
+                <div class="site-state-item site-state-tags">
+                  <a href="/tags/index.html">
+                    
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">11</span>
+                    <span class="site-state-item-name">标签</span>
+                  </a>
+                </div>
+              
+            </nav>
+          
+
+          
+
+          
+            <div class="links-of-author motion-element">
+              
+                <span class="links-of-author-item">
+                  
+                  
+                    
+                  
+                  
+                    
+                  
+                  <a href="https://github.com/chenyaoyang" title="GitHub &rarr; https://github.com/chenyaoyang" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i>GitHub</a>
+                </span>
+              
+                <span class="links-of-author-item">
+                  
+                  
+                    
+                  
+                  
+                    
+                  
+                  <a href="mailto:chenyang4346@foxmail.com" title="E-Mail &rarr; mailto:chenyang4346@foxmail.com" rel="noopener" target="_blank"><i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+                </span>
+              
+                <span class="links-of-author-item">
+                  
+                  
+                    
+                  
+                  
+                    
+                  
+                  <a href="https://www.jianshu.com/u/52c1bec4559c" title="简书 &rarr; https://www.jianshu.com/u/52c1bec4559c" rel="noopener" target="_blank"><i class="fa fa-fw fa-globe"></i>简书</a>
+                </span>
+              
+            </div>
+          
+
+          
+
+          
+          
+
+          
+            
+          
+          
+
+        </div>
+      </div>
+
+      
+      <!--noindex-->
+        <div class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+            
+            
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#入口"><span class="nav-number">1.</span> <span class="nav-text">入口</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#StartMining"><span class="nav-number">2.</span> <span class="nav-text">StartMining</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#miner"><span class="nav-number">3.</span> <span class="nav-text">miner</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#update"><span class="nav-number">3.1.</span> <span class="nav-text">update</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Start"><span class="nav-number">3.2.</span> <span class="nav-text">Start</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Stop"><span class="nav-number">3.3.</span> <span class="nav-text">Stop</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Mining"><span class="nav-number">3.4.</span> <span class="nav-text">Mining</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#worker"><span class="nav-number">4.</span> <span class="nav-text">worker</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#start"><span class="nav-number">4.1.</span> <span class="nav-text">start</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#中断"><span class="nav-number">4.2.</span> <span class="nav-text">中断</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#unconfirmedBlocks"><span class="nav-number">5.</span> <span class="nav-text">unconfirmedBlocks</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#Insert"><span class="nav-number">5.1.</span> <span class="nav-text">Insert</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Shift"><span class="nav-number">5.2.</span> <span class="nav-text">Shift</span></a></li></ol></li></ol></div>
+            
+
+          </div>
+        </div>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; 2018 – <span itemprop="copyrightYear">2019</span>
+  <span class="with-love" id="animate">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">AmorFati</span>
+
+  
+
+  
+</div>
+
+
+  <div class="powered-by">由 <a href="https://hexo.io" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v3.8.0</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 – <a href="https://theme-next.org" class="theme-link" rel="noopener" target="_blank">NexT.Pisces</a> v6.6.0</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+    
+
+    
+  </div>
+
+  
+
+<script>
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+
+  
+
+
+  <script src="/js/src/utils.js?v=6.6.0"></script>
+
+  <script src="/js/src/motion.js?v=6.6.0"></script>
+
+
+
+  
+  
+
+
+  <script src="/js/src/affix.js?v=6.6.0"></script>
+
+  <script src="/js/src/schemes/pisces.js?v=6.6.0"></script>
+
+
+
+  
+  <script src="/js/src/scrollspy.js?v=6.6.0"></script>
+<script src="/js/src/post-details.js?v=6.6.0"></script>
+
+
+
+  
+
+
+  <script src="/js/src/bootstrap.js?v=6.6.0"></script>
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  <script>
+    // Popup Window;
+    var isfetched = false;
+    var isXml = true;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length === 0) {
+      search_path = "search.xml";
+    } else if (/json$/i.test(search_path)) {
+      isXml = false;
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    var onPopupClose = function (e) {
+      $('.popup').hide();
+      $('#local-search-input').val('');
+      $('.search-result-list').remove();
+      $('#no-result').remove();
+      $(".local-search-pop-overlay").remove();
+      $('body').css('overflow', '');
+    }
+
+    function proceedsearch() {
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay"></div>')
+        .css('overflow', 'hidden');
+      $('.search-popup-overlay').click(onPopupClose);
+      $('.popup').toggle();
+      var $localSearchInput = $('#local-search-input');
+      $localSearchInput.attr("autocapitalize", "none");
+      $localSearchInput.attr("autocorrect", "off");
+      $localSearchInput.focus();
+    }
+
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+      'use strict';
+
+      // start loading animation
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay">' +
+          '<div id="search-loading-icon">' +
+          '<i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>' +
+          '</div>' +
+          '</div>')
+        .css('overflow', 'hidden');
+      $("#search-loading-icon").css('margin', '20% auto 0 auto').css('text-align', 'center');
+
+      
+
+      $.ajax({
+        url: path,
+        dataType: isXml ? "xml" : "json",
+        async: true,
+        success: function(res) {
+          // get the contents from search data
+          isfetched = true;
+          $('.popup').detach().appendTo('.header-inner');
+          var datas = isXml ? $("entry", res).map(function() {
+            return {
+              title: $("title", this).text(),
+              content: $("content",this).text(),
+              url: $("url" , this).text()
+            };
+          }).get() : res;
+          var input = document.getElementById(search_id);
+          var resultContent = document.getElementById(content_id);
+          var inputEventFunction = function() {
+            var searchText = input.value.trim().toLowerCase();
+            var keywords = searchText.split(/[\s\-]+/);
+            if (keywords.length > 1) {
+              keywords.push(searchText);
+            }
+            var resultItems = [];
+            if (searchText.length > 0) {
+              // perform local searching
+              datas.forEach(function(data) {
+                var isMatch = false;
+                var hitCount = 0;
+                var searchTextCount = 0;
+                var title = data.title.trim();
+                var titleInLowerCase = title.toLowerCase();
+                var content = data.content.trim().replace(/<[^>]+>/g,"");
+                
+                var contentInLowerCase = content.toLowerCase();
+                var articleUrl = decodeURIComponent(data.url);
+                var indexOfTitle = [];
+                var indexOfContent = [];
+                // only match articles with not empty titles
+                if(title != '') {
+                  keywords.forEach(function(keyword) {
+                    function getIndexByWord(word, text, caseSensitive) {
+                      var wordLen = word.length;
+                      if (wordLen === 0) {
+                        return [];
+                      }
+                      var startPosition = 0, position = [], index = [];
+                      if (!caseSensitive) {
+                        text = text.toLowerCase();
+                        word = word.toLowerCase();
+                      }
+                      while ((position = text.indexOf(word, startPosition)) > -1) {
+                        index.push({position: position, word: word});
+                        startPosition = position + wordLen;
+                      }
+                      return index;
+                    }
+
+                    indexOfTitle = indexOfTitle.concat(getIndexByWord(keyword, titleInLowerCase, false));
+                    indexOfContent = indexOfContent.concat(getIndexByWord(keyword, contentInLowerCase, false));
+                  });
+                  if (indexOfTitle.length > 0 || indexOfContent.length > 0) {
+                    isMatch = true;
+                    hitCount = indexOfTitle.length + indexOfContent.length;
+                  }
+                }
+
+                // show search results
+
+                if (isMatch) {
+                  // sort index by position of keyword
+
+                  [indexOfTitle, indexOfContent].forEach(function (index) {
+                    index.sort(function (itemLeft, itemRight) {
+                      if (itemRight.position !== itemLeft.position) {
+                        return itemRight.position - itemLeft.position;
+                      } else {
+                        return itemLeft.word.length - itemRight.word.length;
+                      }
+                    });
+                  });
+
+                  // merge hits into slices
+
+                  function mergeIntoSlice(text, start, end, index) {
+                    var item = index[index.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    var hits = [];
+                    var searchTextCountInSlice = 0;
+                    while (position + word.length <= end && index.length != 0) {
+                      if (word === searchText) {
+                        searchTextCountInSlice++;
+                      }
+                      hits.push({position: position, length: word.length});
+                      var wordEnd = position + word.length;
+
+                      // move to next position of hit
+
+                      index.pop();
+                      while (index.length != 0) {
+                        item = index[index.length - 1];
+                        position = item.position;
+                        word = item.word;
+                        if (wordEnd > position) {
+                          index.pop();
+                        } else {
+                          break;
+                        }
+                      }
+                    }
+                    searchTextCount += searchTextCountInSlice;
+                    return {
+                      hits: hits,
+                      start: start,
+                      end: end,
+                      searchTextCount: searchTextCountInSlice
+                    };
+                  }
+
+                  var slicesOfTitle = [];
+                  if (indexOfTitle.length != 0) {
+                    slicesOfTitle.push(mergeIntoSlice(title, 0, title.length, indexOfTitle));
+                  }
+
+                  var slicesOfContent = [];
+                  while (indexOfContent.length != 0) {
+                    var item = indexOfContent[indexOfContent.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    // cut out 100 characters
+                    var start = position - 20;
+                    var end = position + 80;
+                    if(start < 0){
+                      start = 0;
+                    }
+                    if (end < position + word.length) {
+                      end = position + word.length;
+                    }
+                    if(end > content.length){
+                      end = content.length;
+                    }
+                    slicesOfContent.push(mergeIntoSlice(content, start, end, indexOfContent));
+                  }
+
+                  // sort slices in content by search text's count and hits' count
+
+                  slicesOfContent.sort(function (sliceLeft, sliceRight) {
+                    if (sliceLeft.searchTextCount !== sliceRight.searchTextCount) {
+                      return sliceRight.searchTextCount - sliceLeft.searchTextCount;
+                    } else if (sliceLeft.hits.length !== sliceRight.hits.length) {
+                      return sliceRight.hits.length - sliceLeft.hits.length;
+                    } else {
+                      return sliceLeft.start - sliceRight.start;
+                    }
+                  });
+
+                  // select top N slices in content
+
+                  var upperBound = parseInt('1');
+                  if (upperBound >= 0) {
+                    slicesOfContent = slicesOfContent.slice(0, upperBound);
+                  }
+
+                  // highlight title and content
+
+                  function highlightKeyword(text, slice) {
+                    var result = '';
+                    var prevEnd = slice.start;
+                    slice.hits.forEach(function (hit) {
+                      result += text.substring(prevEnd, hit.position);
+                      var end = hit.position + hit.length;
+                      result += '<b class="search-keyword">' + text.substring(hit.position, end) + '</b>';
+                      prevEnd = end;
+                    });
+                    result += text.substring(prevEnd, slice.end);
+                    return result;
+                  }
+
+                  var resultItem = '';
+
+                  if (slicesOfTitle.length != 0) {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + highlightKeyword(title, slicesOfTitle[0]) + "</a>";
+                  } else {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + title + "</a>";
+                  }
+
+                  slicesOfContent.forEach(function (slice) {
+                    resultItem += "<a href='" + articleUrl + "'>" +
+                      "<p class=\"search-result\">" + highlightKeyword(content, slice) +
+                      "...</p>" + "</a>";
+                  });
+
+                  resultItem += "</li>";
+                  resultItems.push({
+                    item: resultItem,
+                    searchTextCount: searchTextCount,
+                    hitCount: hitCount,
+                    id: resultItems.length
+                  });
+                }
+              })
+            };
+            if (keywords.length === 1 && keywords[0] === "") {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>'
+            } else if (resultItems.length === 0) {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>'
+            } else {
+              resultItems.sort(function (resultLeft, resultRight) {
+                if (resultLeft.searchTextCount !== resultRight.searchTextCount) {
+                  return resultRight.searchTextCount - resultLeft.searchTextCount;
+                } else if (resultLeft.hitCount !== resultRight.hitCount) {
+                  return resultRight.hitCount - resultLeft.hitCount;
+                } else {
+                  return resultRight.id - resultLeft.id;
+                }
+              });
+              var searchResultList = '<ul class=\"search-result-list\">';
+              resultItems.forEach(function (result) {
+                searchResultList += result.item;
+              })
+              searchResultList += "</ul>";
+              resultContent.innerHTML = searchResultList;
+            }
+          }
+
+          if ('auto' === 'auto') {
+            input.addEventListener('input', inputEventFunction);
+          } else {
+            $('.search-icon').click(inputEventFunction);
+            input.addEventListener('keypress', function (event) {
+              if (event.keyCode === 13) {
+                inputEventFunction();
+              }
+            });
+          }
+
+          // remove loading animation
+          $(".local-search-pop-overlay").remove();
+          $('body').css('overflow', '');
+
+          proceedsearch();
+        }
+      });
+    }
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched === false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+    });
+
+    $('.popup-btn-close').click(onPopupClose);
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+    $(document).on('keyup', function (event) {
+      var shouldDismissSearchPopup = event.which === 27 &&
+        $('.search-popup').is(':visible');
+      if (shouldDismissSearchPopup) {
+        onPopupClose();
+      }
+    });
+  </script>
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+  
+
+  
+
+
+  
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

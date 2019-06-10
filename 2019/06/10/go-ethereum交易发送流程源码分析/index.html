@@ -1,0 +1,1381 @@
+<!DOCTYPE html>
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+<html class="theme-next pisces use-motion" lang="zh-CN">
+<head><meta name="generator" content="Hexo 3.8.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+    
+      
+    
+
+    
+  
+
+  
+
+  
+    
+      
+    
+
+    
+  
+
+  
+    
+      
+    
+
+    
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Monda:300,300italic,400,400italic,700,700italic|Roboto Slab:300,300italic,400,400italic,700,700italic|Dancing Script:300,300italic,400,400italic,700,700italic|Consolas:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css">
+
+<link href="/css/main.css?v=6.6.0" rel="stylesheet" type="text/css">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=6.6.0">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=6.6.0">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=6.6.0">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=6.6.0" color="#222">
+
+
+
+
+
+
+
+
+
+<script id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    version: '6.6.0',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: false,
+    fastclick: false,
+    lazyload: false,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+  
+
+
+
+
+  <meta name="keywords" content="go,区块链,以太坊,go-ethereum">
+<meta property="og:type" content="article">
+<meta property="og:title" content="go-ethereum交易发送流程源码分析">
+<meta property="og:url" content="http://yoursite.com/2019/06/10/go-ethereum交易发送流程源码分析/index.html">
+<meta property="og:site_name" content="AmorFati">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:image" content="https://raw.githubusercontent.com/chenyaoyang/blog-pic/master/201906/trevor-cole-1067315-unsplash.jpg">
+<meta property="og:updated_time" content="2019-06-10T09:12:38.135Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="go-ethereum交易发送流程源码分析">
+<meta name="twitter:image" content="https://raw.githubusercontent.com/chenyaoyang/blog-pic/master/201906/trevor-cole-1067315-unsplash.jpg">
+
+
+
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2019/06/10/go-ethereum交易发送流程源码分析/">
+
+
+
+<script id="page.configurations">
+  CONFIG.page = {
+    sidebar: "",
+  };
+</script>
+
+  <title>go-ethereum交易发送流程源码分析 | AmorFati</title>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  <noscript>
+  <style>
+    .use-motion .motion-element,
+    .use-motion .brand,
+    .use-motion .menu-item,
+    .sidebar-inner,
+    .use-motion .post-block,
+    .use-motion .pagination,
+    .use-motion .comments,
+    .use-motion .post-header,
+    .use-motion .post-body,
+    .use-motion .collection-title { opacity: initial; }
+
+    .use-motion .logo,
+    .use-motion .site-title,
+    .use-motion .site-subtitle {
+      opacity: initial;
+      top: initial;
+    }
+
+    .use-motion .logo-line-before i { left: initial; }
+    .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope="" itemtype="http://schema.org/WebPage" lang="zh-CN">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope="" itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">AmorFati</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+    
+      
+        <p class="site-subtitle">风吹过窗前的书，又翻过一页</p>
+      
+    
+    
+  </div>
+
+  <div class="site-nav-toggle">
+    <button aria-label="切换导航栏">
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  
+    <ul id="menu" class="menu">
+      
+        
+        
+        
+          
+          <li class="menu-item menu-item-home">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/" rel="section"><i class="menu-item-icon fa fa-fw fa-home"></i> <br>首页</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-about">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/about/" rel="section"><i class="menu-item-icon fa fa-fw fa-user"></i> <br>关于</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-tags">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/tags/" rel="section"><i class="menu-item-icon fa fa-fw fa-tags"></i> <br>标签</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-categories">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/categories/" rel="section"><i class="menu-item-icon fa fa-fw fa-th"></i> <br>分类</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-archives">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/archives/" rel="section"><i class="menu-item-icon fa fa-fw fa-archive"></i> <br>归档</a>
+
+  </li>
+
+      
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br>搜索</a>
+        </li>
+      
+    </ul>
+  
+
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup search-popup local-search-popup">
+  <div class="local-search-header clearfix">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+    <div class="local-search-input-wrapper">
+      <input autocomplete="off" placeholder="搜索..." spellcheck="false" type="text" id="local-search-input">
+    </div>
+  </div>
+  <div id="local-search-result"></div>
+</div>
+
+
+
+    </div>
+  
+</nav>
+
+
+
+  
+
+
+
+</div>
+    </header>
+
+    
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+            
+
+          
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  
+
+  <article class="post post-type-normal" itemscope="" itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/06/10/go-ethereum交易发送流程源码分析/">
+
+    <span hidden itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="AmorFati">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/assets/img/icon.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope="" itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="AmorFati">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">go-ethereum交易发送流程源码分析
+
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+
+            
+            
+            
+
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+
+              
+                
+              
+
+              <time title="创建时间：2019-06-10 17:08:26 / 修改时间：17:12:38" itemprop="dateCreated datePublished" datetime="2019-06-10T17:08:26+08:00">2019-06-10</time>
+            
+
+            
+              
+
+              
+            
+          </span>
+
+          
+            <span class="post-category">
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope="" itemtype="http://schema.org/Thing"><a href="/categories/go-ethereum源码学习/" itemprop="url" rel="index"><span itemprop="name">go-ethereum源码学习</span></a></span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p><img src="https://raw.githubusercontent.com/chenyaoyang/blog-pic/master/201906/trevor-cole-1067315-unsplash.jpg" alt=""><br><a id="more"></a></p>
+<h1 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h1><p>如果只是为了测试，可以启动以太坊的rpc测试工具：ganache-cli。然后使用attach命令去连接测试节点<code>geth attach http://127.0.0.1:8545</code>。当然，你也可以利用geth搭建一个私链去测试，这里不再多做介绍，ganache-cli安装如下：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">npm install -g ganache-cli</span><br></pre></td></tr></table></figure></p>
+<p>先介绍几个命令：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">查看所有账户：eth.accounts</span><br><span class="line">查看某个账户的余额：eth.getBalance(eth.accounts[0])</span><br><span class="line">解锁某个账户：personal.unlockAccount(eth.accounts[0],&quot;密码&quot;)</span><br><span class="line">交易：eth.sendTransaction(&#123;from:**,to:**,value:**&#125;)</span><br></pre></td></tr></table></figure></p>
+<h1 id="账户解锁"><a href="#账户解锁" class="headerlink" title="账户解锁"></a>账户解锁</h1><p>交易前必须解锁账户，所以我们先从这里开始分析。解锁账户的命令时：personal.unlockAccount。回顾之前geth启动流程，在启动服务时会启动rpc服务，此时会收集所有api<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(n *Node)</span> <span class="title">startRPC</span><span class="params">(services <span class="keyword">map</span>[reflect.Type]Service)</span> <span class="title">error</span></span> &#123;</span><br><span class="line">	apis := n.apis()</span><br><span class="line">	<span class="keyword">for</span> _, service := <span class="keyword">range</span> services &#123;</span><br><span class="line">		apis = <span class="built_in">append</span>(apis, service.APIs()...)</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">if</span> err := n.startInProc(apis); err != <span class="literal">nil</span> &#123;</span><br><span class="line">		<span class="keyword">return</span> err</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">if</span> err := n.startIPC(apis); err != <span class="literal">nil</span> &#123;</span><br><span class="line">		n.stopInProc()</span><br><span class="line">		<span class="keyword">return</span> err</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">if</span> err := n.startHTTP(n.httpEndpoint, apis, n.config.HTTPModules, n.config.HTTPCors, n.config.HTTPVirtualHosts, n.config.HTTPTimeouts); err != <span class="literal">nil</span> &#123;</span><br><span class="line">		n.stopIPC()</span><br><span class="line">		n.stopInProc()</span><br><span class="line">		<span class="keyword">return</span> err</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">if</span> err := n.startWS(n.wsEndpoint, apis, n.config.WSModules, n.config.WSOrigins, n.config.WSExposeAll); err != <span class="literal">nil</span> &#123;</span><br><span class="line">		n.stopHTTP()</span><br><span class="line">		n.stopIPC()</span><br><span class="line">		n.stopInProc()</span><br><span class="line">		<span class="keyword">return</span> err</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	n.rpcAPIs = apis</span><br><span class="line">	<span class="keyword">return</span> <span class="literal">nil</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>第一步先收集node提供的api，之后再收集所有服务提供的api，由于默认只有ethereum服务，所有我们能用的api都来自这两个地方。API实际上是一个结构体<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">type</span> API <span class="keyword">struct</span> &#123;</span><br><span class="line">	Namespace <span class="keyword">string</span>     </span><br><span class="line">	Version   <span class="keyword">string</span>      </span><br><span class="line">	Service   <span class="keyword">interface</span>&#123;&#125; </span><br><span class="line">	Public    <span class="keyword">bool</span>        </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>他有四个成员，Namespace是命名空间，我们使用的personal.unlockAccount命令中personal就是一个命名空间，一个命名空间下有若干个实际的命令。Version就是版本号，Service就是该API具体逻辑的结构体。Public指该API是否对外公开。</p>
+<p>回顾rpc源码，在启动rpc服务时会传入所有要提供服务的API，之后对每个api使用RegisterName进行注册，将API指定的结构体中可导出的每个方法包装成一个个callback，每个callback对应的名字就是方法名，只不过第一个字母小写。同一个结构体的所有可调用的方法包装成一个service，service的name字段就是API的Namespace。收到请求时就是根据命名空间及对应的方法名取查找对应callback来执行逻辑。</p>
+<p>这里我们同过查找发现personal.unlockAccount的这个指令对应的PrivateAccountAPI结构体中的UnlockAccount方法<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// go-ethereum\internal\ethapi\api.go</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(s *PrivateAccountAPI)</span> <span class="title">UnlockAccount</span><span class="params">(addr common.Address, password <span class="keyword">string</span>, duration *<span class="keyword">uint64</span>)</span> <span class="params">(<span class="keyword">bool</span>, error)</span></span> &#123;</span><br><span class="line">	<span class="keyword">const</span> max = <span class="keyword">uint64</span>(time.Duration(math.MaxInt64) / time.Second)</span><br><span class="line">	<span class="keyword">var</span> d time.Duration</span><br><span class="line">	<span class="keyword">if</span> duration == <span class="literal">nil</span> &#123;</span><br><span class="line">		d = <span class="number">300</span> * time.Second</span><br><span class="line">	&#125; <span class="keyword">else</span> <span class="keyword">if</span> *duration &gt; max &#123;</span><br><span class="line">		<span class="keyword">return</span> <span class="literal">false</span>, errors.New(<span class="string">"unlock duration too large"</span>)</span><br><span class="line">	&#125; <span class="keyword">else</span> &#123;</span><br><span class="line">		d = time.Duration(*duration) * time.Second</span><br><span class="line">	&#125;</span><br><span class="line">	err := fetchKeystore(s.am).TimedUnlock(accounts.Account&#123;Address: addr&#125;, password, d)</span><br><span class="line">	<span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">		log.Warn(<span class="string">"Failed account unlock attempt"</span>, <span class="string">"address"</span>, addr, <span class="string">"err"</span>, err)</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">return</span> err == <span class="literal">nil</span>, err</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>这里我们发现实际上这个方法接收三个参数，但第三个参数可以为空。这三个参数分别是要解锁的账户地址，密码以及解锁状态持续时间。默认保持解锁300秒，可以自定义，但不能过大。接着主要逻辑开始，首先调用fetchKeystore方法去从accountmanager中获取一个keystore对象，之后调用其TimedUnlock方法。这个方法之前在分析geth的account子命令时分析过，解锁实际上就是用提供的密码解密账户对应的keystore文件，获得账户对应的私钥。并持续一定时间的解锁状态，所谓解锁状态是指地址对应的unlocked可以找得到，到期后将对应unlocked对象中的私钥清零，并将其移除unlocked集合。</p>
+<h1 id="发送交易"><a href="#发送交易" class="headerlink" title="发送交易"></a>发送交易</h1><p>发送交易的实际代码如下<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(s *PublicTransactionPoolAPI)</span> <span class="title">SendTransaction</span><span class="params">(ctx context.Context, args SendTxArgs)</span> <span class="params">(common.Hash, error)</span></span> &#123;</span><br><span class="line"></span><br><span class="line">	account := accounts.Account&#123;Address: args.From&#125;</span><br><span class="line"></span><br><span class="line">	wallet, err := s.b.AccountManager().Find(account)</span><br><span class="line">	<span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">		<span class="keyword">return</span> common.Hash&#123;&#125;, err</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">if</span> args.Nonce == <span class="literal">nil</span> &#123;</span><br><span class="line">		s.nonceLock.LockAddr(args.From)</span><br><span class="line">		<span class="keyword">defer</span> s.nonceLock.UnlockAddr(args.From)</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">if</span> err := args.setDefaults(ctx, s.b); err != <span class="literal">nil</span> &#123;</span><br><span class="line">		<span class="keyword">return</span> common.Hash&#123;&#125;, err</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	tx := args.toTransaction()</span><br><span class="line"></span><br><span class="line">	signed, err := wallet.SignTx(account, tx, s.b.ChainConfig().ChainID)</span><br><span class="line">	<span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">		<span class="keyword">return</span> common.Hash&#123;&#125;, err</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">return</span> SubmitTransaction(ctx, s.b, signed)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>注意这个方法有两个参数，但是调用时我们没有指定第一个参数，由于不是基本类型，所以我们也无法指定第一个参数。回顾rpc源码。在注册服务时，如果方法的第一个参数是contextType类型，则跳过第一个参数并标记该callback的hasCtx为true。</p>
+<p>SendTransaction方法的第二个参数也不是基本参数，但是我们查看SendTxArgs的定义<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">type</span> SendTxArgs <span class="keyword">struct</span> &#123;</span><br><span class="line">	From     common.Address  <span class="string">`json:"from"`</span></span><br><span class="line">	To       *common.Address <span class="string">`json:"to"`</span></span><br><span class="line">	Gas      *hexutil.Uint64 <span class="string">`json:"gas"`</span></span><br><span class="line">	GasPrice *hexutil.Big    <span class="string">`json:"gasPrice"`</span></span><br><span class="line">	Value    *hexutil.Big    <span class="string">`json:"value"`</span></span><br><span class="line">	Nonce    *hexutil.Uint64 <span class="string">`json:"nonce"`</span></span><br><span class="line"></span><br><span class="line">	Data  *hexutil.Bytes <span class="string">`json:"data"`</span></span><br><span class="line">	Input *hexutil.Bytes <span class="string">`json:"input"`</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>SendTxArgs实际上是一个json对象，所以我们只要输入json格式的字符串即可，在处理请求时会自动序列化为json对象。</p>
+<p>方法的第一步是先构造一个account对象，先只赋值地址参数。之后去寻找这个账户对于的钱包对象。找到的话，如果参数中的nonce字段为空，则调用nonceLock.LockAddr方法<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(l *AddrLocker)</span> <span class="title">LockAddr</span><span class="params">(address common.Address)</span></span> &#123;</span><br><span class="line">	l.lock(address).Lock()</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(l *AddrLocker)</span> <span class="title">lock</span><span class="params">(address common.Address)</span> *<span class="title">sync</span>.<span class="title">Mutex</span></span> &#123;</span><br><span class="line">	l.mu.Lock()</span><br><span class="line">	<span class="keyword">defer</span> l.mu.Unlock()</span><br><span class="line">	<span class="keyword">if</span> l.locks == <span class="literal">nil</span> &#123;</span><br><span class="line">		l.locks = <span class="built_in">make</span>(<span class="keyword">map</span>[common.Address]*sync.Mutex)</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">if</span> _, ok := l.locks[address]; !ok &#123;</span><br><span class="line">		l.locks[address] = <span class="built_in">new</span>(sync.Mutex)</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">return</span> l.locks[address]</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>实际上就是给每个地址创建一个互斥锁并进行锁定。回到SendTransaction中，有调用了setDefaults进行参数补全<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(args *SendTxArgs)</span> <span class="title">setDefaults</span><span class="params">(ctx context.Context, b Backend)</span> <span class="title">error</span></span> &#123;</span><br><span class="line">	<span class="keyword">if</span> args.Gas == <span class="literal">nil</span> &#123;</span><br><span class="line">		args.Gas = <span class="built_in">new</span>(hexutil.Uint64)</span><br><span class="line">		*(*<span class="keyword">uint64</span>)(args.Gas) = <span class="number">90000</span></span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">if</span> args.GasPrice == <span class="literal">nil</span> &#123;</span><br><span class="line">		price, err := b.SuggestPrice(ctx)</span><br><span class="line">		<span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">			<span class="keyword">return</span> err</span><br><span class="line">		&#125;</span><br><span class="line">		args.GasPrice = (*hexutil.Big)(price)</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">if</span> args.Value == <span class="literal">nil</span> &#123;</span><br><span class="line">		args.Value = <span class="built_in">new</span>(hexutil.Big)</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">if</span> args.Nonce == <span class="literal">nil</span> &#123;</span><br><span class="line">		nonce, err := b.GetPoolNonce(ctx, args.From)</span><br><span class="line">		<span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">			<span class="keyword">return</span> err</span><br><span class="line">		&#125;</span><br><span class="line">		args.Nonce = (*hexutil.Uint64)(&amp;nonce)</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">if</span> args.Data != <span class="literal">nil</span> &amp;&amp; args.Input != <span class="literal">nil</span> &amp;&amp; !bytes.Equal(*args.Data, *args.Input) &#123;</span><br><span class="line">		<span class="keyword">return</span> errors.New(<span class="string">`Both "data" and "input" are set and not equal. Please use "input" to pass transaction call data.`</span>)</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">if</span> args.To == <span class="literal">nil</span> &#123;</span><br><span class="line">		<span class="comment">// Contract creation</span></span><br><span class="line">		<span class="keyword">var</span> input []<span class="keyword">byte</span></span><br><span class="line">		<span class="keyword">if</span> args.Data != <span class="literal">nil</span> &#123;</span><br><span class="line">			input = *args.Data</span><br><span class="line">		&#125; <span class="keyword">else</span> <span class="keyword">if</span> args.Input != <span class="literal">nil</span> &#123;</span><br><span class="line">			input = *args.Input</span><br><span class="line">		&#125;</span><br><span class="line">		<span class="keyword">if</span> <span class="built_in">len</span>(input) == <span class="number">0</span> &#123;</span><br><span class="line">			<span class="keyword">return</span> errors.New(<span class="string">`contract creation without any data provided`</span>)</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">return</span> <span class="literal">nil</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>这个主要是补全SendTxArgs的一些空成员变量，也就是我们为提供的值，一般发生一个普通交易我们只要提供收发双方地址和交易金额即可。接着调用toTransaction组装一个交易对象<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(args *SendTxArgs)</span> <span class="title">toTransaction</span><span class="params">()</span> *<span class="title">types</span>.<span class="title">Transaction</span></span> &#123;</span><br><span class="line">	<span class="keyword">var</span> input []<span class="keyword">byte</span></span><br><span class="line">	<span class="keyword">if</span> args.Data != <span class="literal">nil</span> &#123;</span><br><span class="line">		input = *args.Data</span><br><span class="line">	&#125; <span class="keyword">else</span> <span class="keyword">if</span> args.Input != <span class="literal">nil</span> &#123;</span><br><span class="line">		input = *args.Input</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">if</span> args.To == <span class="literal">nil</span> &#123;</span><br><span class="line">		<span class="keyword">return</span> types.NewContractCreation(<span class="keyword">uint64</span>(*args.Nonce), (*big.Int)(args.Value), <span class="keyword">uint64</span>(*args.Gas), (*big.Int)(args.GasPrice), input)</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">return</span> types.NewTransaction(<span class="keyword">uint64</span>(*args.Nonce), *args.To, (*big.Int)(args.Value), <span class="keyword">uint64</span>(*args.Gas), (*big.Int)(args.GasPrice), input)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>首先Data与Input都表示交易携带的信息，Input是一个新名字而已。接着根据接收人地址是否为空构造不同的交易对象<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">NewTransaction</span><span class="params">(nonce <span class="keyword">uint64</span>, to common.Address, amount *big.Int, gasLimit <span class="keyword">uint64</span>, gasPrice *big.Int, data []<span class="keyword">byte</span>)</span> *<span class="title">Transaction</span></span> &#123;</span><br><span class="line">	<span class="keyword">return</span> newTransaction(nonce, &amp;to, amount, gasLimit, gasPrice, data)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">NewContractCreation</span><span class="params">(nonce <span class="keyword">uint64</span>, amount *big.Int, gasLimit <span class="keyword">uint64</span>, gasPrice *big.Int, data []<span class="keyword">byte</span>)</span> *<span class="title">Transaction</span></span> &#123;</span><br><span class="line">	<span class="keyword">return</span> newTransaction(nonce, <span class="literal">nil</span>, amount, gasLimit, gasPrice, data)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>二者调用的实际上是一个方法，区别就是接受者的地址是否为空<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">newTransaction</span><span class="params">(nonce <span class="keyword">uint64</span>, to *common.Address, amount *big.Int, gasLimit <span class="keyword">uint64</span>, gasPrice *big.Int, data []<span class="keyword">byte</span>)</span> *<span class="title">Transaction</span></span> &#123;</span><br><span class="line">	<span class="keyword">if</span> <span class="built_in">len</span>(data) &gt; <span class="number">0</span> &#123;</span><br><span class="line">		data = common.CopyBytes(data)</span><br><span class="line">	&#125;</span><br><span class="line">	d := txdata&#123;</span><br><span class="line">		AccountNonce: nonce,</span><br><span class="line">		Recipient:    to,</span><br><span class="line">		Payload:      data,</span><br><span class="line">		Amount:       <span class="built_in">new</span>(big.Int),</span><br><span class="line">		GasLimit:     gasLimit,</span><br><span class="line">		Price:        <span class="built_in">new</span>(big.Int),</span><br><span class="line">		V:            <span class="built_in">new</span>(big.Int),</span><br><span class="line">		R:            <span class="built_in">new</span>(big.Int),</span><br><span class="line">		S:            <span class="built_in">new</span>(big.Int),</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">if</span> amount != <span class="literal">nil</span> &#123;</span><br><span class="line">		d.Amount.Set(amount)</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">if</span> gasPrice != <span class="literal">nil</span> &#123;</span><br><span class="line">		d.Price.Set(gasPrice)</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">return</span> &amp;Transaction&#123;data: d&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>这里先构建了一个txdata对象，包含了交易的一些基本信息，然后构建了一个Transaction对象。回到SendTransaction，这里调用了SignTx对交易进行签名<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(w *keystoreWallet)</span> <span class="title">SignTx</span><span class="params">(account accounts.Account, tx *types.Transaction, chainID *big.Int)</span> <span class="params">(*types.Transaction, error)</span></span> &#123;</span><br><span class="line">	<span class="keyword">if</span> !w.Contains(account) &#123;</span><br><span class="line">		<span class="keyword">return</span> <span class="literal">nil</span>, accounts.ErrUnknownAccount</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">return</span> w.keystore.SignTx(account, tx, chainID)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(ks *KeyStore)</span> <span class="title">SignTx</span><span class="params">(a accounts.Account, tx *types.Transaction, chainID *big.Int)</span> <span class="params">(*types.Transaction, error)</span></span> &#123;</span><br><span class="line">	ks.mu.RLock()</span><br><span class="line">	<span class="keyword">defer</span> ks.mu.RUnlock()</span><br><span class="line"></span><br><span class="line">	unlockedKey, found := ks.unlocked[a.Address]</span><br><span class="line">	<span class="keyword">if</span> !found &#123;</span><br><span class="line">		<span class="keyword">return</span> <span class="literal">nil</span>, ErrLocked</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">if</span> chainID != <span class="literal">nil</span> &#123;</span><br><span class="line">		<span class="keyword">return</span> types.SignTx(tx, types.NewEIP155Signer(chainID), unlockedKey.PrivateKey)</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">return</span> types.SignTx(tx, types.HomesteadSigner&#123;&#125;, unlockedKey.PrivateKey)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>先查找钱包中是否包含该账户，有的话调用KeyStore的SignTx方法。首先检查账户是否已解锁，然后调用SignTx方法签名，但根据是否指定网络ID来决定使用什么singer<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">SignTx</span><span class="params">(tx *Transaction, s Signer, prv *ecdsa.PrivateKey)</span> <span class="params">(*Transaction, error)</span></span> &#123;</span><br><span class="line">	h := s.Hash(tx)</span><br><span class="line">	sig, err := crypto.Sign(h[:], prv)</span><br><span class="line">	<span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">		<span class="keyword">return</span> <span class="literal">nil</span>, err</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">return</span> tx.WithSignature(s, sig)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>首先对交易计算hash值，去然后用对hash值进行签名。我们以HomesteadSigner为Signer分析一下。首先hash方法如下<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(fs FrontierSigner)</span> <span class="title">Hash</span><span class="params">(tx *Transaction)</span> <span class="title">common</span>.<span class="title">Hash</span></span> &#123;</span><br><span class="line">	<span class="keyword">return</span> rlpHash([]<span class="keyword">interface</span>&#123;&#125;&#123;</span><br><span class="line">		tx.data.AccountNonce,</span><br><span class="line">		tx.data.Price,</span><br><span class="line">		tx.data.GasLimit,</span><br><span class="line">		tx.data.Recipient,</span><br><span class="line">		tx.data.Amount,</span><br><span class="line">		tx.data.Payload,</span><br><span class="line">	&#125;)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">rlpHash</span><span class="params">(x <span class="keyword">interface</span>&#123;&#125;)</span> <span class="params">(h common.Hash)</span></span> &#123;</span><br><span class="line">	hw := sha3.NewLegacyKeccak256()</span><br><span class="line">	rlp.Encode(hw, x)</span><br><span class="line">	hw.Sum(h[:<span class="number">0</span>])</span><br><span class="line">	<span class="keyword">return</span> h</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>hash方法是将交易的账户nonce、gasPrice、gaslimit、接受者地址、交易金额以及额外数据这些信息先进行rlp编码，然后使用keccak256算法进行hash计算，得到256位hash值。</p>
+<p>Sign方法就是ECDSA数字签名算法，根据输入的私钥，计算出一个长度为65的字节数组。包含着ECDSA数字签名的结果R、S、V。注意原始的ECDSA签名算法只有R和S，这里又多出一个V，它是第65个字节，被称作“恢复ID”。关于ECDSA算法介绍见<a href="https://blog.grapefruit.tk/2019/03/31/%E9%9D%9E%E5%AF%B9%E7%A7%B0%E5%8A%A0%E5%AF%86%E7%AE%97%E6%B3%95%E4%B8%8E%E6%95%B0%E5%AD%97%E7%AD%BE%E5%90%8D/" target="_blank" rel="noopener">这里</a>。</p>
+<p>WithSignature方法如下<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(tx *Transaction)</span> <span class="title">WithSignature</span><span class="params">(signer Signer, sig []<span class="keyword">byte</span>)</span> <span class="params">(*Transaction, error)</span></span> &#123;</span><br><span class="line">	r, s, v, err := signer.SignatureValues(tx, sig)</span><br><span class="line">	<span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">		<span class="keyword">return</span> <span class="literal">nil</span>, err</span><br><span class="line">	&#125;</span><br><span class="line">	cpy := &amp;Transaction&#123;data: tx.data&#125;</span><br><span class="line">	cpy.data.R, cpy.data.S, cpy.data.V = r, s, v</span><br><span class="line">	<span class="keyword">return</span> cpy, <span class="literal">nil</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(fs FrontierSigner)</span> <span class="title">SignatureValues</span><span class="params">(tx *Transaction, sig []<span class="keyword">byte</span>)</span> <span class="params">(r, s, v *big.Int, err error)</span></span> &#123;</span><br><span class="line">	<span class="keyword">if</span> <span class="built_in">len</span>(sig) != <span class="number">65</span> &#123;</span><br><span class="line">		<span class="built_in">panic</span>(fmt.Sprintf(<span class="string">"wrong size for signature: got %d, want 65"</span>, <span class="built_in">len</span>(sig)))</span><br><span class="line">	&#125;</span><br><span class="line">	r = <span class="built_in">new</span>(big.Int).SetBytes(sig[:<span class="number">32</span>])</span><br><span class="line">	s = <span class="built_in">new</span>(big.Int).SetBytes(sig[<span class="number">32</span>:<span class="number">64</span>])</span><br><span class="line">	v = <span class="built_in">new</span>(big.Int).SetBytes([]<span class="keyword">byte</span>&#123;sig[<span class="number">64</span>] + <span class="number">27</span>&#125;)</span><br><span class="line">	<span class="keyword">return</span> r, s, v, <span class="literal">nil</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>先从刚才计算得到的签名值中解析出e、s、v的值。然后给transaction的data对于字段赋值。最后返回交易。</p>
+<p>回到SendTransaction，获得已签名的交易后调用SubmitTransaction方法提交交易<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">SubmitTransaction</span><span class="params">(ctx context.Context, b Backend, tx *types.Transaction)</span> <span class="params">(common.Hash, error)</span></span> &#123;</span><br><span class="line">	<span class="keyword">if</span> err := b.SendTx(ctx, tx); err != <span class="literal">nil</span> &#123;</span><br><span class="line">		<span class="keyword">return</span> common.Hash&#123;&#125;, err</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">if</span> tx.To() == <span class="literal">nil</span> &#123;</span><br><span class="line">		signer := types.MakeSigner(b.ChainConfig(), b.CurrentBlock().Number())</span><br><span class="line">		from, err := types.Sender(signer, tx)</span><br><span class="line">		<span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">			<span class="keyword">return</span> common.Hash&#123;&#125;, err</span><br><span class="line">		&#125;</span><br><span class="line">		addr := crypto.CreateAddress(from, tx.Nonce())</span><br><span class="line">		log.Info(<span class="string">"Submitted contract creation"</span>, <span class="string">"fullhash"</span>, tx.Hash().Hex(), <span class="string">"contract"</span>, addr.Hex())</span><br><span class="line">	&#125; <span class="keyword">else</span> &#123;</span><br><span class="line">		log.Info(<span class="string">"Submitted transaction"</span>, <span class="string">"fullhash"</span>, tx.Hash().Hex(), <span class="string">"recipient"</span>, tx.To())</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">return</span> tx.Hash(), <span class="literal">nil</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>第一步SendTx方法如下<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(b *EthAPIBackend)</span> <span class="title">SendTx</span><span class="params">(ctx context.Context, signedTx *types.Transaction)</span> <span class="title">error</span></span> &#123;</span><br><span class="line">	<span class="keyword">return</span> b.eth.txPool.AddLocal(signedTx)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>实际调用的是txpool的方法，<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(pool *TxPool)</span> <span class="title">AddLocal</span><span class="params">(tx *types.Transaction)</span> <span class="title">error</span></span> &#123;</span><br><span class="line">	<span class="keyword">return</span> pool.addTx(tx, !pool.config.NoLocals)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(pool *TxPool)</span> <span class="title">addTxs</span><span class="params">(txs []*types.Transaction, local <span class="keyword">bool</span>)</span> []<span class="title">error</span></span> &#123;</span><br><span class="line">	pool.mu.Lock()</span><br><span class="line">	<span class="keyword">defer</span> pool.mu.Unlock()</span><br><span class="line"></span><br><span class="line">	<span class="keyword">return</span> pool.addTxsLocked(txs, local)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>这里最终以本地模式将交易添加到交易池中，若是一个全新的交易，则还要额外调用promoteExecutables将该地址的一些交易放到可执行交易的队列中。</p>
+<p>回到SubmitTransaction中，放到交易池中后，如果接收人地址为空，则表示是一个合约创建交易，这时计算合约地址并打印log。最后方法返回交易的hash。所谓交易的hash就是对交易的rlp编码值计算hash值。</p>
+<p>到此发送交易的源码已经分析的差不多了，但是源码还未到此结束，前面只是将交易添加到了交易池中，我们再来看一下后续的流程</p>
+<h1 id="事件触发及后续"><a href="#事件触发及后续" class="headerlink" title="事件触发及后续"></a>事件触发及后续</h1><p>在使用txpool的add方法时，方法结尾在一个单独的goroutine中发送了一个NewTxsEvent事件，那么是在哪里注册的呢。这还要回到ProtocolManager源码中，回顾之前ProtocolManager的源码分析，在启动ProtocolManager时注册了NewTxsEvent事件，然后启动了一个单独的goroutine执行txBroadcastLoop来处理这个事件，具体源码及分析见<a href="https://blog.grapefruit.tk/2019/04/29/go-ethereum%E4%B8%ADeth-ProtocolManager%E6%BA%90%E7%A0%81%E5%AD%A6%E4%B9%A0/" target="_blank" rel="noopener">此文</a></p>
+<p>最终是将交易发送给所有peer，每个节点收到交易时调用AddRemotes方法将其添加到交易池中，这个方法和AddLocal类似，只是不适用本地模式而已。<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(pool *TxPool)</span> <span class="title">AddRemotes</span><span class="params">(txs []*types.Transaction)</span> []<span class="title">error</span></span> &#123;</span><br><span class="line">	<span class="keyword">return</span> pool.addTxs(txs, <span class="literal">false</span>)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>除了ProtocolManager注册了该事件，还有miner/worker也注册了，这个在miner源码中再分析。</p>
+<blockquote>
+<p>题图来自unsplash：<a href="https://unsplash.com/photos/z2icBh4A9i0" target="_blank" rel="noopener">https://unsplash.com/photos/z2icBh4A9i0</a></p>
+</blockquote>
+
+      
+    </div>
+
+    
+
+    
+    
+    
+
+    
+
+    
+      
+    
+    
+      <div>
+        <div style="padding: 10px 0; margin: 20px auto; width: 90%; text-align: center;">
+  <div>谢谢你请我吃糖</div>
+  <button id="rewardButton" disable="enable" onclick="var qr = document.getElementById('QR'); if (qr.style.display === 'none') {qr.style.display='block';} else {qr.style.display='none'}">
+    <span>打赏</span>
+  </button>
+  <div id="QR" style="display: none;">
+
+    
+      <div id="wechat" style="display: inline-block">
+        <img id="wechat_qr" src="/assets/img/wechatpay.jpg" alt="AmorFati 微信支付">
+        <p>微信支付</p>
+      </div>
+    
+
+    
+      <div id="alipay" style="display: inline-block">
+        <img id="alipay_qr" src="/assets/img/alipay.jpg" alt="AmorFati 支付宝">
+        <p>支付宝</p>
+      </div>
+    
+
+    
+
+  </div>
+</div>
+
+      </div>
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/go/" rel="tag"># go</a>
+          
+            <a href="/tags/区块链/" rel="tag"># 区块链</a>
+          
+            <a href="/tags/以太坊/" rel="tag"># 以太坊</a>
+          
+            <a href="/tags/go-ethereum/" rel="tag"># go-ethereum</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2019/06/08/geth子命令源码分析：init、account/" rel="next" title="geth子命令源码分析：init、account">
+                <i class="fa fa-chevron-left"></i> geth子命令源码分析：init、account
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2019/06/10/go-ethereum中event源码分析/" rel="prev" title="go-ethereum中event源码分析">
+                go-ethereum中event源码分析 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+  </div>
+
+
+          </div>
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image" src="/assets/img/icon.jpg" alt="AmorFati">
+            
+              <p class="site-author-name" itemprop="name">AmorFati</p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          
+            <nav class="site-state motion-element">
+              
+                <div class="site-state-item site-state-posts">
+                
+                  <a href="/archives/">
+                
+                    <span class="site-state-item-count">50</span>
+                    <span class="site-state-item-name">日志</span>
+                  </a>
+                </div>
+              
+
+              
+                
+                
+                <div class="site-state-item site-state-categories">
+                  <a href="/categories/index.html">
+                    
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">7</span>
+                    <span class="site-state-item-name">分类</span>
+                  </a>
+                </div>
+              
+
+              
+                
+                
+                <div class="site-state-item site-state-tags">
+                  <a href="/tags/index.html">
+                    
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">11</span>
+                    <span class="site-state-item-name">标签</span>
+                  </a>
+                </div>
+              
+            </nav>
+          
+
+          
+
+          
+            <div class="links-of-author motion-element">
+              
+                <span class="links-of-author-item">
+                  
+                  
+                    
+                  
+                  
+                    
+                  
+                  <a href="https://github.com/chenyaoyang" title="GitHub &rarr; https://github.com/chenyaoyang" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i>GitHub</a>
+                </span>
+              
+                <span class="links-of-author-item">
+                  
+                  
+                    
+                  
+                  
+                    
+                  
+                  <a href="mailto:chenyang4346@foxmail.com" title="E-Mail &rarr; mailto:chenyang4346@foxmail.com" rel="noopener" target="_blank"><i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+                </span>
+              
+                <span class="links-of-author-item">
+                  
+                  
+                    
+                  
+                  
+                    
+                  
+                  <a href="https://www.jianshu.com/u/52c1bec4559c" title="简书 &rarr; https://www.jianshu.com/u/52c1bec4559c" rel="noopener" target="_blank"><i class="fa fa-fw fa-globe"></i>简书</a>
+                </span>
+              
+            </div>
+          
+
+          
+
+          
+          
+
+          
+            
+          
+          
+
+        </div>
+      </div>
+
+      
+      <!--noindex-->
+        <div class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+            
+            
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#简介"><span class="nav-number">1.</span> <span class="nav-text">简介</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#账户解锁"><span class="nav-number">2.</span> <span class="nav-text">账户解锁</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#发送交易"><span class="nav-number">3.</span> <span class="nav-text">发送交易</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#事件触发及后续"><span class="nav-number">4.</span> <span class="nav-text">事件触发及后续</span></a></li></ol></div>
+            
+
+          </div>
+        </div>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; 2018 – <span itemprop="copyrightYear">2019</span>
+  <span class="with-love" id="animate">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">AmorFati</span>
+
+  
+
+  
+</div>
+
+
+  <div class="powered-by">由 <a href="https://hexo.io" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v3.8.0</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 – <a href="https://theme-next.org" class="theme-link" rel="noopener" target="_blank">NexT.Pisces</a> v6.6.0</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+    
+
+    
+  </div>
+
+  
+
+<script>
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+
+  
+
+
+  <script src="/js/src/utils.js?v=6.6.0"></script>
+
+  <script src="/js/src/motion.js?v=6.6.0"></script>
+
+
+
+  
+  
+
+
+  <script src="/js/src/affix.js?v=6.6.0"></script>
+
+  <script src="/js/src/schemes/pisces.js?v=6.6.0"></script>
+
+
+
+  
+  <script src="/js/src/scrollspy.js?v=6.6.0"></script>
+<script src="/js/src/post-details.js?v=6.6.0"></script>
+
+
+
+  
+
+
+  <script src="/js/src/bootstrap.js?v=6.6.0"></script>
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  <script>
+    // Popup Window;
+    var isfetched = false;
+    var isXml = true;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length === 0) {
+      search_path = "search.xml";
+    } else if (/json$/i.test(search_path)) {
+      isXml = false;
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    var onPopupClose = function (e) {
+      $('.popup').hide();
+      $('#local-search-input').val('');
+      $('.search-result-list').remove();
+      $('#no-result').remove();
+      $(".local-search-pop-overlay").remove();
+      $('body').css('overflow', '');
+    }
+
+    function proceedsearch() {
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay"></div>')
+        .css('overflow', 'hidden');
+      $('.search-popup-overlay').click(onPopupClose);
+      $('.popup').toggle();
+      var $localSearchInput = $('#local-search-input');
+      $localSearchInput.attr("autocapitalize", "none");
+      $localSearchInput.attr("autocorrect", "off");
+      $localSearchInput.focus();
+    }
+
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+      'use strict';
+
+      // start loading animation
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay">' +
+          '<div id="search-loading-icon">' +
+          '<i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>' +
+          '</div>' +
+          '</div>')
+        .css('overflow', 'hidden');
+      $("#search-loading-icon").css('margin', '20% auto 0 auto').css('text-align', 'center');
+
+      
+
+      $.ajax({
+        url: path,
+        dataType: isXml ? "xml" : "json",
+        async: true,
+        success: function(res) {
+          // get the contents from search data
+          isfetched = true;
+          $('.popup').detach().appendTo('.header-inner');
+          var datas = isXml ? $("entry", res).map(function() {
+            return {
+              title: $("title", this).text(),
+              content: $("content",this).text(),
+              url: $("url" , this).text()
+            };
+          }).get() : res;
+          var input = document.getElementById(search_id);
+          var resultContent = document.getElementById(content_id);
+          var inputEventFunction = function() {
+            var searchText = input.value.trim().toLowerCase();
+            var keywords = searchText.split(/[\s\-]+/);
+            if (keywords.length > 1) {
+              keywords.push(searchText);
+            }
+            var resultItems = [];
+            if (searchText.length > 0) {
+              // perform local searching
+              datas.forEach(function(data) {
+                var isMatch = false;
+                var hitCount = 0;
+                var searchTextCount = 0;
+                var title = data.title.trim();
+                var titleInLowerCase = title.toLowerCase();
+                var content = data.content.trim().replace(/<[^>]+>/g,"");
+                
+                var contentInLowerCase = content.toLowerCase();
+                var articleUrl = decodeURIComponent(data.url);
+                var indexOfTitle = [];
+                var indexOfContent = [];
+                // only match articles with not empty titles
+                if(title != '') {
+                  keywords.forEach(function(keyword) {
+                    function getIndexByWord(word, text, caseSensitive) {
+                      var wordLen = word.length;
+                      if (wordLen === 0) {
+                        return [];
+                      }
+                      var startPosition = 0, position = [], index = [];
+                      if (!caseSensitive) {
+                        text = text.toLowerCase();
+                        word = word.toLowerCase();
+                      }
+                      while ((position = text.indexOf(word, startPosition)) > -1) {
+                        index.push({position: position, word: word});
+                        startPosition = position + wordLen;
+                      }
+                      return index;
+                    }
+
+                    indexOfTitle = indexOfTitle.concat(getIndexByWord(keyword, titleInLowerCase, false));
+                    indexOfContent = indexOfContent.concat(getIndexByWord(keyword, contentInLowerCase, false));
+                  });
+                  if (indexOfTitle.length > 0 || indexOfContent.length > 0) {
+                    isMatch = true;
+                    hitCount = indexOfTitle.length + indexOfContent.length;
+                  }
+                }
+
+                // show search results
+
+                if (isMatch) {
+                  // sort index by position of keyword
+
+                  [indexOfTitle, indexOfContent].forEach(function (index) {
+                    index.sort(function (itemLeft, itemRight) {
+                      if (itemRight.position !== itemLeft.position) {
+                        return itemRight.position - itemLeft.position;
+                      } else {
+                        return itemLeft.word.length - itemRight.word.length;
+                      }
+                    });
+                  });
+
+                  // merge hits into slices
+
+                  function mergeIntoSlice(text, start, end, index) {
+                    var item = index[index.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    var hits = [];
+                    var searchTextCountInSlice = 0;
+                    while (position + word.length <= end && index.length != 0) {
+                      if (word === searchText) {
+                        searchTextCountInSlice++;
+                      }
+                      hits.push({position: position, length: word.length});
+                      var wordEnd = position + word.length;
+
+                      // move to next position of hit
+
+                      index.pop();
+                      while (index.length != 0) {
+                        item = index[index.length - 1];
+                        position = item.position;
+                        word = item.word;
+                        if (wordEnd > position) {
+                          index.pop();
+                        } else {
+                          break;
+                        }
+                      }
+                    }
+                    searchTextCount += searchTextCountInSlice;
+                    return {
+                      hits: hits,
+                      start: start,
+                      end: end,
+                      searchTextCount: searchTextCountInSlice
+                    };
+                  }
+
+                  var slicesOfTitle = [];
+                  if (indexOfTitle.length != 0) {
+                    slicesOfTitle.push(mergeIntoSlice(title, 0, title.length, indexOfTitle));
+                  }
+
+                  var slicesOfContent = [];
+                  while (indexOfContent.length != 0) {
+                    var item = indexOfContent[indexOfContent.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    // cut out 100 characters
+                    var start = position - 20;
+                    var end = position + 80;
+                    if(start < 0){
+                      start = 0;
+                    }
+                    if (end < position + word.length) {
+                      end = position + word.length;
+                    }
+                    if(end > content.length){
+                      end = content.length;
+                    }
+                    slicesOfContent.push(mergeIntoSlice(content, start, end, indexOfContent));
+                  }
+
+                  // sort slices in content by search text's count and hits' count
+
+                  slicesOfContent.sort(function (sliceLeft, sliceRight) {
+                    if (sliceLeft.searchTextCount !== sliceRight.searchTextCount) {
+                      return sliceRight.searchTextCount - sliceLeft.searchTextCount;
+                    } else if (sliceLeft.hits.length !== sliceRight.hits.length) {
+                      return sliceRight.hits.length - sliceLeft.hits.length;
+                    } else {
+                      return sliceLeft.start - sliceRight.start;
+                    }
+                  });
+
+                  // select top N slices in content
+
+                  var upperBound = parseInt('1');
+                  if (upperBound >= 0) {
+                    slicesOfContent = slicesOfContent.slice(0, upperBound);
+                  }
+
+                  // highlight title and content
+
+                  function highlightKeyword(text, slice) {
+                    var result = '';
+                    var prevEnd = slice.start;
+                    slice.hits.forEach(function (hit) {
+                      result += text.substring(prevEnd, hit.position);
+                      var end = hit.position + hit.length;
+                      result += '<b class="search-keyword">' + text.substring(hit.position, end) + '</b>';
+                      prevEnd = end;
+                    });
+                    result += text.substring(prevEnd, slice.end);
+                    return result;
+                  }
+
+                  var resultItem = '';
+
+                  if (slicesOfTitle.length != 0) {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + highlightKeyword(title, slicesOfTitle[0]) + "</a>";
+                  } else {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + title + "</a>";
+                  }
+
+                  slicesOfContent.forEach(function (slice) {
+                    resultItem += "<a href='" + articleUrl + "'>" +
+                      "<p class=\"search-result\">" + highlightKeyword(content, slice) +
+                      "...</p>" + "</a>";
+                  });
+
+                  resultItem += "</li>";
+                  resultItems.push({
+                    item: resultItem,
+                    searchTextCount: searchTextCount,
+                    hitCount: hitCount,
+                    id: resultItems.length
+                  });
+                }
+              })
+            };
+            if (keywords.length === 1 && keywords[0] === "") {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>'
+            } else if (resultItems.length === 0) {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>'
+            } else {
+              resultItems.sort(function (resultLeft, resultRight) {
+                if (resultLeft.searchTextCount !== resultRight.searchTextCount) {
+                  return resultRight.searchTextCount - resultLeft.searchTextCount;
+                } else if (resultLeft.hitCount !== resultRight.hitCount) {
+                  return resultRight.hitCount - resultLeft.hitCount;
+                } else {
+                  return resultRight.id - resultLeft.id;
+                }
+              });
+              var searchResultList = '<ul class=\"search-result-list\">';
+              resultItems.forEach(function (result) {
+                searchResultList += result.item;
+              })
+              searchResultList += "</ul>";
+              resultContent.innerHTML = searchResultList;
+            }
+          }
+
+          if ('auto' === 'auto') {
+            input.addEventListener('input', inputEventFunction);
+          } else {
+            $('.search-icon').click(inputEventFunction);
+            input.addEventListener('keypress', function (event) {
+              if (event.keyCode === 13) {
+                inputEventFunction();
+              }
+            });
+          }
+
+          // remove loading animation
+          $(".local-search-pop-overlay").remove();
+          $('body').css('overflow', '');
+
+          proceedsearch();
+        }
+      });
+    }
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched === false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+    });
+
+    $('.popup-btn-close').click(onPopupClose);
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+    $(document).on('keyup', function (event) {
+      var shouldDismissSearchPopup = event.which === 27 &&
+        $('.search-popup').is(':visible');
+      if (shouldDismissSearchPopup) {
+        onPopupClose();
+      }
+    });
+  </script>
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+  
+
+  
+
+
+  
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

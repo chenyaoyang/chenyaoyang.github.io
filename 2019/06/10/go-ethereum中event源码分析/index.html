@@ -1,0 +1,1373 @@
+<!DOCTYPE html>
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+<html class="theme-next pisces use-motion" lang="zh-CN">
+<head><meta name="generator" content="Hexo 3.8.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+    
+      
+    
+
+    
+  
+
+  
+
+  
+    
+      
+    
+
+    
+  
+
+  
+    
+      
+    
+
+    
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Monda:300,300italic,400,400italic,700,700italic|Roboto Slab:300,300italic,400,400italic,700,700italic|Dancing Script:300,300italic,400,400italic,700,700italic|Consolas:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css">
+
+<link href="/css/main.css?v=6.6.0" rel="stylesheet" type="text/css">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=6.6.0">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=6.6.0">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=6.6.0">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=6.6.0" color="#222">
+
+
+
+
+
+
+
+
+
+<script id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    version: '6.6.0',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: false,
+    fastclick: false,
+    lazyload: false,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+  
+
+
+
+
+  <meta name="keywords" content="go,区块链,以太坊,go-ethereum">
+<meta property="og:type" content="article">
+<meta property="og:title" content="go-ethereum中event源码分析">
+<meta property="og:url" content="http://yoursite.com/2019/06/10/go-ethereum中event源码分析/index.html">
+<meta property="og:site_name" content="AmorFati">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:image" content="https://raw.githubusercontent.com/chenyaoyang/blog-pic/master/201906/luca-bravo-414346-unsplash.jpg">
+<meta property="og:updated_time" content="2019-06-10T09:16:35.951Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="go-ethereum中event源码分析">
+<meta name="twitter:image" content="https://raw.githubusercontent.com/chenyaoyang/blog-pic/master/201906/luca-bravo-414346-unsplash.jpg">
+
+
+
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2019/06/10/go-ethereum中event源码分析/">
+
+
+
+<script id="page.configurations">
+  CONFIG.page = {
+    sidebar: "",
+  };
+</script>
+
+  <title>go-ethereum中event源码分析 | AmorFati</title>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  <noscript>
+  <style>
+    .use-motion .motion-element,
+    .use-motion .brand,
+    .use-motion .menu-item,
+    .sidebar-inner,
+    .use-motion .post-block,
+    .use-motion .pagination,
+    .use-motion .comments,
+    .use-motion .post-header,
+    .use-motion .post-body,
+    .use-motion .collection-title { opacity: initial; }
+
+    .use-motion .logo,
+    .use-motion .site-title,
+    .use-motion .site-subtitle {
+      opacity: initial;
+      top: initial;
+    }
+
+    .use-motion .logo-line-before i { left: initial; }
+    .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope="" itemtype="http://schema.org/WebPage" lang="zh-CN">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope="" itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">AmorFati</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+    
+      
+        <p class="site-subtitle">风吹过窗前的书，又翻过一页</p>
+      
+    
+    
+  </div>
+
+  <div class="site-nav-toggle">
+    <button aria-label="切换导航栏">
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  
+    <ul id="menu" class="menu">
+      
+        
+        
+        
+          
+          <li class="menu-item menu-item-home">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/" rel="section"><i class="menu-item-icon fa fa-fw fa-home"></i> <br>首页</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-about">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/about/" rel="section"><i class="menu-item-icon fa fa-fw fa-user"></i> <br>关于</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-tags">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/tags/" rel="section"><i class="menu-item-icon fa fa-fw fa-tags"></i> <br>标签</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-categories">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/categories/" rel="section"><i class="menu-item-icon fa fa-fw fa-th"></i> <br>分类</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-archives">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/archives/" rel="section"><i class="menu-item-icon fa fa-fw fa-archive"></i> <br>归档</a>
+
+  </li>
+
+      
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br>搜索</a>
+        </li>
+      
+    </ul>
+  
+
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup search-popup local-search-popup">
+  <div class="local-search-header clearfix">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+    <div class="local-search-input-wrapper">
+      <input autocomplete="off" placeholder="搜索..." spellcheck="false" type="text" id="local-search-input">
+    </div>
+  </div>
+  <div id="local-search-result"></div>
+</div>
+
+
+
+    </div>
+  
+</nav>
+
+
+
+  
+
+
+
+</div>
+    </header>
+
+    
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+            
+
+          
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  
+
+  <article class="post post-type-normal" itemscope="" itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/06/10/go-ethereum中event源码分析/">
+
+    <span hidden itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="AmorFati">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/assets/img/icon.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope="" itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="AmorFati">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">go-ethereum中event源码分析
+
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+
+            
+            
+            
+
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+
+              
+                
+              
+
+              <time title="创建时间：2019-06-10 17:13:36 / 修改时间：17:16:35" itemprop="dateCreated datePublished" datetime="2019-06-10T17:13:36+08:00">2019-06-10</time>
+            
+
+            
+              
+
+              
+            
+          </span>
+
+          
+            <span class="post-category">
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope="" itemtype="http://schema.org/Thing"><a href="/categories/go-ethereum源码学习/" itemprop="url" rel="index"><span itemprop="name">go-ethereum源码学习</span></a></span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p><img src="https://raw.githubusercontent.com/chenyaoyang/blog-pic/master/201906/luca-bravo-414346-unsplash.jpg" alt=""><br><a id="more"></a></p>
+<h1 id="event-go"><a href="#event-go" class="headerlink" title="event.go"></a>event.go</h1><h2 id="数据结构"><a href="#数据结构" class="headerlink" title="数据结构"></a>数据结构</h2><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">type</span> TypeMuxEvent <span class="keyword">struct</span> &#123;</span><br><span class="line">	Time time.Time</span><br><span class="line">	Data <span class="keyword">interface</span>&#123;&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>TypeMuxEvent就是一个具体的事件，同时带有时间戳<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">type</span> TypeMux <span class="keyword">struct</span> &#123;</span><br><span class="line">	mutex   sync.RWMutex</span><br><span class="line">	subm    <span class="keyword">map</span>[reflect.Type][]*TypeMuxSubscription</span><br><span class="line">	stopped <span class="keyword">bool</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>这个目前已经弃用，被Feed替代，我们稍后介绍Feed。这个里面有一个subm保存着每种类型的所有订阅者<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">type</span> TypeMuxSubscription <span class="keyword">struct</span> &#123;</span><br><span class="line">	mux     *TypeMux</span><br><span class="line">	created time.Time</span><br><span class="line">	closeMu sync.Mutex</span><br><span class="line">	closing <span class="keyword">chan</span> <span class="keyword">struct</span>&#123;&#125;</span><br><span class="line">	closed  <span class="keyword">bool</span></span><br><span class="line"></span><br><span class="line">	postMu sync.RWMutex</span><br><span class="line">	readC  &lt;-<span class="keyword">chan</span> *TypeMuxEvent</span><br><span class="line">	postC  <span class="keyword">chan</span>&lt;- *TypeMuxEvent</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>表示一个订阅者</p>
+<h2 id="Subscribe"><a href="#Subscribe" class="headerlink" title="Subscribe"></a>Subscribe</h2><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(mux *TypeMux)</span> <span class="title">Subscribe</span><span class="params">(types ...<span class="keyword">interface</span>&#123;&#125;)</span> *<span class="title">TypeMuxSubscription</span></span> &#123;</span><br><span class="line">	sub := newsub(mux)</span><br><span class="line">	mux.mutex.Lock()</span><br><span class="line">	<span class="keyword">defer</span> mux.mutex.Unlock()</span><br><span class="line">	<span class="keyword">if</span> mux.stopped &#123;</span><br><span class="line">		sub.closed = <span class="literal">true</span></span><br><span class="line">		<span class="built_in">close</span>(sub.postC)</span><br><span class="line">	&#125; <span class="keyword">else</span> &#123;</span><br><span class="line">		<span class="keyword">if</span> mux.subm == <span class="literal">nil</span> &#123;</span><br><span class="line">			mux.subm = <span class="built_in">make</span>(<span class="keyword">map</span>[reflect.Type][]*TypeMuxSubscription)</span><br><span class="line">		&#125;</span><br><span class="line">		<span class="keyword">for</span> _, t := <span class="keyword">range</span> types &#123;</span><br><span class="line">			rtyp := reflect.TypeOf(t)</span><br><span class="line">			oldsubs := mux.subm[rtyp]</span><br><span class="line">			<span class="keyword">if</span> find(oldsubs, sub) != <span class="number">-1</span> &#123;</span><br><span class="line">				<span class="built_in">panic</span>(fmt.Sprintf(<span class="string">"event: duplicate type %s in Subscribe"</span>, rtyp))</span><br><span class="line">			&#125;</span><br><span class="line">			subs := <span class="built_in">make</span>([]*TypeMuxSubscription, <span class="built_in">len</span>(oldsubs)+<span class="number">1</span>)</span><br><span class="line">			<span class="built_in">copy</span>(subs, oldsubs)</span><br><span class="line">			subs[<span class="built_in">len</span>(oldsubs)] = sub</span><br><span class="line">			mux.subm[rtyp] = subs</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">return</span> sub</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">newsub</span><span class="params">(mux *TypeMux)</span> *<span class="title">TypeMuxSubscription</span></span> &#123;</span><br><span class="line">	c := <span class="built_in">make</span>(<span class="keyword">chan</span> *TypeMuxEvent)</span><br><span class="line">	<span class="keyword">return</span> &amp;TypeMuxSubscription&#123;</span><br><span class="line">		mux:     mux,</span><br><span class="line">		created: time.Now(),</span><br><span class="line">		readC:   c,</span><br><span class="line">		postC:   c,</span><br><span class="line">		closing: <span class="built_in">make</span>(<span class="keyword">chan</span> <span class="keyword">struct</span>&#123;&#125;),</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>这个方法就是创建一个订阅。首先用newsub方法创建一个TypeMuxSubscription对象，如果TypeMux已停止，则标记TypeMuxSubscription以关闭。否则，遍历传入的所有类型，将每个类型对应的TypeMuxSubscription数组中添加刚才创建的TypeMuxSubscription对象。不能重复订阅，最后返回TypeMuxSubscription对象用于读取事件等。</p>
+<h2 id="Post"><a href="#Post" class="headerlink" title="Post"></a>Post</h2><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(mux *TypeMux)</span> <span class="title">Post</span><span class="params">(ev <span class="keyword">interface</span>&#123;&#125;)</span> <span class="title">error</span></span> &#123;</span><br><span class="line">	event := &amp;TypeMuxEvent&#123;</span><br><span class="line">		Time: time.Now(),</span><br><span class="line">		Data: ev,</span><br><span class="line">	&#125;</span><br><span class="line">	rtyp := reflect.TypeOf(ev)</span><br><span class="line">	mux.mutex.RLock()</span><br><span class="line">	<span class="keyword">if</span> mux.stopped &#123;</span><br><span class="line">		mux.mutex.RUnlock()</span><br><span class="line">		<span class="keyword">return</span> ErrMuxClosed</span><br><span class="line">	&#125;</span><br><span class="line">	subs := mux.subm[rtyp]</span><br><span class="line">	mux.mutex.RUnlock()</span><br><span class="line">	<span class="keyword">for</span> _, sub := <span class="keyword">range</span> subs &#123;</span><br><span class="line">		sub.deliver(event)</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">return</span> <span class="literal">nil</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>表示发布一个事件，首先构造一个TypeMuxEvent对象包含我们传入的事件主体，然后从TypeMux的subm中查找对应类型的所有订阅者，然后其调用deliver<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(s *TypeMuxSubscription)</span> <span class="title">deliver</span><span class="params">(event *TypeMuxEvent)</span></span> &#123;</span><br><span class="line">	<span class="keyword">if</span> s.created.After(event.Time) &#123;</span><br><span class="line">		<span class="keyword">return</span></span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	s.postMu.RLock()</span><br><span class="line">	<span class="keyword">defer</span> s.postMu.RUnlock()</span><br><span class="line"></span><br><span class="line">	<span class="keyword">select</span> &#123;</span><br><span class="line">	<span class="keyword">case</span> s.postC &lt;- event:</span><br><span class="line">	<span class="keyword">case</span> &lt;-s.closing:</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>首先确保时间逻辑上正确，即订阅时间早于事件发布时间。之后向postC传入事件即可。</p>
+<h2 id="Unsubscribe"><a href="#Unsubscribe" class="headerlink" title="Unsubscribe"></a>Unsubscribe</h2><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(s *TypeMuxSubscription)</span> <span class="title">Unsubscribe</span><span class="params">()</span></span> &#123;</span><br><span class="line">	s.mux.del(s)</span><br><span class="line">	s.closewait()</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(mux *TypeMux)</span> <span class="title">del</span><span class="params">(s *TypeMuxSubscription)</span></span> &#123;</span><br><span class="line">	mux.mutex.Lock()</span><br><span class="line">	<span class="keyword">for</span> typ, subs := <span class="keyword">range</span> mux.subm &#123;</span><br><span class="line">		<span class="keyword">if</span> pos := find(subs, s); pos &gt;= <span class="number">0</span> &#123;</span><br><span class="line">			<span class="keyword">if</span> <span class="built_in">len</span>(subs) == <span class="number">1</span> &#123;</span><br><span class="line">				<span class="built_in">delete</span>(mux.subm, typ)</span><br><span class="line">			&#125; <span class="keyword">else</span> &#123;</span><br><span class="line">				mux.subm[typ] = posdelete(subs, pos)</span><br><span class="line">			&#125;</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">	s.mux.mutex.Unlock()</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">posdelete</span><span class="params">(slice []*TypeMuxSubscription, pos <span class="keyword">int</span>)</span> []*<span class="title">TypeMuxSubscription</span></span> &#123;</span><br><span class="line">	news := <span class="built_in">make</span>([]*TypeMuxSubscription, <span class="built_in">len</span>(slice)<span class="number">-1</span>)</span><br><span class="line">	<span class="built_in">copy</span>(news[:pos], slice[:pos])</span><br><span class="line">	<span class="built_in">copy</span>(news[pos:], slice[pos+<span class="number">1</span>:])</span><br><span class="line">	<span class="keyword">return</span> news</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>取消订阅，主要是将对应的TypeMuxSubscription从subm中删除。</p>
+<h1 id="feed-go"><a href="#feed-go" class="headerlink" title="feed.go"></a>feed.go</h1><p>这个是目前主要使用的。<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">type</span> Feed <span class="keyword">struct</span> &#123;</span><br><span class="line">	once      sync.Once        </span><br><span class="line">	sendLock  <span class="keyword">chan</span> <span class="keyword">struct</span>&#123;&#125;    </span><br><span class="line">	removeSub <span class="keyword">chan</span> <span class="keyword">interface</span>&#123;&#125; </span><br><span class="line">	sendCases caseList         </span><br><span class="line"></span><br><span class="line">	mu     sync.Mutex</span><br><span class="line">	inbox  caseList</span><br><span class="line">	etype  reflect.Type</span><br><span class="line">	closed <span class="keyword">bool</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>我们先看一下源码中怎么利用feed进行订阅及发布消息的，以NewTxsEvent为例<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//订阅事件</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(pool *TxPool)</span> <span class="title">SubscribeNewTxsEvent</span><span class="params">(ch <span class="keyword">chan</span>&lt;- NewTxsEvent)</span> <span class="title">event</span>.<span class="title">Subscription</span></span> &#123;</span><br><span class="line">	<span class="keyword">return</span> pool.scope.Track(pool.txFeed.Subscribe(ch))</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">pm.txsSub = pm.txpool.SubscribeNewTxsEvent(pm.txsCh)</span><br><span class="line"></span><br><span class="line"><span class="comment">//发布事件</span></span><br><span class="line">pool.txFeed.Send(NewTxsEvent&#123;types.Transactions&#123;tx&#125;&#125;)</span><br><span class="line"></span><br><span class="line"><span class="comment">//取消订阅</span></span><br><span class="line">pm.txsSub.Unsubscribe()</span><br></pre></td></tr></table></figure></p>
+<h2 id="Subscribe-1"><a href="#Subscribe-1" class="headerlink" title="Subscribe"></a>Subscribe</h2><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(f *Feed)</span> <span class="title">Subscribe</span><span class="params">(channel <span class="keyword">interface</span>&#123;&#125;)</span> <span class="title">Subscription</span></span> &#123;</span><br><span class="line">	f.once.Do(f.init)</span><br><span class="line"></span><br><span class="line">	chanval := reflect.ValueOf(channel)</span><br><span class="line">	chantyp := chanval.Type()</span><br><span class="line">	<span class="keyword">if</span> chantyp.Kind() != reflect.Chan || chantyp.ChanDir()&amp;reflect.SendDir == <span class="number">0</span> &#123;</span><br><span class="line">		<span class="built_in">panic</span>(errBadChannel)</span><br><span class="line">	&#125;</span><br><span class="line">	sub := &amp;feedSub&#123;feed: f, channel: chanval, err: <span class="built_in">make</span>(<span class="keyword">chan</span> error, <span class="number">1</span>)&#125;</span><br><span class="line"></span><br><span class="line">	f.mu.Lock()</span><br><span class="line">	<span class="keyword">defer</span> f.mu.Unlock()</span><br><span class="line">	<span class="keyword">if</span> !f.typecheck(chantyp.Elem()) &#123;</span><br><span class="line">		<span class="built_in">panic</span>(feedTypeError&#123;op: <span class="string">"Subscribe"</span>, got: chantyp, want: reflect.ChanOf(reflect.SendDir, f.etype)&#125;)</span><br><span class="line">	&#125;</span><br><span class="line">	cas := reflect.SelectCase&#123;Dir: reflect.SelectSend, Chan: chanval&#125;</span><br><span class="line">	f.inbox = <span class="built_in">append</span>(f.inbox, cas)</span><br><span class="line">	<span class="keyword">return</span> sub</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>首先执行一次初始化操作，由于用了once，所以无论订阅多少次都只执行一次初始化操作。<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(f *Feed)</span> <span class="title">init</span><span class="params">()</span></span> &#123;</span><br><span class="line">	f.removeSub = <span class="built_in">make</span>(<span class="keyword">chan</span> <span class="keyword">interface</span>&#123;&#125;)</span><br><span class="line">	f.sendLock = <span class="built_in">make</span>(<span class="keyword">chan</span> <span class="keyword">struct</span>&#123;&#125;, <span class="number">1</span>)</span><br><span class="line">	f.sendLock &lt;- <span class="keyword">struct</span>&#123;&#125;&#123;&#125;</span><br><span class="line">	f.sendCases = caseList&#123;&#123;Chan: reflect.ValueOf(f.removeSub), Dir: reflect.SelectRecv&#125;&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>init主要就是一些变量的初始化。接着判断参数是否合法，即参数通道中的数据类型不能是通道，其次这个通道不能是一个只能接受数据的单向通道。</p>
+<p>之后新建一个feedSub对象表示一个订阅，feedSub中保存着我们给定的通道。接着typecheck方法是类型检查，一个Feed在第一次调用Subscribe时会锁定一种类似，后续的订阅都必须是这种类型。检查通过后，创建一个SelectCase对象放入inbox中，SelectCase是实际负责发送订阅消息的。方法最后返回feedSub对象，用于取消订阅。</p>
+<p>源码中还使用了scope.Track方法，这是对订阅进行包装方便取消订阅的，实际取消逻辑还是在feedSub及feed中</p>
+<h2 id="Unsubscribe-1"><a href="#Unsubscribe-1" class="headerlink" title="Unsubscribe"></a>Unsubscribe</h2><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(sub *feedSub)</span> <span class="title">Unsubscribe</span><span class="params">()</span></span> &#123;</span><br><span class="line">	sub.errOnce.Do(<span class="function"><span class="keyword">func</span><span class="params">()</span></span> &#123;</span><br><span class="line">		sub.feed.remove(sub)</span><br><span class="line">		<span class="built_in">close</span>(sub.err)</span><br><span class="line">	&#125;)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(f *Feed)</span> <span class="title">remove</span><span class="params">(sub *feedSub)</span></span> &#123;</span><br><span class="line">	ch := sub.channel.Interface()</span><br><span class="line">	f.mu.Lock()</span><br><span class="line">	index := f.inbox.find(ch)</span><br><span class="line">	<span class="keyword">if</span> index != <span class="number">-1</span> &#123;</span><br><span class="line">		f.inbox = f.inbox.<span class="built_in">delete</span>(index)</span><br><span class="line">		f.mu.Unlock()</span><br><span class="line">		<span class="keyword">return</span></span><br><span class="line">	&#125;</span><br><span class="line">	f.mu.Unlock()</span><br><span class="line"></span><br><span class="line">	<span class="keyword">select</span> &#123;</span><br><span class="line">	<span class="keyword">case</span> f.removeSub &lt;- ch:</span><br><span class="line"></span><br><span class="line">	<span class="keyword">case</span> &lt;-f.sendLock:</span><br><span class="line"></span><br><span class="line">		f.sendCases = f.sendCases.<span class="built_in">delete</span>(f.sendCases.find(ch))</span><br><span class="line">		f.sendLock &lt;- <span class="keyword">struct</span>&#123;&#125;&#123;&#125;</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>就是将某个SelectCase从inbox中删除。</p>
+<h2 id="Send"><a href="#Send" class="headerlink" title="Send"></a>Send</h2><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(f *Feed)</span> <span class="title">Send</span><span class="params">(value <span class="keyword">interface</span>&#123;&#125;)</span> <span class="params">(nsent <span class="keyword">int</span>)</span></span> &#123;</span><br><span class="line">	rvalue := reflect.ValueOf(value)</span><br><span class="line"></span><br><span class="line">	f.once.Do(f.init)</span><br><span class="line">	&lt;-f.sendLock</span><br><span class="line"></span><br><span class="line">	f.mu.Lock()</span><br><span class="line">	f.sendCases = <span class="built_in">append</span>(f.sendCases, f.inbox...)</span><br><span class="line">	f.inbox = <span class="literal">nil</span></span><br><span class="line"></span><br><span class="line">	<span class="keyword">if</span> !f.typecheck(rvalue.Type()) &#123;</span><br><span class="line">		f.sendLock &lt;- <span class="keyword">struct</span>&#123;&#125;&#123;&#125;</span><br><span class="line">		<span class="built_in">panic</span>(feedTypeError&#123;op: <span class="string">"Send"</span>, got: rvalue.Type(), want: f.etype&#125;)</span><br><span class="line">	&#125;</span><br><span class="line">	f.mu.Unlock()</span><br><span class="line"></span><br><span class="line">	<span class="keyword">for</span> i := firstSubSendCase; i &lt; <span class="built_in">len</span>(f.sendCases); i++ &#123;</span><br><span class="line">		f.sendCases[i].Send = rvalue</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	cases := f.sendCases</span><br><span class="line">	<span class="keyword">for</span> &#123;</span><br><span class="line">		<span class="keyword">for</span> i := firstSubSendCase; i &lt; <span class="built_in">len</span>(cases); i++ &#123;</span><br><span class="line">			<span class="keyword">if</span> cases[i].Chan.TrySend(rvalue) &#123;</span><br><span class="line">				nsent++</span><br><span class="line">				cases = cases.deactivate(i)</span><br><span class="line">				i--</span><br><span class="line">			&#125;</span><br><span class="line">		&#125;</span><br><span class="line">		<span class="keyword">if</span> <span class="built_in">len</span>(cases) == firstSubSendCase &#123;</span><br><span class="line">			<span class="keyword">break</span></span><br><span class="line">		&#125;</span><br><span class="line"></span><br><span class="line">		chosen, recv, _ := reflect.Select(cases)</span><br><span class="line">		<span class="keyword">if</span> chosen == <span class="number">0</span>  &#123;</span><br><span class="line">			index := f.sendCases.find(recv.Interface())</span><br><span class="line">			f.sendCases = f.sendCases.<span class="built_in">delete</span>(index)</span><br><span class="line">			<span class="keyword">if</span> index &gt;= <span class="number">0</span> &amp;&amp; index &lt; <span class="built_in">len</span>(cases) &#123;</span><br><span class="line">				cases = f.sendCases[:<span class="built_in">len</span>(cases)<span class="number">-1</span>]</span><br><span class="line">			&#125;</span><br><span class="line">		&#125; <span class="keyword">else</span> &#123;</span><br><span class="line">			cases = cases.deactivate(chosen)</span><br><span class="line">			nsent++</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">for</span> i := firstSubSendCase; i &lt; <span class="built_in">len</span>(f.sendCases); i++ &#123;</span><br><span class="line">		f.sendCases[i].Send = reflect.Value&#123;&#125;</span><br><span class="line">	&#125;</span><br><span class="line">	f.sendLock &lt;- <span class="keyword">struct</span>&#123;&#125;&#123;&#125;</span><br><span class="line">	<span class="keyword">return</span> nsent</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>首先也执行了一次init操作。之后将所有inbox中的SelectCase放入sendCases中，接着检查了要发送是事件类型是否是feed所绑定的。接着从sendCases的第一个SelectCase开始给其send参数赋值。</p>
+<p>接着有一个无限循环，从着sendCases的第一个SelectCase开始，对于每个SelectCase调用其Chan成员的TrySend方法，每个SelectCase的Chan就是注册时传入的通道，TrySend方法表示立即发送数据不阻塞，如果有阻塞则返回false。这里如果发送成功则将成功的SelectCase删除。如果不能立即发送者不删除去尝试发送下一个。一遍循环后，如果都发送成功则退出无限循环，否则每次调用Select选择一个可以发送的进行发送。</p>
+<p>这也就是feed比较优秀的部分，他会跳过那些正在阻塞的通道，优先让一部分可发送的通道收到消息。</p>
+<p>回顾feed一共设计了两个caseList来存储SelectCase，inbox保存着每次订阅时创建的储SelectCase，sendCases则是在发送时从inbox中取值，它里面的数据会随着情况变化。</p>
+<blockquote>
+<p>题图来自unsplash：<a href="https://unsplash.com/photos/ii5JY_46xH0" target="_blank" rel="noopener">https://unsplash.com/photos/ii5JY_46xH0</a></p>
+</blockquote>
+
+      
+    </div>
+
+    
+
+    
+    
+    
+
+    
+
+    
+      
+    
+    
+      <div>
+        <div style="padding: 10px 0; margin: 20px auto; width: 90%; text-align: center;">
+  <div>谢谢你请我吃糖</div>
+  <button id="rewardButton" disable="enable" onclick="var qr = document.getElementById('QR'); if (qr.style.display === 'none') {qr.style.display='block';} else {qr.style.display='none'}">
+    <span>打赏</span>
+  </button>
+  <div id="QR" style="display: none;">
+
+    
+      <div id="wechat" style="display: inline-block">
+        <img id="wechat_qr" src="/assets/img/wechatpay.jpg" alt="AmorFati 微信支付">
+        <p>微信支付</p>
+      </div>
+    
+
+    
+      <div id="alipay" style="display: inline-block">
+        <img id="alipay_qr" src="/assets/img/alipay.jpg" alt="AmorFati 支付宝">
+        <p>支付宝</p>
+      </div>
+    
+
+    
+
+  </div>
+</div>
+
+      </div>
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/go/" rel="tag"># go</a>
+          
+            <a href="/tags/区块链/" rel="tag"># 区块链</a>
+          
+            <a href="/tags/以太坊/" rel="tag"># 以太坊</a>
+          
+            <a href="/tags/go-ethereum/" rel="tag"># go-ethereum</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2019/06/10/go-ethereum交易发送流程源码分析/" rel="next" title="go-ethereum交易发送流程源码分析">
+                <i class="fa fa-chevron-left"></i> go-ethereum交易发送流程源码分析
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2019/06/10/go-ethereum中miner源码分析/" rel="prev" title="go-ethereum中miner源码分析">
+                go-ethereum中miner源码分析 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+  </div>
+
+
+          </div>
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image" src="/assets/img/icon.jpg" alt="AmorFati">
+            
+              <p class="site-author-name" itemprop="name">AmorFati</p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          
+            <nav class="site-state motion-element">
+              
+                <div class="site-state-item site-state-posts">
+                
+                  <a href="/archives/">
+                
+                    <span class="site-state-item-count">50</span>
+                    <span class="site-state-item-name">日志</span>
+                  </a>
+                </div>
+              
+
+              
+                
+                
+                <div class="site-state-item site-state-categories">
+                  <a href="/categories/index.html">
+                    
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">7</span>
+                    <span class="site-state-item-name">分类</span>
+                  </a>
+                </div>
+              
+
+              
+                
+                
+                <div class="site-state-item site-state-tags">
+                  <a href="/tags/index.html">
+                    
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">11</span>
+                    <span class="site-state-item-name">标签</span>
+                  </a>
+                </div>
+              
+            </nav>
+          
+
+          
+
+          
+            <div class="links-of-author motion-element">
+              
+                <span class="links-of-author-item">
+                  
+                  
+                    
+                  
+                  
+                    
+                  
+                  <a href="https://github.com/chenyaoyang" title="GitHub &rarr; https://github.com/chenyaoyang" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i>GitHub</a>
+                </span>
+              
+                <span class="links-of-author-item">
+                  
+                  
+                    
+                  
+                  
+                    
+                  
+                  <a href="mailto:chenyang4346@foxmail.com" title="E-Mail &rarr; mailto:chenyang4346@foxmail.com" rel="noopener" target="_blank"><i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+                </span>
+              
+                <span class="links-of-author-item">
+                  
+                  
+                    
+                  
+                  
+                    
+                  
+                  <a href="https://www.jianshu.com/u/52c1bec4559c" title="简书 &rarr; https://www.jianshu.com/u/52c1bec4559c" rel="noopener" target="_blank"><i class="fa fa-fw fa-globe"></i>简书</a>
+                </span>
+              
+            </div>
+          
+
+          
+
+          
+          
+
+          
+            
+          
+          
+
+        </div>
+      </div>
+
+      
+      <!--noindex-->
+        <div class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+            
+            
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#event-go"><span class="nav-number">1.</span> <span class="nav-text">event.go</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#数据结构"><span class="nav-number">1.1.</span> <span class="nav-text">数据结构</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Subscribe"><span class="nav-number">1.2.</span> <span class="nav-text">Subscribe</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Post"><span class="nav-number">1.3.</span> <span class="nav-text">Post</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Unsubscribe"><span class="nav-number">1.4.</span> <span class="nav-text">Unsubscribe</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#feed-go"><span class="nav-number">2.</span> <span class="nav-text">feed.go</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#Subscribe-1"><span class="nav-number">2.1.</span> <span class="nav-text">Subscribe</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Unsubscribe-1"><span class="nav-number">2.2.</span> <span class="nav-text">Unsubscribe</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Send"><span class="nav-number">2.3.</span> <span class="nav-text">Send</span></a></li></ol></li></ol></div>
+            
+
+          </div>
+        </div>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; 2018 – <span itemprop="copyrightYear">2019</span>
+  <span class="with-love" id="animate">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">AmorFati</span>
+
+  
+
+  
+</div>
+
+
+  <div class="powered-by">由 <a href="https://hexo.io" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v3.8.0</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 – <a href="https://theme-next.org" class="theme-link" rel="noopener" target="_blank">NexT.Pisces</a> v6.6.0</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+    
+
+    
+  </div>
+
+  
+
+<script>
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+
+  
+
+
+  <script src="/js/src/utils.js?v=6.6.0"></script>
+
+  <script src="/js/src/motion.js?v=6.6.0"></script>
+
+
+
+  
+  
+
+
+  <script src="/js/src/affix.js?v=6.6.0"></script>
+
+  <script src="/js/src/schemes/pisces.js?v=6.6.0"></script>
+
+
+
+  
+  <script src="/js/src/scrollspy.js?v=6.6.0"></script>
+<script src="/js/src/post-details.js?v=6.6.0"></script>
+
+
+
+  
+
+
+  <script src="/js/src/bootstrap.js?v=6.6.0"></script>
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  <script>
+    // Popup Window;
+    var isfetched = false;
+    var isXml = true;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length === 0) {
+      search_path = "search.xml";
+    } else if (/json$/i.test(search_path)) {
+      isXml = false;
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    var onPopupClose = function (e) {
+      $('.popup').hide();
+      $('#local-search-input').val('');
+      $('.search-result-list').remove();
+      $('#no-result').remove();
+      $(".local-search-pop-overlay").remove();
+      $('body').css('overflow', '');
+    }
+
+    function proceedsearch() {
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay"></div>')
+        .css('overflow', 'hidden');
+      $('.search-popup-overlay').click(onPopupClose);
+      $('.popup').toggle();
+      var $localSearchInput = $('#local-search-input');
+      $localSearchInput.attr("autocapitalize", "none");
+      $localSearchInput.attr("autocorrect", "off");
+      $localSearchInput.focus();
+    }
+
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+      'use strict';
+
+      // start loading animation
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay">' +
+          '<div id="search-loading-icon">' +
+          '<i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>' +
+          '</div>' +
+          '</div>')
+        .css('overflow', 'hidden');
+      $("#search-loading-icon").css('margin', '20% auto 0 auto').css('text-align', 'center');
+
+      
+
+      $.ajax({
+        url: path,
+        dataType: isXml ? "xml" : "json",
+        async: true,
+        success: function(res) {
+          // get the contents from search data
+          isfetched = true;
+          $('.popup').detach().appendTo('.header-inner');
+          var datas = isXml ? $("entry", res).map(function() {
+            return {
+              title: $("title", this).text(),
+              content: $("content",this).text(),
+              url: $("url" , this).text()
+            };
+          }).get() : res;
+          var input = document.getElementById(search_id);
+          var resultContent = document.getElementById(content_id);
+          var inputEventFunction = function() {
+            var searchText = input.value.trim().toLowerCase();
+            var keywords = searchText.split(/[\s\-]+/);
+            if (keywords.length > 1) {
+              keywords.push(searchText);
+            }
+            var resultItems = [];
+            if (searchText.length > 0) {
+              // perform local searching
+              datas.forEach(function(data) {
+                var isMatch = false;
+                var hitCount = 0;
+                var searchTextCount = 0;
+                var title = data.title.trim();
+                var titleInLowerCase = title.toLowerCase();
+                var content = data.content.trim().replace(/<[^>]+>/g,"");
+                
+                var contentInLowerCase = content.toLowerCase();
+                var articleUrl = decodeURIComponent(data.url);
+                var indexOfTitle = [];
+                var indexOfContent = [];
+                // only match articles with not empty titles
+                if(title != '') {
+                  keywords.forEach(function(keyword) {
+                    function getIndexByWord(word, text, caseSensitive) {
+                      var wordLen = word.length;
+                      if (wordLen === 0) {
+                        return [];
+                      }
+                      var startPosition = 0, position = [], index = [];
+                      if (!caseSensitive) {
+                        text = text.toLowerCase();
+                        word = word.toLowerCase();
+                      }
+                      while ((position = text.indexOf(word, startPosition)) > -1) {
+                        index.push({position: position, word: word});
+                        startPosition = position + wordLen;
+                      }
+                      return index;
+                    }
+
+                    indexOfTitle = indexOfTitle.concat(getIndexByWord(keyword, titleInLowerCase, false));
+                    indexOfContent = indexOfContent.concat(getIndexByWord(keyword, contentInLowerCase, false));
+                  });
+                  if (indexOfTitle.length > 0 || indexOfContent.length > 0) {
+                    isMatch = true;
+                    hitCount = indexOfTitle.length + indexOfContent.length;
+                  }
+                }
+
+                // show search results
+
+                if (isMatch) {
+                  // sort index by position of keyword
+
+                  [indexOfTitle, indexOfContent].forEach(function (index) {
+                    index.sort(function (itemLeft, itemRight) {
+                      if (itemRight.position !== itemLeft.position) {
+                        return itemRight.position - itemLeft.position;
+                      } else {
+                        return itemLeft.word.length - itemRight.word.length;
+                      }
+                    });
+                  });
+
+                  // merge hits into slices
+
+                  function mergeIntoSlice(text, start, end, index) {
+                    var item = index[index.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    var hits = [];
+                    var searchTextCountInSlice = 0;
+                    while (position + word.length <= end && index.length != 0) {
+                      if (word === searchText) {
+                        searchTextCountInSlice++;
+                      }
+                      hits.push({position: position, length: word.length});
+                      var wordEnd = position + word.length;
+
+                      // move to next position of hit
+
+                      index.pop();
+                      while (index.length != 0) {
+                        item = index[index.length - 1];
+                        position = item.position;
+                        word = item.word;
+                        if (wordEnd > position) {
+                          index.pop();
+                        } else {
+                          break;
+                        }
+                      }
+                    }
+                    searchTextCount += searchTextCountInSlice;
+                    return {
+                      hits: hits,
+                      start: start,
+                      end: end,
+                      searchTextCount: searchTextCountInSlice
+                    };
+                  }
+
+                  var slicesOfTitle = [];
+                  if (indexOfTitle.length != 0) {
+                    slicesOfTitle.push(mergeIntoSlice(title, 0, title.length, indexOfTitle));
+                  }
+
+                  var slicesOfContent = [];
+                  while (indexOfContent.length != 0) {
+                    var item = indexOfContent[indexOfContent.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    // cut out 100 characters
+                    var start = position - 20;
+                    var end = position + 80;
+                    if(start < 0){
+                      start = 0;
+                    }
+                    if (end < position + word.length) {
+                      end = position + word.length;
+                    }
+                    if(end > content.length){
+                      end = content.length;
+                    }
+                    slicesOfContent.push(mergeIntoSlice(content, start, end, indexOfContent));
+                  }
+
+                  // sort slices in content by search text's count and hits' count
+
+                  slicesOfContent.sort(function (sliceLeft, sliceRight) {
+                    if (sliceLeft.searchTextCount !== sliceRight.searchTextCount) {
+                      return sliceRight.searchTextCount - sliceLeft.searchTextCount;
+                    } else if (sliceLeft.hits.length !== sliceRight.hits.length) {
+                      return sliceRight.hits.length - sliceLeft.hits.length;
+                    } else {
+                      return sliceLeft.start - sliceRight.start;
+                    }
+                  });
+
+                  // select top N slices in content
+
+                  var upperBound = parseInt('1');
+                  if (upperBound >= 0) {
+                    slicesOfContent = slicesOfContent.slice(0, upperBound);
+                  }
+
+                  // highlight title and content
+
+                  function highlightKeyword(text, slice) {
+                    var result = '';
+                    var prevEnd = slice.start;
+                    slice.hits.forEach(function (hit) {
+                      result += text.substring(prevEnd, hit.position);
+                      var end = hit.position + hit.length;
+                      result += '<b class="search-keyword">' + text.substring(hit.position, end) + '</b>';
+                      prevEnd = end;
+                    });
+                    result += text.substring(prevEnd, slice.end);
+                    return result;
+                  }
+
+                  var resultItem = '';
+
+                  if (slicesOfTitle.length != 0) {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + highlightKeyword(title, slicesOfTitle[0]) + "</a>";
+                  } else {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + title + "</a>";
+                  }
+
+                  slicesOfContent.forEach(function (slice) {
+                    resultItem += "<a href='" + articleUrl + "'>" +
+                      "<p class=\"search-result\">" + highlightKeyword(content, slice) +
+                      "...</p>" + "</a>";
+                  });
+
+                  resultItem += "</li>";
+                  resultItems.push({
+                    item: resultItem,
+                    searchTextCount: searchTextCount,
+                    hitCount: hitCount,
+                    id: resultItems.length
+                  });
+                }
+              })
+            };
+            if (keywords.length === 1 && keywords[0] === "") {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>'
+            } else if (resultItems.length === 0) {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>'
+            } else {
+              resultItems.sort(function (resultLeft, resultRight) {
+                if (resultLeft.searchTextCount !== resultRight.searchTextCount) {
+                  return resultRight.searchTextCount - resultLeft.searchTextCount;
+                } else if (resultLeft.hitCount !== resultRight.hitCount) {
+                  return resultRight.hitCount - resultLeft.hitCount;
+                } else {
+                  return resultRight.id - resultLeft.id;
+                }
+              });
+              var searchResultList = '<ul class=\"search-result-list\">';
+              resultItems.forEach(function (result) {
+                searchResultList += result.item;
+              })
+              searchResultList += "</ul>";
+              resultContent.innerHTML = searchResultList;
+            }
+          }
+
+          if ('auto' === 'auto') {
+            input.addEventListener('input', inputEventFunction);
+          } else {
+            $('.search-icon').click(inputEventFunction);
+            input.addEventListener('keypress', function (event) {
+              if (event.keyCode === 13) {
+                inputEventFunction();
+              }
+            });
+          }
+
+          // remove loading animation
+          $(".local-search-pop-overlay").remove();
+          $('body').css('overflow', '');
+
+          proceedsearch();
+        }
+      });
+    }
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched === false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+    });
+
+    $('.popup-btn-close').click(onPopupClose);
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+    $(document).on('keyup', function (event) {
+      var shouldDismissSearchPopup = event.which === 27 &&
+        $('.search-popup').is(':visible');
+      if (shouldDismissSearchPopup) {
+        onPopupClose();
+      }
+    });
+  </script>
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+  
+
+  
+
+
+  
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>
