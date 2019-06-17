@@ -1,0 +1,1375 @@
+<!DOCTYPE html>
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+<html class="theme-next pisces use-motion" lang="zh-CN">
+<head><meta name="generator" content="Hexo 3.8.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+    
+      
+    
+
+    
+  
+
+  
+
+  
+    
+      
+    
+
+    
+  
+
+  
+    
+      
+    
+
+    
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Monda:300,300italic,400,400italic,700,700italic|Roboto Slab:300,300italic,400,400italic,700,700italic|Dancing Script:300,300italic,400,400italic,700,700italic|Consolas:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css">
+
+<link href="/css/main.css?v=6.6.0" rel="stylesheet" type="text/css">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=6.6.0">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=6.6.0">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=6.6.0">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=6.6.0" color="#222">
+
+
+
+
+
+
+
+
+
+<script id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    version: '6.6.0',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: false,
+    fastclick: false,
+    lazyload: false,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+  
+
+
+
+
+  <meta name="keywords" content="go">
+<meta property="og:type" content="article">
+<meta property="og:title" content="golang反射总结">
+<meta property="og:url" content="http://yoursite.com/2019/06/17/golang反射总结/index.html">
+<meta property="og:site_name" content="AmorFati">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:image" content="https://raw.githubusercontent.com/chenyaoyang/blog-pic/master/201906/dan-freeman-402614-unsplash.jpg">
+<meta property="og:updated_time" content="2019-06-17T10:26:29.047Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="golang反射总结">
+<meta name="twitter:image" content="https://raw.githubusercontent.com/chenyaoyang/blog-pic/master/201906/dan-freeman-402614-unsplash.jpg">
+
+
+
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2019/06/17/golang反射总结/">
+
+
+
+<script id="page.configurations">
+  CONFIG.page = {
+    sidebar: "",
+  };
+</script>
+
+  <title>golang反射总结 | AmorFati</title>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  <noscript>
+  <style>
+    .use-motion .motion-element,
+    .use-motion .brand,
+    .use-motion .menu-item,
+    .sidebar-inner,
+    .use-motion .post-block,
+    .use-motion .pagination,
+    .use-motion .comments,
+    .use-motion .post-header,
+    .use-motion .post-body,
+    .use-motion .collection-title { opacity: initial; }
+
+    .use-motion .logo,
+    .use-motion .site-title,
+    .use-motion .site-subtitle {
+      opacity: initial;
+      top: initial;
+    }
+
+    .use-motion .logo-line-before i { left: initial; }
+    .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope="" itemtype="http://schema.org/WebPage" lang="zh-CN">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope="" itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">AmorFati</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+    
+      
+        <p class="site-subtitle">风吹过窗前的书，又翻过一页</p>
+      
+    
+    
+  </div>
+
+  <div class="site-nav-toggle">
+    <button aria-label="切换导航栏">
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  
+    <ul id="menu" class="menu">
+      
+        
+        
+        
+          
+          <li class="menu-item menu-item-home">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/" rel="section"><i class="menu-item-icon fa fa-fw fa-home"></i> <br>首页</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-about">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/about/" rel="section"><i class="menu-item-icon fa fa-fw fa-user"></i> <br>关于</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-tags">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/tags/" rel="section"><i class="menu-item-icon fa fa-fw fa-tags"></i> <br>标签</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-categories">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/categories/" rel="section"><i class="menu-item-icon fa fa-fw fa-th"></i> <br>分类</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-archives">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/archives/" rel="section"><i class="menu-item-icon fa fa-fw fa-archive"></i> <br>归档</a>
+
+  </li>
+
+      
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br>搜索</a>
+        </li>
+      
+    </ul>
+  
+
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup search-popup local-search-popup">
+  <div class="local-search-header clearfix">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+    <div class="local-search-input-wrapper">
+      <input autocomplete="off" placeholder="搜索..." spellcheck="false" type="text" id="local-search-input">
+    </div>
+  </div>
+  <div id="local-search-result"></div>
+</div>
+
+
+
+    </div>
+  
+</nav>
+
+
+
+  
+
+
+
+</div>
+    </header>
+
+    
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+            
+
+          
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  
+
+  <article class="post post-type-normal" itemscope="" itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/06/17/golang反射总结/">
+
+    <span hidden itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="AmorFati">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/assets/img/icon.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope="" itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="AmorFati">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">golang反射总结
+
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+
+            
+            
+            
+
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+
+              
+                
+              
+
+              <time title="创建时间：2019-06-17 18:18:12 / 修改时间：18:26:29" itemprop="dateCreated datePublished" datetime="2019-06-17T18:18:12+08:00">2019-06-17</time>
+            
+
+            
+              
+
+              
+            
+          </span>
+
+          
+            <span class="post-category">
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope="" itemtype="http://schema.org/Thing"><a href="/categories/go语言学习笔记/" itemprop="url" rel="index"><span itemprop="name">go语言学习笔记</span></a></span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p><img src="https://raw.githubusercontent.com/chenyaoyang/blog-pic/master/201906/dan-freeman-402614-unsplash.jpg" alt=""><br><a id="more"></a></p>
+<h1 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h1><p>反射是建立在类型系统之上的，首先要清楚的是Go是一种静态语言，准确的说变量在编译器会有一种固定的明确的类型。<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">type</span> MyInt <span class="keyword">int</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">var</span> i <span class="keyword">int</span></span><br><span class="line"><span class="keyword">var</span> j MyInt</span><br></pre></td></tr></table></figure></p>
+<p>上面例子中，i是int类型，j是MyInt类型，二者底层虽然都是int类型，但是若不进行转换是无法直接赋值的。</p>
+<p>另一个需要事先了解的接口，接口代表一组固定的方法。一个接口可以存储任何确定的非接口类型的值，只要这种类型的值实现了接口对应的方法，如下<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> r io.Reader</span><br><span class="line">r = os.Stdin</span><br><span class="line">r = bufio.NewReader(r)</span><br><span class="line">r = <span class="built_in">new</span>(bytes.Buffer)</span><br></pre></td></tr></table></figure></p>
+<p>最后一个重要的点是空接口<code>interface{}</code>。因为他没有方法，所以他可以存储任何具体的值。</p>
+<p>关于go语言的反射非常重要的一点是他和接口是密切相关的。每一个接口变量都存储着一个二元组<code>(value, type)</code>，其中value表示赋给变量的具体值，type表示该值的类型描述。举例如下：<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> r io.Reader</span><br><span class="line">tty, err := os.OpenFile(<span class="string">"/dev/tty"</span>, os.O_RDWR, <span class="number">0</span>)</span><br><span class="line"><span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="literal">nil</span>, err</span><br><span class="line">&#125;</span><br><span class="line">r = tty</span><br></pre></td></tr></table></figure></p>
+<p>在上面代码中，r的二元组实际是<code>(tty, *os.File)</code>.需要注意的是虽然r定义的是Reader类型，但是type要求的是对值的完整类型描述，也就是具体类型，而不是接口类型。</p>
+<h1 id="从接口值获取反射对象"><a href="#从接口值获取反射对象" class="headerlink" title="从接口值获取反射对象"></a>从接口值获取反射对象</h1><p>简单来说，反射是一种检查存储在接口变量中的类型和值的机制。所以在go语言的reflect包中提供了这样两种类型:<a href="https://golang.org/pkg/reflect/#Type" target="_blank" rel="noopener">Type</a>和<a href="https://golang.org/pkg/reflect/#Value" target="_blank" rel="noopener">Value</a>。也就分别代表接口变量中存储的那个二元组。分别使用<code>reflect.TypeOf</code>和<code>reflect.ValueOf</code>去获取。如下<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">main</span><span class="params">()</span></span> &#123;</span><br><span class="line">	<span class="keyword">var</span> x <span class="keyword">float64</span> = <span class="number">3.4</span></span><br><span class="line">	fmt.Println(<span class="string">"type:"</span>, reflect.TypeOf(x))</span><br><span class="line">	fmt.Println(<span class="string">"value:"</span>, reflect.ValueOf(x))</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">输出：</span><br><span class="line">    <span class="keyword">type</span>: <span class="keyword">float64</span></span><br><span class="line">    value: <span class="number">3.4</span></span><br></pre></td></tr></table></figure></p>
+<h2 id="Type"><a href="#Type" class="headerlink" title="Type()"></a>Type()</h2><p>Type与Value都有大量方法，首先Value由一个Type()方法可以获取Type对象<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> x <span class="keyword">float64</span> = <span class="number">3.4</span></span><br><span class="line">xValue := reflect.ValueOf(x)</span><br><span class="line">fmt.Println(xValue.Type())</span><br></pre></td></tr></table></figure></p>
+<h2 id="Kind"><a href="#Kind" class="headerlink" title="Kind()"></a>Kind()</h2><p>Type与Value都还有一个Kind方法，他返回与各常量，用来表示存储项的类型，如Uint, Float64, Slice等<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">main</span><span class="params">()</span></span> &#123;</span><br><span class="line">	<span class="keyword">var</span> x <span class="keyword">float64</span> = <span class="number">3.4</span></span><br><span class="line">	xValue := reflect.ValueOf(x)</span><br><span class="line">	xType := xValue.Type()</span><br><span class="line">	fmt.Println(xValue.Kind())</span><br><span class="line">	fmt.Println(xType.Kind())</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">都输出<span class="keyword">float64</span></span><br></pre></td></tr></table></figure></p>
+<p>Kind是一组常量，或者说是枚举类型，具体如下<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> (</span><br><span class="line">	Invalid Kind = <span class="literal">iota</span></span><br><span class="line">	Bool</span><br><span class="line">	Int</span><br><span class="line">	Int8</span><br><span class="line">	Int16</span><br><span class="line">	Int32</span><br><span class="line">	Int64</span><br><span class="line">	Uint</span><br><span class="line">	Uint8</span><br><span class="line">	Uint16</span><br><span class="line">	Uint32</span><br><span class="line">	Uint64</span><br><span class="line">	Uintptr</span><br><span class="line">	Float32</span><br><span class="line">	Float64</span><br><span class="line">	Complex64</span><br><span class="line">	Complex128</span><br><span class="line">	Array</span><br><span class="line">	Chan</span><br><span class="line">	Func</span><br><span class="line">	Interface</span><br><span class="line">	Map</span><br><span class="line">	Ptr</span><br><span class="line">	Slice</span><br><span class="line">	String</span><br><span class="line">	Struct</span><br><span class="line">	UnsafePointer</span><br><span class="line">)</span><br></pre></td></tr></table></figure></p>
+<p>Kind表示的实际上就是底层类型，虽然我们可以定义的类型由无数种，但都是基于某种底层类型，如下<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">type</span> myInt <span class="keyword">int</span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">main</span><span class="params">()</span></span> &#123;</span><br><span class="line">	<span class="keyword">var</span> x myInt = <span class="number">5</span></span><br><span class="line">	xValue := reflect.ValueOf(x)</span><br><span class="line">	fmt.Println(xValue.Kind())</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">输出：<span class="keyword">int</span></span><br></pre></td></tr></table></figure></p>
+<h2 id="Xxxx"><a href="#Xxxx" class="headerlink" title="Xxxx"></a>Xxxx</h2><p>此外Value还有一组以类型命名的方法，如Bool()，Int()等，可以让我们取Value表示的具体的值。这里有一点需要注意的是，虽然我们直接将Value类型传递给fmt也可以直接获得值，那是因为fmt会帮我们做特别处理，若要获得真正的值还要借助这一组方法，这些方法返回的都是基本的类型。另外，如果用错类型会报错，如原本是float，我们却用int取值，就会报错<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">main</span><span class="params">()</span></span> &#123;</span><br><span class="line">	<span class="keyword">var</span> x <span class="keyword">float64</span> = <span class="number">3.4</span></span><br><span class="line">	v := reflect.ValueOf(x)</span><br><span class="line">	fmt.Println(<span class="string">"value:"</span>, v.Int())</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<h2 id="SetXxx"><a href="#SetXxx" class="headerlink" title="SetXxx"></a>SetXxx</h2><p>Value还有一组Set方法，如SetInt，SetFloat等，但是使用起来有许多需要注意的，见后文详细分析。</p>
+<h1 id="从反射对象获取接口值"><a href="#从反射对象获取接口值" class="headerlink" title="从反射对象获取接口值"></a>从反射对象获取接口值</h1><p>前面说的是给定一个接口值获得反射对象（Type、Value），这里我们还可以反过来<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">main</span><span class="params">()</span></span> &#123;</span><br><span class="line">	<span class="keyword">var</span> x <span class="keyword">float64</span> = <span class="number">3.4</span></span><br><span class="line">	v := reflect.ValueOf(x)</span><br><span class="line">	y:=v.Interface().(<span class="keyword">float64</span>)</span><br><span class="line">	fmt.Println(y)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>进一步的，由于println方法接受interface参数，我们甚至可以这样<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">fmt.Println(v.Interface())</span><br></pre></td></tr></table></figure></p>
+<h1 id="修改反射对象"><a href="#修改反射对象" class="headerlink" title="修改反射对象"></a>修改反射对象</h1><p>首先通过反射对象修改一个值，最重要的前提是该值必须是可设置的<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> x <span class="keyword">float64</span> = <span class="number">3.4</span></span><br><span class="line">v := reflect.ValueOf(x)</span><br><span class="line">v.SetFloat(<span class="number">7.1</span>)</span><br></pre></td></tr></table></figure></p>
+<p>上面一段代码必然会可报错，回顾刚才那句话，能修改的前提是该值是可设置的。这里用<code>CanSet()</code>方法检测，结果是false。</p>
+<p>关于可设置性实际上类似于可寻址，通过看报错信息就可以知道<code>panic: reflect: reflect.Value.SetFloat using unaddressable value</code>。回顾刚才那段代码，我们通过调用ValueOf方法获得一个Value对象，ValueOf传入的是x的一个副本，这就类似c语言中的一个经典问题：值传递和引用传递。当是值传递是，给方法的仅仅是一个副本，所以不能修改对象本身，既然这样我们试试传入地址呢？<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> x <span class="keyword">float64</span> = <span class="number">3.4</span></span><br><span class="line">p := reflect.ValueOf(&amp;x) </span><br><span class="line">fmt.Println(p.Type())</span><br><span class="line">fmt.Println(p.CanSet())</span><br><span class="line"></span><br><span class="line">输出：*<span class="keyword">float64</span>，<span class="literal">false</span></span><br></pre></td></tr></table></figure></p>
+<p>很遗憾还是不可设置，但是注意这里的不可设置是不可以修改*p(指针)本身。我们当然不要修改指针本身，我们要修改指针指向的值，这是就需要Elem方法<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">main</span><span class="params">()</span></span> &#123;</span><br><span class="line">	<span class="keyword">var</span> x <span class="keyword">float64</span> = <span class="number">3.4</span></span><br><span class="line">	p := reflect.ValueOf(&amp;x)</span><br><span class="line">	fmt.Println(p.Type())</span><br><span class="line">	fmt.Println(p.CanSet())</span><br><span class="line">	v := p.Elem()</span><br><span class="line">	fmt.Println(v.Type())</span><br><span class="line">	fmt.Println(v.CanSet())</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">输出：</span><br><span class="line">    *<span class="keyword">float64</span></span><br><span class="line">    <span class="literal">false</span></span><br><span class="line">    <span class="keyword">float64</span></span><br><span class="line">    <span class="literal">true</span></span><br></pre></td></tr></table></figure></p>
+<p>通过调用Elem方法我们又获得了一个Value对象，但是这个对象就不是指针了，而且是可修改的，这时就可以调用SetXxx方法<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">main</span><span class="params">()</span></span> &#123;</span><br><span class="line">	<span class="keyword">var</span> x <span class="keyword">float64</span> = <span class="number">3.4</span></span><br><span class="line">	p := reflect.ValueOf(&amp;x)</span><br><span class="line">	v := p.Elem()</span><br><span class="line">	v.SetFloat(<span class="number">5.1</span>)</span><br><span class="line">	fmt.Println(v.Interface())</span><br><span class="line">	fmt.Println(x)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">输出：<span class="number">5.1</span> <span class="number">5.1</span></span><br></pre></td></tr></table></figure></p>
+<p>总结一下，虽然是到了反射的层面，也依旧是指针才能修改对象。</p>
+<h1 id="结构体"><a href="#结构体" class="headerlink" title="结构体"></a>结构体</h1><p>前面讲的都是基本类型，关于结构体也是一样的原理，下面给一个反射结构体的例子</p>
+<h2 id="获取结构体成员"><a href="#获取结构体成员" class="headerlink" title="获取结构体成员"></a>获取结构体成员</h2><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">type</span> T <span class="keyword">struct</span> &#123;</span><br><span class="line">	A <span class="keyword">int</span></span><br><span class="line">	B <span class="keyword">string</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">main</span><span class="params">()</span></span> &#123;</span><br><span class="line">	t := T&#123;<span class="number">23</span>, <span class="string">"skidoo"</span>&#125;</span><br><span class="line"></span><br><span class="line">	tType:=reflect.TypeOf(t)</span><br><span class="line">	tValue:=reflect.ValueOf(t)</span><br><span class="line"></span><br><span class="line">	<span class="keyword">for</span> i := <span class="number">0</span>; i&lt;tType.NumField();i++  &#123;</span><br><span class="line">		tf:=tType.Field(i)</span><br><span class="line">		f:=tValue.Field(i)</span><br><span class="line">		fmt.Printf(<span class="string">"%d : %s(%s) %s=%v\n"</span>,i,tf.Name,f.Kind(),f.Type(),f.Interface())</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>注意这里用了两个Field方法，都是通过编号取对应的成员。但是主要区别是，Type的Field方法返回的是一个StructField对象，其中包含着字段的名称，包路径，类型，标签（在序列化与反序列化操作中，如json中很重要）等内容。而Value的Field方法返回的就是成员的一个Value对象，可进一步做反射操作</p>
+<h2 id="获取结构体方法"><a href="#获取结构体方法" class="headerlink" title="获取结构体方法"></a>获取结构体方法</h2><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">type</span> T <span class="keyword">struct</span> &#123;</span><br><span class="line">	A <span class="keyword">int</span></span><br><span class="line">	B <span class="keyword">string</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span><span class="params">(t T)</span><span class="title">f1</span><span class="params">()</span></span>&#123;</span><br><span class="line"></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span><span class="params">(t T)</span><span class="title">F2</span><span class="params">()</span></span>&#123;</span><br><span class="line"></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(t T)</span><span class="title">F3</span><span class="params">(i <span class="keyword">int</span>)</span><span class="title">int</span></span>  &#123;</span><br><span class="line">	<span class="keyword">return</span> <span class="number">0</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span><span class="params">(t *T)</span><span class="title">F4</span><span class="params">()</span></span>&#123;</span><br><span class="line"></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">main</span><span class="params">()</span></span> &#123;</span><br><span class="line">	a:=&amp;T&#123;<span class="number">5</span>,<span class="string">"hello"</span>&#125;</span><br><span class="line">	b:=T&#123;<span class="number">5</span>,<span class="string">"hello"</span>&#125;</span><br><span class="line"></span><br><span class="line">	tType1 := reflect.TypeOf(a)</span><br><span class="line">	tType2 := reflect.TypeOf(b)</span><br><span class="line"></span><br><span class="line">	<span class="keyword">for</span> i:=<span class="number">0</span>; i&lt;tType1.NumMethod();i++ &#123;</span><br><span class="line">		m:=tType1.Method(i)</span><br><span class="line">		fmt.Printf(<span class="string">"该结构体第%d个方法名为%v，类型是%v\n"</span>,i,m.Name,m.Type)</span><br><span class="line">		fnType:=m.Func.Type()</span><br><span class="line">		<span class="keyword">for</span> j := <span class="number">0</span>; j &lt; fnType.NumIn(); j++ &#123;</span><br><span class="line">			fmt.Printf(<span class="string">"\t 该方法第%d个参数类型为%v\n"</span>,j,fnType.In(j))</span><br><span class="line">		&#125;</span><br><span class="line">		<span class="keyword">for</span> j := <span class="number">0</span>; j &lt; fnType.NumOut(); j++ &#123;</span><br><span class="line">			fmt.Printf(<span class="string">"\t 该方法第%d个返回值类型为%v\n"</span>,j,fnType.Out(j))</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	fmt.Println(<span class="string">"-----------"</span>)</span><br><span class="line"></span><br><span class="line">	<span class="keyword">for</span> i:=<span class="number">0</span>; i&lt;tType2.NumMethod();i++ &#123;</span><br><span class="line">		m:=tType2.Method(i)</span><br><span class="line">		fmt.Printf(<span class="string">"该结构体第%d个方法名为%v，类型是%v\n"</span>,i,m.Name,m.Type)</span><br><span class="line">		fnType:=m.Func.Type()</span><br><span class="line">		<span class="keyword">for</span> j := <span class="number">0</span>; j &lt; fnType.NumIn(); j++ &#123;</span><br><span class="line">			fmt.Printf(<span class="string">"\t 该方法第%d个参数类型为%v\n"</span>,j,fnType.In(j))</span><br><span class="line">		&#125;</span><br><span class="line">		<span class="keyword">for</span> j := <span class="number">0</span>; j &lt; fnType.NumOut(); j++ &#123;</span><br><span class="line">			fmt.Printf(<span class="string">"\t 该方法第%d个返回值类型为%v\n"</span>,j,fnType.Out(j))</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">输出：</span><br><span class="line">    该结构体第<span class="number">0</span>个方法名为F2，类型是<span class="function"><span class="keyword">func</span><span class="params">(*main.T)</span></span></span><br><span class="line"><span class="function">    	 该方法第0个参数类型为*<span class="title">main</span>.<span class="title">T</span></span></span><br><span class="line"><span class="function">    该结构体第1个方法名为<span class="title">F3</span>，类型是<span class="title">func</span><span class="params">(*main.T, <span class="keyword">int</span>)</span> <span class="title">int</span></span></span><br><span class="line"><span class="function">    	 该方法第0个参数类型为*<span class="title">main</span>.<span class="title">T</span></span></span><br><span class="line"><span class="function">    	 该方法第1个参数类型为<span class="title">int</span></span></span><br><span class="line"><span class="function">    	 该方法第0个返回值类型为<span class="title">int</span></span></span><br><span class="line"><span class="function">    该结构体第2个方法名为<span class="title">F4</span>，类型是<span class="title">func</span><span class="params">(*main.T)</span></span></span><br><span class="line"><span class="function">    	 该方法第0个参数类型为*<span class="title">main</span>.<span class="title">T</span></span></span><br><span class="line"><span class="function">    -----------</span></span><br><span class="line"><span class="function">    该结构体第0个方法名为<span class="title">F2</span>，类型是<span class="title">func</span><span class="params">(main.T)</span></span></span><br><span class="line"><span class="function">    	 该方法第0个参数类型为<span class="title">main</span>.<span class="title">T</span></span></span><br><span class="line"><span class="function">    该结构体第1个方法名为<span class="title">F3</span>，类型是<span class="title">func</span><span class="params">(main.T, <span class="keyword">int</span>)</span> <span class="title">int</span></span></span><br><span class="line"><span class="function">    	 该方法第0个参数类型为<span class="title">main</span>.<span class="title">T</span></span></span><br><span class="line"><span class="function">    	 该方法第1个参数类型为<span class="title">int</span></span></span><br><span class="line"><span class="function">    	 该方法第0个返回值类型为<span class="title">int</span></span></span><br></pre></td></tr></table></figure>
+<p>基本流程还是先反射出Type对象，然后用NumMethod()获取结构体方法数（只包含可导出方法），接着用Method方法获取某个方法的Method对象，Method包含着方法的的基本描述，但是不含参数与返回值。要获得这两组内容需要先获取Method的Func成员，他是一个Value对象，他的NumIn()方法表示参数个数，In()表示某个参数的类型。同理，NumOut()表示返回值个数，Out()表示某个返回值的类型。暂时无法获取到参数名，因为在调用是参数名是无关紧要的，只要按照参数类型传值即可。</p>
+<p>还有一点需要注意的是，对指针类型对象和对值类型对象反射获取到的方法数是不同的，指针类型可以获取所有可导出方法，但是值类型只能获取那些值方法。</p>
+<p>另外所有方法的参数第一个参数都是结构体对象本身，这也就间接的解释了结构体方法的特点。</p>
+<h2 id="利用反射实例化"><a href="#利用反射实例化" class="headerlink" title="利用反射实例化"></a>利用反射实例化</h2><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">main</span><span class="params">()</span></span> &#123;</span><br><span class="line">	<span class="keyword">var</span> a <span class="keyword">int</span></span><br><span class="line">	t := reflect.TypeOf(a)</span><br><span class="line">	n := reflect.New(t)</span><br><span class="line">	n.Elem().SetInt(<span class="number">10</span>)</span><br><span class="line">	fmt.Println(a)</span><br><span class="line">	fmt.Println(n.Elem().Interface())</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>首先要反射出一种Type对象，然后用new方法新建一个Value对象，注意这实际上是指针类型的，所以要用前面讨论过的方法进行赋值。再给一个实例化结构体的<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">main</span><span class="params">()</span></span> &#123;</span><br><span class="line">	<span class="keyword">var</span> t T</span><br><span class="line">	tType := reflect.TypeOf(t)</span><br><span class="line">	n := reflect.New(tType)</span><br><span class="line">	n.Elem().Field(<span class="number">0</span>).SetInt(<span class="number">10</span>)</span><br><span class="line">	n.Elem().Field(<span class="number">1</span>).SetString(<span class="string">"hello"</span>)</span><br><span class="line">	nt := n.Elem().Interface().(T)</span><br><span class="line">	fmt.Println(nt.A,nt.B)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<h1 id="利用反射调用方法"><a href="#利用反射调用方法" class="headerlink" title="利用反射调用方法"></a>利用反射调用方法</h1><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">main</span><span class="params">()</span></span> &#123;</span><br><span class="line">	v:=reflect.ValueOf(add)</span><br><span class="line">	params:=[]reflect.Value&#123;reflect.ValueOf(<span class="number">10</span>),reflect.ValueOf(<span class="number">20</span>)&#125;</span><br><span class="line">	r :=v.Call(params)</span><br><span class="line">	fmt.Println(r[<span class="number">0</span>].Int())</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">add</span><span class="params">(a,b <span class="keyword">int</span>)</span><span class="title">int</span></span>  &#123;</span><br><span class="line">	<span class="keyword">return</span> a+b;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>首先反射出方法的value对象，然后构造参数数组，接着调用call方法调用，返回值是一个数组，表示方法的返回值数组。再给一个反射调用结构体方法的例子<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">type</span> T <span class="keyword">struct</span> &#123;</span><br><span class="line">	A <span class="keyword">int</span></span><br><span class="line">	B <span class="keyword">string</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span><span class="params">(t *T)</span><span class="title">Add</span><span class="params">(i <span class="keyword">int</span>)</span><span class="title">int</span></span>&#123;</span><br><span class="line">	<span class="keyword">return</span> t.A+i;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">main</span><span class="params">()</span></span> &#123;</span><br><span class="line">	t:=&amp;T&#123;<span class="number">10</span>,<span class="string">"hello"</span>&#125;</span><br><span class="line">	tType:=reflect.TypeOf(t)</span><br><span class="line">	f:=tType.Method(<span class="number">0</span>).Func</span><br><span class="line">	fmt.Println(f.Call([]reflect.Value&#123;reflect.ValueOf(t),reflect.ValueOf(<span class="number">10</span>)&#125;)[<span class="number">0</span>].Int())</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>注意，凡是属于结构体的方法，默认第一个参数都是结构体对象本身。</p>
+<blockquote>
+<p>题图来自unsplash：<a href="https://unsplash.com/photos/wAn4RfmXtxU" target="_blank" rel="noopener">https://unsplash.com/photos/wAn4RfmXtxU</a></p>
+</blockquote>
+
+      
+    </div>
+
+    
+
+    
+    
+    
+
+    
+
+    
+      
+    
+    
+      <div>
+        <div style="padding: 10px 0; margin: 20px auto; width: 90%; text-align: center;">
+  <div>谢谢你请我吃糖</div>
+  <button id="rewardButton" disable="enable" onclick="var qr = document.getElementById('QR'); if (qr.style.display === 'none') {qr.style.display='block';} else {qr.style.display='none'}">
+    <span>打赏</span>
+  </button>
+  <div id="QR" style="display: none;">
+
+    
+      <div id="wechat" style="display: inline-block">
+        <img id="wechat_qr" src="/assets/img/wechatpay.jpg" alt="AmorFati 微信支付">
+        <p>微信支付</p>
+      </div>
+    
+
+    
+      <div id="alipay" style="display: inline-block">
+        <img id="alipay_qr" src="/assets/img/alipay.jpg" alt="AmorFati 支付宝">
+        <p>支付宝</p>
+      </div>
+    
+
+    
+
+  </div>
+</div>
+
+      </div>
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/go/" rel="tag"># go</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2019/06/17/golang文件IO操作总结/" rel="next" title="golang文件IO操作总结">
+                <i class="fa fa-chevron-left"></i> golang文件IO操作总结
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+  </div>
+
+
+          </div>
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image" src="/assets/img/icon.jpg" alt="AmorFati">
+            
+              <p class="site-author-name" itemprop="name">AmorFati</p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          
+            <nav class="site-state motion-element">
+              
+                <div class="site-state-item site-state-posts">
+                
+                  <a href="/archives/">
+                
+                    <span class="site-state-item-count">53</span>
+                    <span class="site-state-item-name">日志</span>
+                  </a>
+                </div>
+              
+
+              
+                
+                
+                <div class="site-state-item site-state-categories">
+                  <a href="/categories/index.html">
+                    
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">8</span>
+                    <span class="site-state-item-name">分类</span>
+                  </a>
+                </div>
+              
+
+              
+                
+                
+                <div class="site-state-item site-state-tags">
+                  <a href="/tags/index.html">
+                    
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">12</span>
+                    <span class="site-state-item-name">标签</span>
+                  </a>
+                </div>
+              
+            </nav>
+          
+
+          
+
+          
+            <div class="links-of-author motion-element">
+              
+                <span class="links-of-author-item">
+                  
+                  
+                    
+                  
+                  
+                    
+                  
+                  <a href="https://github.com/chenyaoyang" title="GitHub &rarr; https://github.com/chenyaoyang" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i>GitHub</a>
+                </span>
+              
+                <span class="links-of-author-item">
+                  
+                  
+                    
+                  
+                  
+                    
+                  
+                  <a href="mailto:chenyang4346@foxmail.com" title="E-Mail &rarr; mailto:chenyang4346@foxmail.com" rel="noopener" target="_blank"><i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+                </span>
+              
+                <span class="links-of-author-item">
+                  
+                  
+                    
+                  
+                  
+                    
+                  
+                  <a href="https://www.jianshu.com/u/52c1bec4559c" title="简书 &rarr; https://www.jianshu.com/u/52c1bec4559c" rel="noopener" target="_blank"><i class="fa fa-fw fa-globe"></i>简书</a>
+                </span>
+              
+            </div>
+          
+
+          
+
+          
+          
+
+          
+            
+          
+          
+
+        </div>
+      </div>
+
+      
+      <!--noindex-->
+        <div class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+            
+            
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#简介"><span class="nav-number">1.</span> <span class="nav-text">简介</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#从接口值获取反射对象"><span class="nav-number">2.</span> <span class="nav-text">从接口值获取反射对象</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#Type"><span class="nav-number">2.1.</span> <span class="nav-text">Type()</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Kind"><span class="nav-number">2.2.</span> <span class="nav-text">Kind()</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Xxxx"><span class="nav-number">2.3.</span> <span class="nav-text">Xxxx</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#SetXxx"><span class="nav-number">2.4.</span> <span class="nav-text">SetXxx</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#从反射对象获取接口值"><span class="nav-number">3.</span> <span class="nav-text">从反射对象获取接口值</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#修改反射对象"><span class="nav-number">4.</span> <span class="nav-text">修改反射对象</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#结构体"><span class="nav-number">5.</span> <span class="nav-text">结构体</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#获取结构体成员"><span class="nav-number">5.1.</span> <span class="nav-text">获取结构体成员</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#获取结构体方法"><span class="nav-number">5.2.</span> <span class="nav-text">获取结构体方法</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#利用反射实例化"><span class="nav-number">5.3.</span> <span class="nav-text">利用反射实例化</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#利用反射调用方法"><span class="nav-number">6.</span> <span class="nav-text">利用反射调用方法</span></a></li></ol></div>
+            
+
+          </div>
+        </div>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; 2018 – <span itemprop="copyrightYear">2019</span>
+  <span class="with-love" id="animate">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">AmorFati</span>
+
+  
+
+  
+</div>
+
+
+  <div class="powered-by">由 <a href="https://hexo.io" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v3.8.0</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 – <a href="https://theme-next.org" class="theme-link" rel="noopener" target="_blank">NexT.Pisces</a> v6.6.0</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+    
+
+    
+  </div>
+
+  
+
+<script>
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+
+  
+
+
+  <script src="/js/src/utils.js?v=6.6.0"></script>
+
+  <script src="/js/src/motion.js?v=6.6.0"></script>
+
+
+
+  
+  
+
+
+  <script src="/js/src/affix.js?v=6.6.0"></script>
+
+  <script src="/js/src/schemes/pisces.js?v=6.6.0"></script>
+
+
+
+  
+  <script src="/js/src/scrollspy.js?v=6.6.0"></script>
+<script src="/js/src/post-details.js?v=6.6.0"></script>
+
+
+
+  
+
+
+  <script src="/js/src/bootstrap.js?v=6.6.0"></script>
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  <script>
+    // Popup Window;
+    var isfetched = false;
+    var isXml = true;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length === 0) {
+      search_path = "search.xml";
+    } else if (/json$/i.test(search_path)) {
+      isXml = false;
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    var onPopupClose = function (e) {
+      $('.popup').hide();
+      $('#local-search-input').val('');
+      $('.search-result-list').remove();
+      $('#no-result').remove();
+      $(".local-search-pop-overlay").remove();
+      $('body').css('overflow', '');
+    }
+
+    function proceedsearch() {
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay"></div>')
+        .css('overflow', 'hidden');
+      $('.search-popup-overlay').click(onPopupClose);
+      $('.popup').toggle();
+      var $localSearchInput = $('#local-search-input');
+      $localSearchInput.attr("autocapitalize", "none");
+      $localSearchInput.attr("autocorrect", "off");
+      $localSearchInput.focus();
+    }
+
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+      'use strict';
+
+      // start loading animation
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay">' +
+          '<div id="search-loading-icon">' +
+          '<i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>' +
+          '</div>' +
+          '</div>')
+        .css('overflow', 'hidden');
+      $("#search-loading-icon").css('margin', '20% auto 0 auto').css('text-align', 'center');
+
+      
+
+      $.ajax({
+        url: path,
+        dataType: isXml ? "xml" : "json",
+        async: true,
+        success: function(res) {
+          // get the contents from search data
+          isfetched = true;
+          $('.popup').detach().appendTo('.header-inner');
+          var datas = isXml ? $("entry", res).map(function() {
+            return {
+              title: $("title", this).text(),
+              content: $("content",this).text(),
+              url: $("url" , this).text()
+            };
+          }).get() : res;
+          var input = document.getElementById(search_id);
+          var resultContent = document.getElementById(content_id);
+          var inputEventFunction = function() {
+            var searchText = input.value.trim().toLowerCase();
+            var keywords = searchText.split(/[\s\-]+/);
+            if (keywords.length > 1) {
+              keywords.push(searchText);
+            }
+            var resultItems = [];
+            if (searchText.length > 0) {
+              // perform local searching
+              datas.forEach(function(data) {
+                var isMatch = false;
+                var hitCount = 0;
+                var searchTextCount = 0;
+                var title = data.title.trim();
+                var titleInLowerCase = title.toLowerCase();
+                var content = data.content.trim().replace(/<[^>]+>/g,"");
+                
+                var contentInLowerCase = content.toLowerCase();
+                var articleUrl = decodeURIComponent(data.url);
+                var indexOfTitle = [];
+                var indexOfContent = [];
+                // only match articles with not empty titles
+                if(title != '') {
+                  keywords.forEach(function(keyword) {
+                    function getIndexByWord(word, text, caseSensitive) {
+                      var wordLen = word.length;
+                      if (wordLen === 0) {
+                        return [];
+                      }
+                      var startPosition = 0, position = [], index = [];
+                      if (!caseSensitive) {
+                        text = text.toLowerCase();
+                        word = word.toLowerCase();
+                      }
+                      while ((position = text.indexOf(word, startPosition)) > -1) {
+                        index.push({position: position, word: word});
+                        startPosition = position + wordLen;
+                      }
+                      return index;
+                    }
+
+                    indexOfTitle = indexOfTitle.concat(getIndexByWord(keyword, titleInLowerCase, false));
+                    indexOfContent = indexOfContent.concat(getIndexByWord(keyword, contentInLowerCase, false));
+                  });
+                  if (indexOfTitle.length > 0 || indexOfContent.length > 0) {
+                    isMatch = true;
+                    hitCount = indexOfTitle.length + indexOfContent.length;
+                  }
+                }
+
+                // show search results
+
+                if (isMatch) {
+                  // sort index by position of keyword
+
+                  [indexOfTitle, indexOfContent].forEach(function (index) {
+                    index.sort(function (itemLeft, itemRight) {
+                      if (itemRight.position !== itemLeft.position) {
+                        return itemRight.position - itemLeft.position;
+                      } else {
+                        return itemLeft.word.length - itemRight.word.length;
+                      }
+                    });
+                  });
+
+                  // merge hits into slices
+
+                  function mergeIntoSlice(text, start, end, index) {
+                    var item = index[index.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    var hits = [];
+                    var searchTextCountInSlice = 0;
+                    while (position + word.length <= end && index.length != 0) {
+                      if (word === searchText) {
+                        searchTextCountInSlice++;
+                      }
+                      hits.push({position: position, length: word.length});
+                      var wordEnd = position + word.length;
+
+                      // move to next position of hit
+
+                      index.pop();
+                      while (index.length != 0) {
+                        item = index[index.length - 1];
+                        position = item.position;
+                        word = item.word;
+                        if (wordEnd > position) {
+                          index.pop();
+                        } else {
+                          break;
+                        }
+                      }
+                    }
+                    searchTextCount += searchTextCountInSlice;
+                    return {
+                      hits: hits,
+                      start: start,
+                      end: end,
+                      searchTextCount: searchTextCountInSlice
+                    };
+                  }
+
+                  var slicesOfTitle = [];
+                  if (indexOfTitle.length != 0) {
+                    slicesOfTitle.push(mergeIntoSlice(title, 0, title.length, indexOfTitle));
+                  }
+
+                  var slicesOfContent = [];
+                  while (indexOfContent.length != 0) {
+                    var item = indexOfContent[indexOfContent.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    // cut out 100 characters
+                    var start = position - 20;
+                    var end = position + 80;
+                    if(start < 0){
+                      start = 0;
+                    }
+                    if (end < position + word.length) {
+                      end = position + word.length;
+                    }
+                    if(end > content.length){
+                      end = content.length;
+                    }
+                    slicesOfContent.push(mergeIntoSlice(content, start, end, indexOfContent));
+                  }
+
+                  // sort slices in content by search text's count and hits' count
+
+                  slicesOfContent.sort(function (sliceLeft, sliceRight) {
+                    if (sliceLeft.searchTextCount !== sliceRight.searchTextCount) {
+                      return sliceRight.searchTextCount - sliceLeft.searchTextCount;
+                    } else if (sliceLeft.hits.length !== sliceRight.hits.length) {
+                      return sliceRight.hits.length - sliceLeft.hits.length;
+                    } else {
+                      return sliceLeft.start - sliceRight.start;
+                    }
+                  });
+
+                  // select top N slices in content
+
+                  var upperBound = parseInt('1');
+                  if (upperBound >= 0) {
+                    slicesOfContent = slicesOfContent.slice(0, upperBound);
+                  }
+
+                  // highlight title and content
+
+                  function highlightKeyword(text, slice) {
+                    var result = '';
+                    var prevEnd = slice.start;
+                    slice.hits.forEach(function (hit) {
+                      result += text.substring(prevEnd, hit.position);
+                      var end = hit.position + hit.length;
+                      result += '<b class="search-keyword">' + text.substring(hit.position, end) + '</b>';
+                      prevEnd = end;
+                    });
+                    result += text.substring(prevEnd, slice.end);
+                    return result;
+                  }
+
+                  var resultItem = '';
+
+                  if (slicesOfTitle.length != 0) {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + highlightKeyword(title, slicesOfTitle[0]) + "</a>";
+                  } else {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + title + "</a>";
+                  }
+
+                  slicesOfContent.forEach(function (slice) {
+                    resultItem += "<a href='" + articleUrl + "'>" +
+                      "<p class=\"search-result\">" + highlightKeyword(content, slice) +
+                      "...</p>" + "</a>";
+                  });
+
+                  resultItem += "</li>";
+                  resultItems.push({
+                    item: resultItem,
+                    searchTextCount: searchTextCount,
+                    hitCount: hitCount,
+                    id: resultItems.length
+                  });
+                }
+              })
+            };
+            if (keywords.length === 1 && keywords[0] === "") {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>'
+            } else if (resultItems.length === 0) {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>'
+            } else {
+              resultItems.sort(function (resultLeft, resultRight) {
+                if (resultLeft.searchTextCount !== resultRight.searchTextCount) {
+                  return resultRight.searchTextCount - resultLeft.searchTextCount;
+                } else if (resultLeft.hitCount !== resultRight.hitCount) {
+                  return resultRight.hitCount - resultLeft.hitCount;
+                } else {
+                  return resultRight.id - resultLeft.id;
+                }
+              });
+              var searchResultList = '<ul class=\"search-result-list\">';
+              resultItems.forEach(function (result) {
+                searchResultList += result.item;
+              })
+              searchResultList += "</ul>";
+              resultContent.innerHTML = searchResultList;
+            }
+          }
+
+          if ('auto' === 'auto') {
+            input.addEventListener('input', inputEventFunction);
+          } else {
+            $('.search-icon').click(inputEventFunction);
+            input.addEventListener('keypress', function (event) {
+              if (event.keyCode === 13) {
+                inputEventFunction();
+              }
+            });
+          }
+
+          // remove loading animation
+          $(".local-search-pop-overlay").remove();
+          $('body').css('overflow', '');
+
+          proceedsearch();
+        }
+      });
+    }
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched === false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+    });
+
+    $('.popup-btn-close').click(onPopupClose);
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+    $(document).on('keyup', function (event) {
+      var shouldDismissSearchPopup = event.which === 27 &&
+        $('.search-popup').is(':visible');
+      if (shouldDismissSearchPopup) {
+        onPopupClose();
+      }
+    });
+  </script>
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+  
+
+  
+
+
+  
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>
